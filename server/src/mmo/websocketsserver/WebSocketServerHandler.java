@@ -1,4 +1,4 @@
-package mmo.httpserver;
+package mmo.websocketsserver;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.*;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;

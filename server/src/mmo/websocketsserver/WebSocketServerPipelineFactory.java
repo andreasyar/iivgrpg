@@ -1,4 +1,4 @@
-package mmo.httpserver;
+package mmo.websocketsserver;
 
 import static org.jboss.netty.channel.Channels.*;
 

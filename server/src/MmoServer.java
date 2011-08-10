@@ -1,7 +1,7 @@
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
-import mmo.httpserver.WebSocketServerPipelineFactory;
+import mmo.websocketsserver.WebSocketServerPipelineFactory;
 
 import org.jboss.netty.bootstrap.*;
 import org.jboss.netty.channel.socket.nio.*;
