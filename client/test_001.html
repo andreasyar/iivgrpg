@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <!-- Supermarket Software Foundation (c) -->
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<html>
+<head>
 <title>Test</title>
 <style>
 #scr {
@@ -9,7 +9,7 @@
 }
 </style>
 </head>
-<body onload="main_loop()">
+<body onLoad="init()"><!-- main_loop() -->
 <script>
 
 /*************
@@ -87,30 +87,30 @@ var map = {
         // Clean all rect yet.
         c.clearRect(0, 0, map_buffer.width, map_buffer.height);
 
-        // ��������, ����� ������ ����� ���������� �� ����� ��� �������
-        // ��������� ������ ������. �������� ���� ��� ����� ��������� � ������
-        // 1, 1 �� ��� ����� ���������� ��� ������ ������� ���������� �� �����
-        // � ������� 1, 1 � ������ ������.
+        // Вычислим, какие клетки карты помещаются на экран при текущем
+        // положении нашего игрока. Например если наш игрок находится в клетке
+        // 1, 1 то нам нужно нарисовать все клетки которые помещаются на экран
+        // с клеткой 1, 1 в центре экрана.
         
-        // j_from - ������ ����� ����� ������, ������� ��������� �� �����.
+        // j_from - индекс самой левой клетки, которая умещается на экран.
         var j_from = self_player.j - Math.ceil((self_player.x - CELL_HW) / CELL_W);
         if (j_from < 0) {
             j_from = 0;
         }
         
-        // j_to  - ������ ����� ������ ������, ������� ��������� �� �����.
+        // j_to  - индекс самой правой клетки, которая умещается на экран.
         var j_to = self_player.j + Math.ceil((self_player.x + CELL_HW) / CELL_W);
         if (j_to >= map.w) {
             j_to = map.w - 1;
         }
         
-        // i_from - ������ ����� ������� ������, ������� ��������� �� �����.
+        // i_from - индекс самой верхней клетки, которая умещается на экран.
         var i_from = self_player.i - Math.ceil((self_player.y - CELL_HH) / CELL_H);
         if (i_from < 0) {
             i_from = 0;
         }
         
-        // i_to - ������ ����� ������ ������, ������� ��������� �� �����.
+        // i_to - индекс самой нижней клетки, которая умещается на экран.
         var i_to = self_player.i + Math.ceil((self_player.y + CELL_HH) / CELL_H);
         if (i_to >= map.h) {
             i_to = map.h - 1;
@@ -130,17 +130,17 @@ var map = {
         }
     },
     
-    // ���������� x-���������� ������ �������� ������ ���� ������ ����� �� � ������� j.
+    // Возвращает x-координату экрана верхнего левого угла клетки карты по её индексу j.
     getCellXOnScreen: function(j) {
         return (self_player.x - CELL_HW) + (j - self_player.j) * CELL_W;
     },
     
-    // ���������� y-���������� ������ �������� ������ ���� ������ ����� �� � ������� i.
+    // Возвращает y-координату экрана верхнего левого угла клетки карты по её индексу i.
     getCellYOnScreen: function(i) {
         return (self_player.y - CELL_HH) + (i - self_player.i) * CELL_H;
     },
     
-    // ���������� j ������ ������ �����, ������� ��������� � ����� ������ � ����������� x.
+    // Возвращает j индекс клетки карты, которая находится в точке экрана с координатой x.
     getCellJFromScreen: function(x) {
         var _;
         if (x < self_player.x) {
@@ -153,7 +153,7 @@ var map = {
         return _;
     },
     
-    // ���������� i ������ ������ �����, ������� ��������� � ����� ������ � ����������� y.
+    // Возвращает i индекс клетки карты, которая находится в точке экрана с координатой y.
     getCellIFromScreen: function(y) {
         var _;
         if (y < self_player.y) {
@@ -208,7 +208,7 @@ var self_player = {
     // itself while destination not reached and then stops movement.
     move: function() {
         
-        // ����� ��� �� ����� ��������, ����� ������ ���� �������� � �������� ����� � ��.
+        // Здесь нет ни каких проверок, игрок просто тупо движется в заданную точку и всё.
         
         if (this.move_to_j != null && this.move_to_i != null && (this.j != this.move_to_j || this.i != this.move_to_i)) {
             this.is_move = true;
@@ -233,6 +233,70 @@ var self_player = {
 
 };
 
+// Server interaction object.
+var server = {
+    socket: null,
+    messages: new Array(),
+    connect: function(addr) {
+        if (window.WebSocket) {
+            this.socket = new WebSocket(addr);
+            this.socket.onmessage = function(event) {
+                //alert(event.data);
+                document.getElementById('messages').innerHTML = event.data;
+            };
+            this.socket.onopen = function(event) {
+                //alert("Web Socket opened!");
+                for (var i = 0; i < server.messages.length; i++) {
+                    server.sendMessage(server.messages[i]);
+                }
+                server.messages = new Array();
+            };
+            this.socket.onclose = function(event) {
+                alert("Web Socket closed.");
+            };
+            return true;
+        } else {
+            alert("Your browser does not support Web Socket.");
+            return false;
+        }
+    },
+    sendMessage: function(object) {
+        if (!window.WebSocket) {
+            return false;
+        }
+        if (this.socket == null) {
+            //alert("The socket is null.");
+            this.messages.push(object);
+            return false; 
+        }
+        if (this.socket.readyState == WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(object));
+            return true; 
+        } else {
+            //alert("The socket is not open.");
+            this.messages.push(object);
+            return false; 
+        }
+    }
+};
+
+// Message types enum.
+var message_types = {
+    LOGIN: "LOGIN"
+};
+
+// Login message constructor.
+function LoginMessage(login, password) {
+    if (this.constructor !== arguments.callee) {
+        throw new Error("Incorrect call - constructor called like a simple function!");
+    }
+    
+    this.type = message_types.LOGIN;
+    this.login = login;
+    this.password = password;
+    return this;
+}
+
 // Load terrain sprites
 
 for (var i in map.terrainSprites) {
@@ -253,6 +317,14 @@ drawable_objects.push(self_player);
 /*************
  * Functions *
  *************/
+
+function init() {
+    server.sendMessage(new LoginMessage("sorc", "123"));
+    //createLoginMessage(message_types.LOGIN, "sorc", "123");
+    if (server.connect("ws://rz-public.no-ip.org:8015/websocket")) {
+        setTimeout("main_loop();", 1000 / FPS);
+    }
+}
 
 function main_loop() {
     var scr_context = scr.getContext('2d');
@@ -299,8 +371,7 @@ function scrOnClick(e) {
         self_player.move();
     }
 }
-
-</script><canvas height="600" width="800" id="scr"></canvas>
-
-
-</body></html>
+</script>
+<div id="messages"></div>
+</body>
+</html>
