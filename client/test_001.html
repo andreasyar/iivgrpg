@@ -3,14 +3,21 @@
 <html>
 <head>
 <title>Test</title>
-<style>
+<style type="text/css" >
 #scr {
     border: 1px solid #000000;  /* Border around main canvas. */
+}
+#login_form {
+    background-color: tan;
+    z-index: 1;
+    position: absolute;
+    top: 300px;
+    left: 300px;
 }
 </style>
 </head>
 <body onLoad="init()"><!-- main_loop() -->
-<script>
+<script type="text/javascript">
 
 /*************
  * Constants *
@@ -50,6 +57,12 @@ var players_buffer = document.createElement('canvas');
 players_buffer.width = SCR_W;
 players_buffer.height = SCR_H;
 
+// Буфер (конва) для отрисовки ГУИ. Сейчас не используется.
+
+/*var gui_buffer = document.createElement('canvas');
+gui_buffer.width = SCR_W;
+gui_buffer.height = SCR_H;*/
+
 /*********************
  * Service variables *
  *********************/
@@ -83,9 +96,6 @@ var map = {
     // Draw function. Draws map.
     draw: function() {
         var c = map_buffer.getContext('2d');
-        
-        // Clean all rect yet.
-        c.clearRect(0, 0, map_buffer.width, map_buffer.height);
 
         // Вычислим, какие клетки карты помещаются на экран при текущем
         // положении нашего игрока. Например если наш игрок находится в клетке
@@ -194,9 +204,6 @@ var self_player = {
     // Draw function. Very simplw yet.
     draw: function() {
         var c = players_buffer.getContext('2d');
-        
-        // Clean all rect yet.
-        c.clearRect(0, 0, map_buffer.width, map_buffer.height);
 
         var x = map.getCellXOnScreen(this.j);
         var y = map.getCellYOnScreen(this.i);
@@ -309,21 +316,200 @@ for (var i in self_player.playerSprites) {
     self_player.playerSprites[i].image.src = self_player.playerSprites[i].src;
 }
 
-// Put objects into drawable list
+// Put map and self player into drawable list.
 
 drawable_objects.push(map);
 drawable_objects.push(self_player);
+
+/***********
+ * Classes *
+ ***********/
+
+// Игрок.
+function Player() {
+    if (this.constructor !== arguments.callee) {
+        throw new Error("Incorrect call. Constructor called like a simple "
+                        + "function!");
+    }
+
+    // Положение относительно конвы в пикселах по оси Х.
+    this.x = 0;
+
+    // Положение относительно конвы в пикселах по оси Y.
+    this.y = 0;
+    
+    // Положение относительно карты в клетках по ширине.
+    this.j = 0;
+
+    // Положение относительно карты в клетках по ширине.
+    this.i = 0;
+}
+
+// Наброски для своих контролов.
+/*function IIWindow(title, x, y, w, h, hasTopBar) {
+    this.title = title;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.hasTopBar = hasTopBar;
+    this.visible = true;
+    this.closeButton = null;
+    this.elements = new Array();
+    this.contains = function(x, y) {
+        if (!this.visible) {
+            return false;
+        }
+        return x >= this.x && x <= (this.x + this.w)
+            && y >= this.y && y <= (this.y + this.h);
+    };
+    this.onPress = function (x, y) {
+        for (var i in this.elements) {
+            if (this.elements[i].contains(x, y)) {
+                this.elements[i].onPress(x, y);
+                return;
+            }
+        }
+        if (this.hasTopBar) {
+            if (this.closeButton.contains(x, y)) {
+                this.closeButton.onPress(x, y);
+                return;
+            }
+        }
+    };
+    if (this.hasTopBar) {
+        this.closeButton = new IIButton("x", x + w - 30, y + 10, 20, 20, this);
+        this.closeButton.onPress = function(x, y) {
+            //alert(this.text);
+            if (this.rootWindow != null) {
+                this.rootWindow.close();
+            }
+        };
+    }
+    this.draw = function(context) {
+        if (!this.visible) {
+            return;
+        }
+
+        if (context == undefined) {
+            context = gui_buffer.getContext('2d');
+        }
+
+        context.lineWidth = 0.5;
+        context.fillStyle = 'grey';
+        context.strokeStyle = 'black';
+        context.fillRect(this.x, this.y, this.w, this.h);
+        context.strokeRect(this.x, this.y, this.w, this.h);
+
+        if (this.hasTopBar) {
+            context.fillStyle = 'black';
+            context.fillText(this.title, this.x + 10, this.y + 10, this.w - 40);
+            this.closeButton.draw(context);
+        }
+
+        for (var i in this.elements) {
+            this.elements[i].draw(context);
+        }
+    };
+    this.close = function () {
+        this.visible = false;
+    };
+    this.addElement = function (e) {
+        this.elements.push(e);
+    }
+}
+
+function IIButton(text, x, y, w, h, rootWindow) {
+    this.text = text;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.rootWindow = null;
+    if (rootWindow != undefined) {
+        this.rootWindow = rootWindow;
+    }
+    this.onPress = function(x, y) {};
+    this.contains = function(x, y) {
+        return x >= this.x && x <= (this.x + this.w)
+            && y >= this.y && y <= (this.y + this.h);
+    };
+    this.draw = function(context) {
+        if (context == undefined) {
+            context = gui_buffer.getContext('2d');
+        }
+
+        context.fillStyle = 'cyan';
+        context.fillRect(this.x, this.y, this.w, this.h);
+        context.fillStyle = 'black';
+        context.fillText(this.text, this.x + 3, this.y + 10, this.w - 3);
+    };
+}
+
+function IITextArea(text, x, y, w, h) {
+    this.text = text;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.contains = function(x, y) {
+        return x >= this.x && x <= (this.x + this.w)
+            && y >= this.y && y <= (this.y + this.h);
+    };
+    this.onPress = function(x, y) {};
+    this.draw = function(context) {
+        if (context == undefined) {
+            context = gui_buffer.getContext('2d');
+        }
+
+        context.fillStyle = 'black';
+        var words = getLines(context, this.text, this.w, context.font);
+        for (var i = 0; i < words.length; i++) {
+            context.fillText(words[i], this.x, this.y + 10 + (10 * i), this.w);
+        }
+    };
+}*/
 
 /*************
  * Functions *
  *************/
 
+// http://stackoverflow.com/questions/2936112/text-wrap-in-a-canvas-element
+// Разбивает фразу на отдельные слова и возвращает массив подфраз фразы phrase,
+// влезающих в ширину maxPxLength при выводе на экран.
+function getLines(ctx, phrase, maxPxLength, textFont) {
+    var wa = phrase.split(" "),
+        phraseArray = [],
+        lastPhrase = "",
+        l = maxPxLength,
+        measure = 0;   // Length of word tail in percent.
+    ctx.font = textFont;
+    for (var i = 0; i < wa.length; i++) {
+        var w = wa[i];
+        measure = ctx.measureText(lastPhrase + w).width;
+        if (measure < l) {
+            lastPhrase += (w + " ");
+        } else {
+            phraseArray.push(lastPhrase);
+            lastPhrase = w;
+        }
+        if (i === wa.length - 1) {
+            phraseArray.push(lastPhrase);
+            break;
+        }
+    }
+    return phraseArray;
+}
+
 function init() {
     server.sendMessage(new LoginMessage("sorc", "123"));
-    //createLoginMessage(message_types.LOGIN, "sorc", "123");
-    if (server.connect("ws://rz-public.no-ip.org:8015/websocket")) {
+    if (1 || server.connect("ws://rz-public.no-ip.org:8015/websocket")) {
         setTimeout("main_loop();", 1000 / FPS);
     }
+    //var w = new IIWindow('Window title', 100, 100, 300, 100, true);
+    //drawable_objects.push(w);
+    //w.addElement(new IITextArea('Hurrr durrrr durrrrr hurrrrr duuuuuuuuuuuuuuuuuuuuuuur hurrr', 110, 140, 280, 60))
+
 }
 
 function main_loop() {
@@ -332,6 +518,15 @@ function main_loop() {
     // background
     scr_context.fillStyle = "#FFFFEE";
     scr_context.fillRect(0, 0, SCR_W, SCR_H);
+
+    // Пока что будем очищать всю конву целиком, а не только область в которой
+    // было что-то нарисовано.
+    players_buffer.getContext('2d').clearRect(0, 0, players_buffer.width,
+                                              players_buffer.height);
+    map_buffer.getContext('2d').clearRect(0, 0, map_buffer.width,
+                                          map_buffer.height);
+    //gui_buffer.getContext('2d').clearRect(0, 0, gui_buffer.width,
+    //                                      gui_buffer.height);
 
     // draw stuff
     for (var i in drawable_objects) {
@@ -344,10 +539,14 @@ function main_loop() {
     // draw players
     scr_context.drawImage(players_buffer, 0, 0);
 
+    // Отрисовка буфера с гуи в главной конве. Сейчас не используется.
+    //scr_context.drawImage(gui_buffer, 0, 0);
+
     setTimeout("main_loop();", 1000 / FPS);
 }
 
-// Click handler. Cause player to move.
+// Обработчик щелчка мыли на конве. Передвигает игрока в клетку карты, в которой
+// произошле щелчёк.
 function scrOnClick(e) {
     var x;
     var y;
@@ -356,12 +555,23 @@ function scrOnClick(e) {
         y = e.pageY;
     }
     else {
-        x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-        y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        x = e.clientX + document.body.scrollLeft
+            + document.documentElement.scrollLeft;
+        y = e.clientY + document.body.scrollTop
+            + document.documentElement.scrollTop;
     }
     x -= scr.offsetLeft;
     y -= scr.offsetTop;
-    
+
+    // Код, оставшийся после тестирования своих элементов управления.
+    /*for (var i in drawable_objects) {
+        if (drawable_objects[i].contains != undefined) {
+            if (drawable_objects[i].contains(x, y)) {
+                drawable_objects[i].onPress(x, y);
+            }
+        }
+    }*/
+
     // Calculate destination cell indexes and start movement.
     var j = map.getCellJFromScreen(x);
     var i = map.getCellIFromScreen(y);
@@ -371,7 +581,30 @@ function scrOnClick(e) {
         self_player.move();
     }
 }
+
+// Выводит значение логина и пароля и скрывает форму логина.
+function login() {
+    alert(document.getElementById('login_fild').value + " "
+          + document.getElementById('password_fild').value);
+    document.getElementById('login_form').style.visibility = 'hidden';
+    return false;
+}
+
 </script>
 <div id="messages"></div>
+
+<!-- Форма логина. Пока что включена по умолчанию и исчезает после нажатия кнопки Login. -->
+<div id="login_form">
+Login: <input type="text" id="login_fild"><br>
+Password: <input type="text" id="password_fild"><br>
+<input type="button" id="login_button" value="Login" onclick="login()">
+</div>
+
+<script type="text/javascript">
+
+    // Отцентируем форму логина по середине конвы.
+    document.getElementById('login_form').style.left = (SCR_W / 2 - document.getElementById('login_form').offsetWidth / 2) + "px";
+    document.getElementById('login_form').style.top = (SCR_H / 2  - document.getElementById('login_form').offsetHeight / 2) + "px";
+</script>
 </body>
 </html>
