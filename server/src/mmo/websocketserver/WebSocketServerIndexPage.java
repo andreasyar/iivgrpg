@@ -1,4 +1,4 @@
-package mmo.websocketsserver;
+package mmo.websocketserver;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;

@@ -1,4 +1,4 @@
-package mmo.websocketsserver;
+package mmo.websocketserver;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.*;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
@@ -51,6 +51,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 			sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
 			return;
 		}
+	
 
 		// Send the demo page.
 		if (req.getUri().equals("/")) {

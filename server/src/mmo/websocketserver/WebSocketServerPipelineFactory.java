@@ -1,4 +1,4 @@
-package mmo.websocketsserver;
+package mmo.websocketserver;
 
 import static org.jboss.netty.channel.Channels.*;
 
@@ -15,7 +15,8 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
 		pipeline.addLast("decoder", new HttpRequestDecoder());
 		pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
 		pipeline.addLast("encoder", new HttpResponseEncoder());
-		pipeline.addLast("handler", new WebSocketServerHandler());
+		pipeline.addLast("handler", new mmo.websocketserver.WebSocketServerHandler());
+		
 		return pipeline;
 	}
 }
