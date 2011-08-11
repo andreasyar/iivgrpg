@@ -148,7 +148,7 @@ public class WebServerFileHandler {
 		}
 
 		// Convert to absolute path.
-		System.out.println(System.getProperty("user.dir") + CLIENT_PATH + File.separator + uri);
+		System.out.println("SEND " + System.getProperty("user.dir") + CLIENT_PATH + File.separator + uri);
 		return System.getProperty("user.dir") + CLIENT_PATH + File.separator + uri;
 	}
 

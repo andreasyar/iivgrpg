@@ -1,8 +1,7 @@
 package mmo.websocketserver;
-
 /*
 import static org.jboss.netty.handler.codec.http.HttpHeaders.*;
- */
+*/
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Values.*;
 /*
@@ -35,9 +34,10 @@ import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder;
+
 /*
-import org.jboss.netty.util.CharsetUtil;
-*/
+ import org.jboss.netty.util.CharsetUtil;
+ */
 
 public class WebServerHandler extends SimpleChannelUpstreamHandler {
 
@@ -47,15 +47,15 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 		Object msg = e.getMessage();
 
-		if (msg instanceof HttpRequest) {//обычные http запросы
+		if (msg instanceof HttpRequest) {// обычные http запросы
 			handleHttpRequest(ctx, (HttpRequest) msg);
-		} else if (msg instanceof WebSocketFrame) {//websocket запросы
+		} else if (msg instanceof WebSocketFrame) {// websocket запросы
 			handleWebSocketFrame(ctx, (WebSocketFrame) msg);
 		}
 	}
 
 	private void handleHttpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
-	
+
 		// Апгрейд коннекта до вебсокета
 		if (req.getUri().equals(WEBSOCKET_PATH) && Values.UPGRADE.equalsIgnoreCase(req.getHeader(CONNECTION))
 				&& WEBSOCKET.equalsIgnoreCase(req.getHeader(Names.UPGRADE))) {
@@ -64,7 +64,6 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 			HttpResponse res = new DefaultHttpResponse(HTTP_1_1, new HttpResponseStatus(101, "Web Socket Protocol Handshake"));
 			res.addHeader(Names.UPGRADE, WEBSOCKET);
 			res.addHeader(CONNECTION, Values.UPGRADE);
-
 
 			if (req.containsHeader(SEC_WEBSOCKET_KEY1) && req.containsHeader(SEC_WEBSOCKET_KEY2)) {
 				// Новый метод
@@ -88,7 +87,7 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 				ChannelBuffer output = ChannelBuffers.wrappedBuffer(MessageDigest.getInstance("MD5").digest(input.array()));
 				res.setContent(output);
 			} else {
-				//Старый метод
+				// Старый метод
 				res.addHeader(WEBSOCKET_ORIGIN, req.getHeader(ORIGIN));
 				res.addHeader(WEBSOCKET_LOCATION, getWebSocketLocation(req));
 				String protocol = req.getHeader(WEBSOCKET_PROTOCOL);
@@ -108,14 +107,14 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
-		
 		// В остальных случаях пытаемся отдать то, что попросили
 		WebServerFileHandler wfh = new WebServerFileHandler();
 		wfh.messageReceived(ctx, req);
-		
+
 		return;
 		// Send an error page otherwise.
-		//sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
+		// sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1,
+		// FORBIDDEN));
 	}
 
 	private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
@@ -124,20 +123,18 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	/*
-	private void sendHttpResponse(ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
-		// Generate an error page if response status code is not OK (200).
-		if (res.getStatus().getCode() != 200) {
-			res.setContent(ChannelBuffers.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8));
-			setContentLength(res, res.getContent().readableBytes());
-		}
-
-		// Send the response and close the connection if necessary.
-		ChannelFuture f = ctx.getChannel().write(res);
-		if (!isKeepAlive(req) || res.getStatus().getCode() != 200) {
-			f.addListener(ChannelFutureListener.CLOSE);
-		}
-	}
-	*/
+	 * private void sendHttpResponse(ChannelHandlerContext ctx, HttpRequest req,
+	 * HttpResponse res) { // Generate an error page if response status code is
+	 * not OK (200). if (res.getStatus().getCode() != 200) {
+	 * res.setContent(ChannelBuffers.copiedBuffer(res.getStatus().toString(),
+	 * CharsetUtil.UTF_8)); setContentLength(res,
+	 * res.getContent().readableBytes()); }
+	 * 
+	 * // Send the response and close the connection if necessary. ChannelFuture
+	 * f = ctx.getChannel().write(res); if (!isKeepAlive(req) ||
+	 * res.getStatus().getCode() != 200) {
+	 * f.addListener(ChannelFutureListener.CLOSE); } }
+	 */
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
@@ -148,4 +145,5 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 	private String getWebSocketLocation(HttpRequest req) {
 		return "ws://" + req.getHeader(HttpHeaders.Names.HOST) + WEBSOCKET_PATH;
 	}
+
 }
