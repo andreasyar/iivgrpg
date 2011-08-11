@@ -15,6 +15,9 @@
     left: 300px;
 }
 </style>
+<script type="text/javascript" src="resources.js"></script>
+<script type="text/javascript" src="map.js"></script>
+<script type="text/javascript" src="spriteLoader.js"></script>
 </head>
 <body onLoad="init()"><!-- main_loop() -->
 <script type="text/javascript">
@@ -57,7 +60,7 @@ var players_buffer = document.createElement('canvas');
 players_buffer.width = SCR_W;
 players_buffer.height = SCR_H;
 
-// Буфер (конва) для отрисовки ГУИ. Сейчас не используется.
+// Буфер (конва) для отрисовки GUI. Сейчас не используется.
 
 /*var gui_buffer = document.createElement('canvas');
 gui_buffer.width = SCR_W;
@@ -75,114 +78,14 @@ var CELL_HH = 30 / 2;
 // Array of objects what will be draw in main loop.
 var drawable_objects = new Array();
 
-// Map. Pathetic shit :)
-var map = {
-    w: 100, // Map width in cells.
-    h: 100, // Map height in cells.
-    
-    // Associative array of sprites. One grass sprite yet.
-    terrainSprites: {
-        grass: {
-            image: new Image(),
-            src: 'grass.png'
-        }
-    },
-    
-    // Returns sprite by its key in terrainSprites array.
-    getTerrainSprite: function(key) {
-        return this.terrainSprites[key].image;
-    },
-    
-    // Draw function. Draws map.
-    draw: function() {
-        var c = map_buffer.getContext('2d');
-
-        // Вычислим, какие клетки карты помещаются на экран при текущем
-        // положении нашего игрока. Например если наш игрок находится в клетке
-        // 1, 1 то нам нужно нарисовать все клетки которые помещаются на экран
-        // с клеткой 1, 1 в центре экрана.
-        
-        // j_from - индекс самой левой клетки, которая умещается на экран.
-        var j_from = self_player.j - Math.ceil((self_player.x - CELL_HW) / CELL_W);
-        if (j_from < 0) {
-            j_from = 0;
-        }
-        
-        // j_to  - индекс самой правой клетки, которая умещается на экран.
-        var j_to = self_player.j + Math.ceil((self_player.x + CELL_HW) / CELL_W);
-        if (j_to >= map.w) {
-            j_to = map.w - 1;
-        }
-        
-        // i_from - индекс самой верхней клетки, которая умещается на экран.
-        var i_from = self_player.i - Math.ceil((self_player.y - CELL_HH) / CELL_H);
-        if (i_from < 0) {
-            i_from = 0;
-        }
-        
-        // i_to - индекс самой нижней клетки, которая умещается на экран.
-        var i_to = self_player.i + Math.ceil((self_player.y + CELL_HH) / CELL_H);
-        if (i_to >= map.h) {
-            i_to = map.h - 1;
-        }
-
-        // Draw calculated region of map cells.
-        var x, y;
-        for (var i = i_from; i < i_to; i++) {
-            for (var j = j_from; j < j_to; j++) {
-                x = this.getCellXOnScreen(j);
-                y = this.getCellYOnScreen(i);
-                c.drawImage(this.getTerrainSprite('grass'), x, y);
-                
-                // Also draw indexes of cell.
-                //c.fillText(j + ',' + i, x + 2, y + 10);
-            }
-        }
-    },
-    
-    // Возвращает x-координату экрана верхнего левого угла клетки карты по её индексу j.
-    getCellXOnScreen: function(j) {
-        return (self_player.x - CELL_HW) + (j - self_player.j) * CELL_W;
-    },
-    
-    // Возвращает y-координату экрана верхнего левого угла клетки карты по её индексу i.
-    getCellYOnScreen: function(i) {
-        return (self_player.y - CELL_HH) + (i - self_player.i) * CELL_H;
-    },
-    
-    // Возвращает j индекс клетки карты, которая находится в точке экрана с координатой x.
-    getCellJFromScreen: function(x) {
-        var _;
-        if (x < self_player.x) {
-            _ = self_player.j - Math.abs(Math.ceil((self_player.x - CELL_HW - x) / CELL_W));
-        } else if (x > self_player.x) {
-            _ = self_player.j + Math.abs(Math.ceil((x - (self_player.x + CELL_HW)) / CELL_W));
-        } else {
-            _ = self_player.j;
-        }
-        return _;
-    },
-    
-    // Возвращает i индекс клетки карты, которая находится в точке экрана с координатой y.
-    getCellIFromScreen: function(y) {
-        var _;
-        if (y < self_player.y) {
-            _ = self_player.i - Math.abs(Math.ceil((self_player.y - CELL_HH - y) / CELL_H));
-        } else if (y > self_player.y) {
-            _ = self_player.i + Math.abs(Math.ceil((y - (self_player.y + CELL_HH)) / CELL_H));
-        } else {
-            _ = self_player.i;
-        }
-        return _;
-    }
-};
-
 // Self player. Lol pathetic object too.
 var self_player = {
     x: SCR_W / 2,   // x-axis of player on screen. For salf player always screen width / 2.
     y: SCR_H / 2,   // y-axis of player on screen. For salf player always screen height / 2.
     j: 5,           // j index of map cell where player stand at the moment.
     i: 5,           // i index of map cell where player stand at the moment.
+    
+    spriteLoader: new SpriteLoader(SPRITES),
     
     // Associative array of sprites. One player sprite yet.
     playerSprites: {
@@ -205,9 +108,9 @@ var self_player = {
     draw: function() {
         var c = players_buffer.getContext('2d');
 
-        var x = map.getCellXOnScreen(this.j);
-        var y = map.getCellYOnScreen(this.i);
-        c.drawImage(this.getPlayerSprite('player'), x, y);
+        var x = Map.getCellXOnScreen(this.j, this.x, this.j);
+        var y = Map.getCellYOnScreen(this.i, this.y, this.i);
+        c.drawImage(this.spriteLoader.getSprite('player', 'stand_s'), x, y);
         c.fillText(':3', x + 2, y + 10);
     },
     
@@ -237,8 +140,9 @@ var self_player = {
             return;
         }
     }
-
 };
+
+var map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
 
 // Server interaction object.
 var server = {
@@ -318,7 +222,7 @@ for (var i in self_player.playerSprites) {
 
 // Put map and self player into drawable list.
 
-drawable_objects.push(map);
+//drawable_objects.push(map);
 drawable_objects.push(self_player);
 
 /***********
@@ -528,6 +432,7 @@ function main_loop() {
     //gui_buffer.getContext('2d').clearRect(0, 0, gui_buffer.width,
     //                                      gui_buffer.height);
 
+    map.draw(map_buffer.getContext('2d'));
     // draw stuff
     for (var i in drawable_objects) {
         drawable_objects[i].draw();
@@ -573,8 +478,8 @@ function scrOnClick(e) {
     }*/
 
     // Calculate destination cell indexes and start movement.
-    var j = map.getCellJFromScreen(x);
-    var i = map.getCellIFromScreen(y);
+    var j = Map.getCellJFromScreen(x, self_player.x, self_player.j);
+    var i = Map.getCellIFromScreen(y, self_player.y, self_player.i);
     self_player.move_to_j = j;
     self_player.move_to_i = i;
     if (!self_player.is_move) {
