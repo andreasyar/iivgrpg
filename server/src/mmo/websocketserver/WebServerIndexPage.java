@@ -4,7 +4,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
 
-public class WebSocketServerIndexPage {
+public class WebServerIndexPage {
 
 	private static final String NEWLINE = "\r\n";
 

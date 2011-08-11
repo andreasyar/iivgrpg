@@ -31,7 +31,7 @@ import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder;
 import org.jboss.netty.util.CharsetUtil;
 
-public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
+public class WebServerHandler extends SimpleChannelUpstreamHandler {
 
 	private static final String WEBSOCKET_PATH = "/websocket";
 
@@ -52,12 +52,13 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 			return;
 		}
 	
+		//ctx.getChannel().close().awaitUninterruptibly();
 
 		// Send the demo page.
 		if (req.getUri().equals("/")) {
 			HttpResponse res = new DefaultHttpResponse(HTTP_1_1, OK);
 
-			ChannelBuffer content = WebSocketServerIndexPage.getContent(getWebSocketLocation(req));
+			ChannelBuffer content = WebServerIndexPage.getContent(getWebSocketLocation(req));
 
 			res.setHeader(CONTENT_TYPE, "text/html; charset=UTF-8");
 			setContentLength(res, content.readableBytes());
