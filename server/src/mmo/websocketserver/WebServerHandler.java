@@ -1,18 +1,24 @@
 package mmo.websocketserver;
 
+/*
 import static org.jboss.netty.handler.codec.http.HttpHeaders.*;
+ */
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Values.*;
+/*
 import static org.jboss.netty.handler.codec.http.HttpMethod.*;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
+*/
 import static org.jboss.netty.handler.codec.http.HttpVersion.*;
 
 import java.security.MessageDigest;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+/*
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+*/
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -29,46 +35,28 @@ import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameDecoder;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder;
+/*
 import org.jboss.netty.util.CharsetUtil;
+*/
 
 public class WebServerHandler extends SimpleChannelUpstreamHandler {
 
-	private static final String WEBSOCKET_PATH = "/websocket";
+	private static final String WEBSOCKET_PATH = "/ws";
 
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 		Object msg = e.getMessage();
-		if (msg instanceof HttpRequest) {
+
+		if (msg instanceof HttpRequest) {//обычные http запросы
 			handleHttpRequest(ctx, (HttpRequest) msg);
-		} else if (msg instanceof WebSocketFrame) {
+		} else if (msg instanceof WebSocketFrame) {//websocket запросы
 			handleWebSocketFrame(ctx, (WebSocketFrame) msg);
 		}
 	}
 
 	private void handleHttpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
-		// Allow only GET methods.
-		if (req.getMethod() != GET) {
-			sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
-			return;
-		}
 	
-		//ctx.getChannel().close().awaitUninterruptibly();
-
-		// Send the demo page.
-		if (req.getUri().equals("/")) {
-			HttpResponse res = new DefaultHttpResponse(HTTP_1_1, OK);
-
-			ChannelBuffer content = WebServerIndexPage.getContent(getWebSocketLocation(req));
-
-			res.setHeader(CONTENT_TYPE, "text/html; charset=UTF-8");
-			setContentLength(res, content.readableBytes());
-
-			res.setContent(content);
-			sendHttpResponse(ctx, req, res);
-			return;
-		}
-
-		// Serve the WebSocket handshake request.
+		// Апгрейд коннекта до вебсокета
 		if (req.getUri().equals(WEBSOCKET_PATH) && Values.UPGRADE.equalsIgnoreCase(req.getHeader(CONNECTION))
 				&& WEBSOCKET.equalsIgnoreCase(req.getHeader(Names.UPGRADE))) {
 
@@ -77,9 +65,9 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 			res.addHeader(Names.UPGRADE, WEBSOCKET);
 			res.addHeader(CONNECTION, Values.UPGRADE);
 
-			// Fill in the headers and contents depending on handshake method.
+
 			if (req.containsHeader(SEC_WEBSOCKET_KEY1) && req.containsHeader(SEC_WEBSOCKET_KEY2)) {
-				// New handshake method with a challenge:
+				// Новый метод
 				res.addHeader(SEC_WEBSOCKET_ORIGIN, req.getHeader(ORIGIN));
 				res.addHeader(SEC_WEBSOCKET_LOCATION, getWebSocketLocation(req));
 				String protocol = req.getHeader(SEC_WEBSOCKET_PROTOCOL);
@@ -87,7 +75,7 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 					res.addHeader(SEC_WEBSOCKET_PROTOCOL, protocol);
 				}
 
-				// Calculate the answer of the challenge.
+				// Считаем ответ
 				String key1 = req.getHeader(SEC_WEBSOCKET_KEY1);
 				String key2 = req.getHeader(SEC_WEBSOCKET_KEY2);
 				int a = (int) (Long.parseLong(key1.replaceAll("[^0-9]", "")) / key1.replaceAll("[^ ]", "").length());
@@ -100,7 +88,7 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 				ChannelBuffer output = ChannelBuffers.wrappedBuffer(MessageDigest.getInstance("MD5").digest(input.array()));
 				res.setContent(output);
 			} else {
-				// Old handshake method with no challenge:
+				//Старый метод
 				res.addHeader(WEBSOCKET_ORIGIN, req.getHeader(ORIGIN));
 				res.addHeader(WEBSOCKET_LOCATION, getWebSocketLocation(req));
 				String protocol = req.getHeader(WEBSOCKET_PROTOCOL);
@@ -120,8 +108,14 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
+		
+		// В остальных случаях пытаемся отдать то, что попросили
+		WebServerFileHandler wfh = new WebServerFileHandler();
+		wfh.messageReceived(ctx, req);
+		
+		return;
 		// Send an error page otherwise.
-		sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
+		//sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
 	}
 
 	private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
@@ -129,6 +123,7 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 		ctx.getChannel().write(new DefaultWebSocketFrame(frame.getTextData().toUpperCase()));
 	}
 
+	/*
 	private void sendHttpResponse(ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
 		// Generate an error page if response status code is not OK (200).
 		if (res.getStatus().getCode() != 200) {
@@ -142,6 +137,7 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 			f.addListener(ChannelFutureListener.CLOSE);
 		}
 	}
+	*/
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
