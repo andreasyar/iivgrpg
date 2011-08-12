@@ -21,3 +21,9 @@ var SPRITES = {
             src: "player.png"
         }}
 };
+
+// Типы сообщений.
+var MESSAGE_TYPES = {
+    LOGIN: "LOGIN",
+    HELLO: "HELLO"
+};

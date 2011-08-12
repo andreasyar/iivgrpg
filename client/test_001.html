@@ -15,30 +15,22 @@
     left: 300px;
 }
 </style>
+<script type="text/javascript" src="Constants.js"></script>
 <script type="text/javascript" src="resources.js"></script>
 <script type="text/javascript" src="map.js"></script>
 <script type="text/javascript" src="spriteLoader.js"></script>
+<script type="text/javascript" src="Player.js"></script>
+<script type="text/javascript" src="ServerInteraction.js"></script>
+<script type="text/javascript" src="Messages.js"></script>
 </head>
-<body onLoad="init()"><!-- main_loop() -->
+<body><!-- main_loop() onLoad="init()" -->
 <script type="text/javascript">
 
-/*************
- * Constants *
- *************/
+/*********************
+ * Создание холстов. *
+ *********************/
 
-var SCR_W = 800;
-var SCR_H = 600;
-var FPS = 50;
-
-////////////////////////////////////////////////////
-// Do not edit code below if you not a programer. //
-////////////////////////////////////////////////////
-
-/*****************
- * Create canvas *
- *****************/
-
-// Main drawing canvas.
+// Основной холст, который будет показан клиенту.
 
 var scr = document.createElement('canvas');
 scr.id = "scr";
@@ -48,335 +40,34 @@ scr.addEventListener("click", scrOnClick, false);
 var body = document.getElementsByTagName('body')[0];
 body.appendChild(scr);
 
-// Bufer for draw map.
+// Холст для рисования карты.
 
 var map_buffer = document.createElement('canvas');
 map_buffer.width = SCR_W;
 map_buffer.height = SCR_H;
 
-// Bufer for draw players.
+// Холст для рисования игроков.
 
 var players_buffer = document.createElement('canvas');
 players_buffer.width = SCR_W;
 players_buffer.height = SCR_H;
 
-// Буфер (конва) для отрисовки GUI. Сейчас не используется.
+/*************************
+ * Служебные переменные. *
+ *************************/
 
-/*var gui_buffer = document.createElement('canvas');
-gui_buffer.width = SCR_W;
-gui_buffer.height = SCR_H;*/
+// Свой игрок.
+var self_player;
 
-/*********************
- * Service variables *
- *********************/
+// Карта.
+var map;
 
-var CELL_W = 30;        // Map cell width.
-var CELL_HW = 30 / 2;
-var CELL_H = 30;        // Map cell height.
-var CELL_HH = 30 / 2;
+// Сервер.
+var server;
 
-// Array of objects what will be draw in main loop.
-var drawable_objects = new Array();
-
-// Self player. Lol pathetic object too.
-var self_player = {
-    x: SCR_W / 2,   // x-axis of player on screen. For salf player always screen width / 2.
-    y: SCR_H / 2,   // y-axis of player on screen. For salf player always screen height / 2.
-    j: 5,           // j index of map cell where player stand at the moment.
-    i: 5,           // i index of map cell where player stand at the moment.
-    
-    spriteLoader: new SpriteLoader(SPRITES),
-    
-    // Associative array of sprites. One player sprite yet.
-    playerSprites: {
-        player: {
-            image: new Image(),
-            src: 'player.png'
-        }
-    },
-    
-    // Returns sprite by its key in playerSprites array.
-    getPlayerSprite: function(key) {
-        return this.playerSprites[key].image;
-    },
-    speed: 3,           // Movement speed in cells per second.
-    is_move: false,     // Flag, is player move.
-    move_to_j: null,    // j index of movement destination cell.
-    move_to_i: null,    // i index of movement destination cell.
-    
-    // Draw function. Very simplw yet.
-    draw: function() {
-        var c = players_buffer.getContext('2d');
-
-        var x = Map.getCellXOnScreen(this.j, this.x, this.j);
-        var y = Map.getCellYOnScreen(this.i, this.y, this.i);
-        c.drawImage(this.spriteLoader.getSprite('player', 'stand_s'), x, y);
-        c.fillText(':3', x + 2, y + 10);
-    },
-    
-    // Movement function. Very simple movement algorithm. This function calls
-    // itself while destination not reached and then stops movement.
-    move: function() {
-        
-        // Здесь нет ни каких проверок, игрок просто тупо движется в заданную точку и всё.
-        
-        if (this.move_to_j != null && this.move_to_i != null && (this.j != this.move_to_j || this.i != this.move_to_i)) {
-            this.is_move = true;
-            if (this.j < this.move_to_j) {
-                this.j++;
-            } else if (this.j > this.move_to_j) {
-                this.j--;
-            }
-            if (this.i < this.move_to_i) {
-                this.i++;
-            } else if (this.i > this.move_to_i) {
-                this.i--;
-            }
-            setTimeout('self_player.move();', 1000 / this.speed);
-        } else {
-            this.is_move = false;
-            this.move_to_j = null;
-            this.move_to_i = null;
-            return;
-        }
-    }
-};
-
-var map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
-
-// Server interaction object.
-var server = {
-    socket: null,
-    messages: new Array(),
-    connect: function(addr) {
-        if (window.WebSocket) {
-            this.socket = new WebSocket(addr);
-            this.socket.onmessage = function(event) {
-                //alert(event.data);
-                document.getElementById('messages').innerHTML = event.data;
-            };
-            this.socket.onopen = function(event) {
-                //alert("Web Socket opened!");
-                for (var i = 0; i < server.messages.length; i++) {
-                    server.sendMessage(server.messages[i]);
-                }
-                server.messages = new Array();
-            };
-            this.socket.onclose = function(event) {
-                alert("Web Socket closed.");
-            };
-            return true;
-        } else {
-            alert("Your browser does not support Web Socket.");
-            return false;
-        }
-    },
-    sendMessage: function(object) {
-        if (!window.WebSocket) {
-            return false;
-        }
-        if (this.socket == null) {
-            //alert("The socket is null.");
-            this.messages.push(object);
-            return false; 
-        }
-        if (this.socket.readyState == WebSocket.OPEN) {
-            this.socket.send(JSON.stringify(object));
-            return true; 
-        } else {
-            //alert("The socket is not open.");
-            this.messages.push(object);
-            return false; 
-        }
-    }
-};
-
-// Message types enum.
-var message_types = {
-    LOGIN: "LOGIN"
-};
-
-// Login message constructor.
-function LoginMessage(login, password) {
-    if (this.constructor !== arguments.callee) {
-        throw new Error("Incorrect call - constructor called like a simple function!");
-    }
-    
-    this.type = message_types.LOGIN;
-    this.login = login;
-    this.password = password;
-    return this;
-}
-
-// Load terrain sprites
-
-for (var i in map.terrainSprites) {
-    map.terrainSprites[i].image.src = map.terrainSprites[i].src;
-}
-
-// Load player sprites
-
-for (var i in self_player.playerSprites) {
-    self_player.playerSprites[i].image.src = self_player.playerSprites[i].src;
-}
-
-// Put map and self player into drawable list.
-
-//drawable_objects.push(map);
-drawable_objects.push(self_player);
-
-/***********
- * Classes *
- ***********/
-
-// Игрок.
-function Player() {
-    if (this.constructor !== arguments.callee) {
-        throw new Error("Incorrect call. Constructor called like a simple "
-                        + "function!");
-    }
-
-    // Положение относительно конвы в пикселах по оси Х.
-    this.x = 0;
-
-    // Положение относительно конвы в пикселах по оси Y.
-    this.y = 0;
-    
-    // Положение относительно карты в клетках по ширине.
-    this.j = 0;
-
-    // Положение относительно карты в клетках по ширине.
-    this.i = 0;
-}
-
-// Наброски для своих контролов.
-/*function IIWindow(title, x, y, w, h, hasTopBar) {
-    this.title = title;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.hasTopBar = hasTopBar;
-    this.visible = true;
-    this.closeButton = null;
-    this.elements = new Array();
-    this.contains = function(x, y) {
-        if (!this.visible) {
-            return false;
-        }
-        return x >= this.x && x <= (this.x + this.w)
-            && y >= this.y && y <= (this.y + this.h);
-    };
-    this.onPress = function (x, y) {
-        for (var i in this.elements) {
-            if (this.elements[i].contains(x, y)) {
-                this.elements[i].onPress(x, y);
-                return;
-            }
-        }
-        if (this.hasTopBar) {
-            if (this.closeButton.contains(x, y)) {
-                this.closeButton.onPress(x, y);
-                return;
-            }
-        }
-    };
-    if (this.hasTopBar) {
-        this.closeButton = new IIButton("x", x + w - 30, y + 10, 20, 20, this);
-        this.closeButton.onPress = function(x, y) {
-            //alert(this.text);
-            if (this.rootWindow != null) {
-                this.rootWindow.close();
-            }
-        };
-    }
-    this.draw = function(context) {
-        if (!this.visible) {
-            return;
-        }
-
-        if (context == undefined) {
-            context = gui_buffer.getContext('2d');
-        }
-
-        context.lineWidth = 0.5;
-        context.fillStyle = 'grey';
-        context.strokeStyle = 'black';
-        context.fillRect(this.x, this.y, this.w, this.h);
-        context.strokeRect(this.x, this.y, this.w, this.h);
-
-        if (this.hasTopBar) {
-            context.fillStyle = 'black';
-            context.fillText(this.title, this.x + 10, this.y + 10, this.w - 40);
-            this.closeButton.draw(context);
-        }
-
-        for (var i in this.elements) {
-            this.elements[i].draw(context);
-        }
-    };
-    this.close = function () {
-        this.visible = false;
-    };
-    this.addElement = function (e) {
-        this.elements.push(e);
-    }
-}
-
-function IIButton(text, x, y, w, h, rootWindow) {
-    this.text = text;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.rootWindow = null;
-    if (rootWindow != undefined) {
-        this.rootWindow = rootWindow;
-    }
-    this.onPress = function(x, y) {};
-    this.contains = function(x, y) {
-        return x >= this.x && x <= (this.x + this.w)
-            && y >= this.y && y <= (this.y + this.h);
-    };
-    this.draw = function(context) {
-        if (context == undefined) {
-            context = gui_buffer.getContext('2d');
-        }
-
-        context.fillStyle = 'cyan';
-        context.fillRect(this.x, this.y, this.w, this.h);
-        context.fillStyle = 'black';
-        context.fillText(this.text, this.x + 3, this.y + 10, this.w - 3);
-    };
-}
-
-function IITextArea(text, x, y, w, h) {
-    this.text = text;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.contains = function(x, y) {
-        return x >= this.x && x <= (this.x + this.w)
-            && y >= this.y && y <= (this.y + this.h);
-    };
-    this.onPress = function(x, y) {};
-    this.draw = function(context) {
-        if (context == undefined) {
-            context = gui_buffer.getContext('2d');
-        }
-
-        context.fillStyle = 'black';
-        var words = getLines(context, this.text, this.w, context.font);
-        for (var i = 0; i < words.length; i++) {
-            context.fillText(words[i], this.x, this.y + 10 + (10 * i), this.w);
-        }
-    };
-}*/
-
-/*************
- * Functions *
- *************/
+/************
+ * Функции. *
+ ************/
 
 // http://stackoverflow.com/questions/2936112/text-wrap-in-a-canvas-element
 // Разбивает фразу на отдельные слова и возвращает массив подфраз фразы phrase,
@@ -405,17 +96,17 @@ function getLines(ctx, phrase, maxPxLength, textFont) {
     return phraseArray;
 }
 
-function init() {
-    server.sendMessage(new LoginMessage("sorc", "123"));
-    if (1 || server.connect("ws://rz-public.no-ip.org:8015/websocket")) {
+function init(login_message) {
+    server = new ServerInteraction();
+    server.sendMessage(login_message);
+    if (server.connect("ws://localhost:8015/ws")) {
         setTimeout("main_loop();", 1000 / FPS);
     }
-    //var w = new IIWindow('Window title', 100, 100, 300, 100, true);
-    //drawable_objects.push(w);
-    //w.addElement(new IITextArea('Hurrr durrrr durrrrr hurrrrr duuuuuuuuuuuuuuuuuuuuuuur hurrr', 110, 140, 280, 60))
-
 }
 
+/**
+ * Главный цикл игры.
+ */
 function main_loop() {
     var scr_context = scr.getContext('2d');
 
@@ -433,10 +124,7 @@ function main_loop() {
     //                                      gui_buffer.height);
 
     map.draw(map_buffer.getContext('2d'));
-    // draw stuff
-    for (var i in drawable_objects) {
-        drawable_objects[i].draw();
-    }
+    self_player.draw(players_buffer.getContext('2d'));
 
     // draw map
     scr_context.drawImage(map_buffer, 0, 0);
@@ -480,18 +168,21 @@ function scrOnClick(e) {
     // Calculate destination cell indexes and start movement.
     var j = Map.getCellJFromScreen(x, self_player.x, self_player.j);
     var i = Map.getCellIFromScreen(y, self_player.y, self_player.i);
-    self_player.move_to_j = j;
-    self_player.move_to_i = i;
     if (!self_player.is_move) {
-        self_player.move();
+        self_player.speed = Math.floor(1 + Math.random() * 10); // 1-10
+        self_player.move(j, i);
     }
 }
 
 // Выводит значение логина и пароля и скрывает форму логина.
 function login() {
-    alert(document.getElementById('login_fild').value + " "
-          + document.getElementById('password_fild').value);
+    var lgn = document.getElementById('login_fild').value;
+    var pass = document.getElementById('password_fild').value;
+    self_player = new Player(SCR_W / 2, SCR_H / 2, 5, 5, lgn,
+                             new SpriteLoader(SPRITES));
+    map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
     document.getElementById('login_form').style.visibility = 'hidden';
+    init(new LoginMessage(lgn, pass));
     return false;
 }
 
