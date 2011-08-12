@@ -5,7 +5,8 @@ import com.mysql.jdbc.*;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ResourceBundle;
+
+import mmo.config.XMLConfig;
 
 public class DBWorker {
 	private static final String DEFAULT_SERVER = "localhost";
@@ -22,13 +23,13 @@ public class DBWorker {
 	private String user;
 	private String password;
 
-	public DBWorker(ResourceBundle resourceBundle) {
-		if (resourceBundle != null) {
-			server = resourceBundle.getString("db.server");
-			port = Integer.parseInt(resourceBundle.getString("db.port"));
-			database = resourceBundle.getString("db.database");
-			user = resourceBundle.getString("db.user");
-			password = resourceBundle.getString("db.password");
+	public DBWorker(XMLConfig xmlconfig) {
+		if (xmlconfig != null) {
+			server = xmlconfig.getString("database/server", DEFAULT_SERVER); 
+			port = xmlconfig.getInt("database/port", DEFAULT_PORT);
+			database = xmlconfig.getString("database/database", DEFAULT_DATABASE); 
+			user = xmlconfig.getString("database/user", DEFAULT_USER); 
+			password = xmlconfig.getString("database/password", DEFAULT_PASSWORD); 
 		} else {
 			server = DEFAULT_SERVER;
 			port = DEFAULT_PORT;

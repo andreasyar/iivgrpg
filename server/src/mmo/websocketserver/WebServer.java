@@ -1,8 +1,9 @@
 package mmo.websocketserver;
 
 import java.net.InetSocketAddress;
-import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
+
+import mmo.config.XMLConfig;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -26,12 +27,12 @@ public class WebServer {
 	{
 		return port;
 	}
-		
-	
-	public WebServer(ResourceBundle resourceBundle)
+			
+	public WebServer(XMLConfig xmlconfig)
 	{
-		if (resourceBundle != null) {
-			port = Integer.parseInt(resourceBundle.getString("webserver.port"));
+		if (xmlconfig!= null) {
+		//	port = Integer.parseInt(resourceBundle.getString("webserver.port"));
+			port = xmlconfig.getInt("webserver/port", DEFAULT_PORT);
 		} else {
 			port = DEFAULT_PORT;
 		}

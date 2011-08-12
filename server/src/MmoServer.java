@@ -1,34 +1,42 @@
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ResourceBundle;
 
+import mmo.config.XMLConfig;
 import mmo.websocketserver.WebServer;
-import mmo.db.*;
+import mmo.db.DBWorker;
+
 
 public class MmoServer {
-	private static ResourceBundle resource;
 	private static WebServer webserver;
 	private static DBWorker dbworker;
+	private static XMLConfig xmlconfig;
 
 	public static DBWorker getDBWorker() {
 		return dbworker;
 	}
 
-	public static WebServer getWebServe() {
+	public static WebServer getWebServer() {
 		return webserver;
 	}
+	
+	public static XMLConfig getXMLConfig() {
+		return xmlconfig;
+	}	
 
 	public static void main(String[] args) {
 
 		try {
-			// грузим ресурсы
-			resource = ResourceBundle.getBundle("server");
+			
+		
+			// грузим конфиг
+		//	resource = ResourceBundle.getBundle("server");
+			xmlconfig = new XMLConfig("server.xml");
 			// конектимся к БД
-			dbworker = new DBWorker(resource);
+			dbworker = new DBWorker(xmlconfig);
 			dbworker.connect();
 			System.out.println("DB connected");
 
-			webserver = new WebServer(resource);
+			webserver = new WebServer(xmlconfig);
 			webserver.start();
 			System.out.println("Web server bind on port " + webserver.getPort());
 
