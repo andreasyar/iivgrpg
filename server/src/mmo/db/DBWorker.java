@@ -3,7 +3,7 @@ package mmo.db;
 import com.mysql.jdbc.*;
 
 import java.sql.DriverManager;
-import java.sql.ResultSet;
+//import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import mmo.config.XMLConfig;
@@ -42,25 +42,15 @@ public class DBWorker {
 	public void connect() throws SQLException {
 		connection = (Connection) DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database + "?user=" + user + "&password="
 				+ password);
-
-		// Statement s = (Statement) c.createStatement();
-
-		// s.execute("INSERT INTO `users` (`id`, `login`,	`password`,	`createAt`, `registerIP`) VALUES (NULL , '!!!34545', 'sdfgsdfg', NOW() , '127.0.0.1')");
-	}
-
-	public boolean query(String sql) throws SQLException {
-		Statement stm = (Statement) connection.createStatement();
-		
-		return stm.execute(sql);
-	}
-
-	public ResultSet select(String sql) throws SQLException {
-		Statement stm = (Statement) connection.createStatement();
-		
-		return stm.executeQuery(sql);
 	}
 
 	public void disconnect() throws SQLException {
 		connection.close();
 	}
+	
+	public Statement newStatement() throws SQLException {
+		return (Statement) connection.createStatement();
+	}
+	
+
 }

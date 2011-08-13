@@ -31,7 +31,6 @@ public class WebServer {
 	public WebServer(XMLConfig xmlconfig)
 	{
 		if (xmlconfig!= null) {
-		//	port = Integer.parseInt(resourceBundle.getString("webserver.port"));
 			port = xmlconfig.getInt("webserver/port", DEFAULT_PORT);
 		} else {
 			port = DEFAULT_PORT;
