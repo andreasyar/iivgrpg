@@ -17,6 +17,7 @@
 </style>
 <script type="text/javascript" src="Constants.js"></script>
 <script type="text/javascript" src="resources.js"></script>
+<script type="text/javascript" src="IdGenerator.js"></script>
 <script type="text/javascript" src="map.js"></script>
 <script type="text/javascript" src="spriteLoader.js"></script>
 <script type="text/javascript" src="Player.js"></script>
@@ -96,18 +97,26 @@ function getLines(ctx, phrase, maxPxLength, textFont) {
     return phraseArray;
 }
 
-function init(login_message) {
+function init(login_message, addr) {
     server = new ServerInteraction();
-    server.sendMessage(login_message);
-    if (server.connect("ws://localhost:8015/ws")) {
-        setTimeout("main_loop();", 1000 / FPS);
-    }
+    server.connect(addr);
+    server.addMessage(login_message);
+    
+    // Запускаем главный цикл.
+    setTimeout("main_loop();", 1000 / FPS);
 }
 
 /**
  * Главный цикл игры.
  */
 function main_loop() {
+    
+    // Обработаем все сообщения полученные с сервера.
+    server.processMessages();
+    
+    // Отправим на сервер сообщения, ожидающие отправки.
+    server.sendMessages();
+    
     var scr_context = scr.getContext('2d');
 
     // background
@@ -182,18 +191,20 @@ function login() {
                              new SpriteLoader(SPRITES));
     map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
     document.getElementById('login_form').style.visibility = 'hidden';
-    init(new LoginMessage(lgn, pass));
+    init(new LoginMessage(lgn, pass),
+         document.getElementById('server_fild').value);
     return false;
 }
 
 </script>
 <div id="messages"></div>
 
-<!-- Форма логина. Пока что включена по умолчанию и исчезает после нажатия кнопки Login. -->
+<!-- Форма логина. -->
 <div id="login_form">
 Login: <input type="text" id="login_fild"><br>
 Password: <input type="text" id="password_fild"><br>
-<input type="button" id="login_button" value="Login" onclick="login()">
+Server: <input type="server_fild" id="server_fild" value="ws://localhost:8015/ws"><br>
+<input type="button" id="login_button" value="Login" onclick="login(); return false;">
 </div>
 
 <script type="text/javascript">

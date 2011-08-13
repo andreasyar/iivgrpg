@@ -8,6 +8,11 @@ function ServerInteraction() {
     if (this.constructor !== arguments.callee) {
         throw new Error("Constructor called like a simple function!");
     }
+    
+    // Поддерживаются ли веб сокеты браузером клиента?
+    if (!window.WebSocket) {
+        throw new Error("Your browser does not support Web Socket!");
+    }
 
     // Веб сокет для обмена сообщениями.
     this.socket = null;
@@ -15,70 +20,71 @@ function ServerInteraction() {
     // Очередь сообщений для отправки.
     this.msgQueue = new Array();
 
+    // Очередь полученных сообщений.
+    this.outQueue = new Array();
+
+    // Очередь полученных сообщений.
+    this.inQueue = new Array();
+
     // Соединяется с серевером.
     this.connect = function(addr) {
         console.log('Connect to ' + addr);
 
-        // Если веб сокеты поддерживаются.
-        if (window.WebSocket) {
-            this.socket = new WebSocket(addr);
-            this.socket.parent = this;
+        this.socket = new WebSocket(addr);
+        this.socket.parent = this;
 
-            this.socket.onmessage = function(event) {
-                document.getElementById('messages').innerHTML = event.data;
-                console.log("<- " + event.data);
+        // Обработчик получения сообщения от сервера.
+        this.socket.onmessage = function(event) {
+            this.parent.inQueue.push(event.data);
+        };
 
-                var msg = JSON.parse(event.data);
+        // Обработчик открытия соединения с сервером.
+        this.socket.onopen = function(event) {
+            console.log("Web Socket opened.");
+        };
+
+        // Обработчик закрытия соединения с сервером.
+        this.socket.onclose = function(event) {
+            console.log("Web Socket closed.");
+        };
+    };
+
+    // Добавляет сообщение в очередь исходящих сообщений.
+    this.addMessage = function(obj) {
+        this.outQueue.push(obj);
+    };
+    
+    // Отправляет все сообщения из очереди исходящих сообщений.
+    this.sendMessages = function() {
+        if (this.socket == null || this.socket.readyState != WebSocket.OPEN) {
+            console.log("Cant send messages. Connection not established.");
+            return false;
+        } else if (this.outQueue.length > 0) {
+            var msg, obj;
+            while ( (obj = this.outQueue.shift()) != undefined) {
+                msg = JSON.stringify(obj);
+                console.log("-> " + msg);
+                this.socket.send(msg);
+            }
+        }
+        
+        return true;
+    }
+    
+    // Обрабатывает все сообщения из очереди входящих сообщений.
+    this.processMessages = function() {
+        if (this.inQueue.length > 0) {
+            var msg, obj;
+            while ( (msg = this.inQueue.shift()) != undefined) {
+                obj = JSON.parse(msg);
                 for (var key in MESSAGE_HANDLERS) {
-                    if (msg.type == key) {
-                        MESSAGE_HANDLERS[key](msg);
-                        return;
+                    if (obj.type != undefined && obj.type == key) {
+                        console.log("<- " + msg);
+                        MESSAGE_HANDLERS[key](obj);
+                        break;
                     }
                 }
-                console.log('Wrong message type ' + msg.type);
-            };
-
-            this.socket.onopen = function(event) {
-                console.log("Web Socket opened!");
-
-                // Отправим сообщения, которые были положены в очередь во время
-                // установления соединения и затем очистим очередь.
-                for (var i = 0; i < this.parent.msgQueue.length; i++) {
-                    console.log("-> " + this.parent.msgQueue[i].type);
-                    this.parent.sendMessage(this.parent.msgQueue[i]);
-                }
-                this.parent.msgQueue = new Array();
-            };
-
-            this.socket.onclose = function(event) {
-                console.log("Web Socket closed.");
-            };
-            
-            return true;
-        } else {
-            alert("Your browser does not support Web Socket.");
-            return false;
-        }
-    };
-
-    // Отправляет сообщение.
-    this.sendMessage = function(obj) {
-
-        // Если веб сокеты поддерживаются.
-        if (window.WebSocket) {
-            if (this.socket == null
-                    || this.socket.readyState != WebSocket.OPEN) {
-
-                // Если соединение ещё не установлено, то поставим сообщение в
-                // очередь.
-                this.msgQueue.push(obj);
-            } else {
-                this.socket.send(JSON.stringify(obj));
             }
-            return true;
-        } else {
-            alert("Your browser does not support Web Socket.");
-            return false;
         }
-    };
+    }
 }
