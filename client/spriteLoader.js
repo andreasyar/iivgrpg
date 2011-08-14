@@ -8,39 +8,22 @@ function SpriteLoader(sprites) {
         throw new Error("Constructor called like a simple function!");
     }
 
-    // Уже загруженные спрайты.
-    if (arguments.callee.loaded == undefined) {
-        arguments.callee.loaded = {};
-    }
-
     // Ссылка на набор спрайтов из ресурсов.
     this.sprites = sprites;
 
     /**
-     * Возвращает спрайт по его секции и имени.
-     * @param section Имя секции.
-     * @param name Имя спрайта.
+     * Возвращает спрайт по его id.
+     * @param id Имя спрайта.
      */
-    this.getSprite = function(section, name) {
-
-        // Уже загруженные спрайты.
-        if (arguments.callee.loaded == undefined) {
-            arguments.callee.loaded = {};
-        }
-
-        // Создадим секцию, если нужно.
-        if (arguments.callee.loaded[section] == undefined) {
-            arguments.callee.loaded[section] = {};
-        }
-
+    this.getSprite = function(id) {
+        
         // Если спрайт уже не был загружен.
-        if (arguments.callee.loaded[section][name] == undefined) {
-            arguments.callee.loaded[section][name] = new Image();
-            arguments.callee.loaded[section][name].src
-                = this.sprites[section][name].src;
+        if (this.sprites[id].image == undefined) {
+            this.sprites[id].image = new Image();
+            this.sprites[id].image.src = this.sprites[id].src;
         }
 
-        return arguments.callee.loaded[section][name];
+        return this.sprites[id].image;
     }
 
     return this;

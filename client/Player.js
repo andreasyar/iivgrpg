@@ -53,7 +53,7 @@ function Player(x, y, j, i, name, spriteLoader) {
     this.draw = function(context) {
         var x = Map.getCellXOnScreen(this.j, this.x, this.j);
         var y = Map.getCellYOnScreen(this.i, this.y, this.i);
-        context.drawImage(this.loader.getSprite('player', 'stand_s'), x, y);
+        context.drawImage(this.loader.getSprite(3), x, y);
 
         // Нарисуем имя.
         if (this.name_width == null) {

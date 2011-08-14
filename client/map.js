@@ -67,9 +67,10 @@ function Map(width, height, selfPlayer, spriteLoader) {
                 //x = Map.getCellXOnScreen(j, this.player.x, this.player.j);
                 //y = Map.getCellXOnScreen(i, this.player.y, this.player.i);
                 context.drawImage(
-                    this.loader.getSprite('map', 'grass'),
+                    this.loader.getSprite(GEODATA[i][j]),
                     Map.getCellXOnScreen(j, this.player.x, this.player.j),
-                    Map.getCellXOnScreen(i, this.player.y, this.player.i));
+                    Map.getCellXOnScreen(i, this.player.y, this.player.i)
+                );
                 
                 // Нарисуем номера клеток. Для отладки.
                 //context.fillText(j + ',' + i, x + 2, y + 10);

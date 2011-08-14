@@ -39,7 +39,7 @@ var scr = document.createElement('canvas');
 scr.id = "scr";
 scr.width = SCR_W;
 scr.height = SCR_H;
-scr.addEventListener("click", scrOnClick, false);
+// Добавление обработчика щелчка мышью происходит в init().
 var body = document.getElementsByTagName('body')[0];
 body.appendChild(scr);
 
@@ -91,6 +91,7 @@ function init() {
     setTimeout("mainLoop();", 1000 / FPS);
 
     hideLoginForm();
+    scr.addEventListener("click", scrOnClick, false);
     return false;
 }
 

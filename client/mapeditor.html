@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>IIVGRPG Map Editor</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style>
+    td img {
+        display: block;
+    }
+    #saveArea {
+        width: 60%
+    }
+</style>
+</head>
+<body>
+
+<script type="text/javascript">
+var brush = "grass",    // Текущая кисть.
+    map = {},           // Карта.
+    cellTypes = {       // Типы клеток карты.
+        grass: { id:0, name:"grass", src:"grass.png", acc:1 },
+        grass2: { id:1, name:"grass2", src:"grass2.png", acc:1 },
+        tree: { id:2, name:"tree", src:"tree.png", acc:0 }
+    }
+
+function selectBrush(elem) {
+    console.log("Select brush " + elem.value)
+    brush = elem.value
+}
+function paint(elem, i, j) {
+    console.log("Paint " + brush + " in [" + i + ", " + j + "]")
+    elem.innerHTML = "<img src=\"" + cellTypes[brush].src + "\">"
+    map[i][j] = cellTypes[brush]
+}
+function save() {
+    var tmp = {}
+    tmp.w = map.w
+    tmp.h = map.h
+
+    for (var i = 0; i < map.h; i++) {
+        tmp[i] = new Array()
+        for (var j = 0; j < map.w; j++) {
+            tmp[i].push(map[i][j].id)
+        }
+    }
+
+    console.log("Save map")
+    document.getElementById("saveArea").value = JSON.stringify(tmp);
+}
+function loadMap() {}
+function randomMap(w, h) {
+    console.log("Create random map " + w + "x" + h)
+    map.w = w;
+    map.h = h;
+
+    for (var i = 0; i < h; i++) {
+        map[i] = {}
+        for (var j = 0; j < w; j++) {
+            if (Math.floor(1 + Math.random() * 50) == 50) {
+                map[i][j] = cellTypes.tree
+            } else if (Math.floor(1 + Math.random() * 20) == 20) {
+                map[i][j] = cellTypes.grass2
+            } else {
+                map[i][j] = cellTypes.grass
+            }
+        }
+    }
+}
+function newMap(w, h) {
+    console.log("Create new map " + w + "x" + h)
+    map.w = w;
+    map.h = h;
+
+    for (var i = 0; i < h; i++) {
+        map[i] = {}
+        for (var j = 0; j < w; j++) {
+            map[i][j] = cellTypes.grass;
+        }
+    }
+}
+function createMapTable() {
+    var body, table, tr, td, img;
+    if ( (table = document.getElementById("mapTable")) != null) {
+        document.removeChild(table);
+    }
+    table = document.createElement('table');
+    table.id = "mapTable";
+    table.border = 1;
+
+    for (var i = 0; i < map.h; i++) {
+        tr = document.createElement('tr');
+        for (var j = 0; j < map.w; j++) {
+            td = document.createElement('td');
+            td.addEventListener(
+                "click",
+                (function(i, j) {return function() {paint(this, i, j)}})(i, j),
+                false
+            );
+
+            img = document.createElement('img');
+            img.border = 0;
+            img.src = map[i][j].src;
+
+            td.appendChild(img);
+            tr.appendChild(td);
+        }
+        table.appendChild(tr);
+    }
+
+    body = document.getElementsByTagName('body')[0];
+    body.appendChild(table);
+}
+</script>
+
+<!-- Выбор кисти. -->
+<input type="radio"
+       name="brushes"
+       value="grass"
+       onclick="selectBrush(this);" checked> <img src="grass.png"> Grass1<br>
+<input type="radio"
+       name="brushes"
+       value="grass2"
+       onclick="selectBrush(this);"> <img src="grass2.png"> Grass2<br>
+<input type="radio"
+       name="brushes"
+       value="tree"
+       onclick="selectBrush(this);"> <img src="tree.png"> Tree<br>
+<br>
+
+<!-- Сохранение результата. -->
+<input type="button"
+       value="Save"
+       onclick="save();return false;">
+<hr>
+
+<!-- Карта. -->
+<script type="text/javascript">
+//newMap(10, 10)
+randomMap(100, 100)
+createMapTable()
+</script>
+<hr>
+
+<!-- Область сохранения. -->
+<textarea id="saveArea"></textarea>
+</body>
+</html>
