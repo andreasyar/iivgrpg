@@ -1,5 +1,6 @@
 
 // Карта.
+// require Constants.js
 
 // Для работы методов класса необходимо снчала загрузить скрипт с константами.
 function Map(width, height, selfPlayer, spriteLoader) {

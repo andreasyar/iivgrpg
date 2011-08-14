@@ -1,5 +1,6 @@
 
 // Взаимодействите с сервером.
+// require Messages.js
 
 // Отправка и приём сообщений с сервера.
 function ServerInteraction() {

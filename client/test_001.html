@@ -5,7 +5,7 @@
 <title>Test</title>
 <style type="text/css" >
 #scr {
-    border: 1px solid #000000;  /* Border around main canvas. */
+    border: 1px solid #000000;
 }
 #login_form {
     background-color: tan;
@@ -13,9 +13,11 @@
     position: absolute;
     top: 300px;
     left: 300px;
+    visibility: hidden;
 }
 </style>
 <script type="text/javascript" src="Constants.js"></script>
+<script type="text/javascript" src="routines.js"></script>
 <script type="text/javascript" src="resources.js"></script>
 <script type="text/javascript" src="IdGenerator.js"></script>
 <script type="text/javascript" src="map.js"></script>
@@ -24,7 +26,7 @@
 <script type="text/javascript" src="ServerInteraction.js"></script>
 <script type="text/javascript" src="Messages.js"></script>
 </head>
-<body><!-- main_loop() onLoad="init()" -->
+<body>
 <script type="text/javascript">
 
 /*********************
@@ -70,53 +72,39 @@ var server;
  * Функции. *
  ************/
 
-// http://stackoverflow.com/questions/2936112/text-wrap-in-a-canvas-element
-// Разбивает фразу на отдельные слова и возвращает массив подфраз фразы phrase,
-// влезающих в ширину maxPxLength при выводе на экран.
-function getLines(ctx, phrase, maxPxLength, textFont) {
-    var wa = phrase.split(" "),
-        phraseArray = [],
-        lastPhrase = "",
-        l = maxPxLength,
-        measure = 0;   // Length of word tail in percent.
-    ctx.font = textFont;
-    for (var i = 0; i < wa.length; i++) {
-        var w = wa[i];
-        measure = ctx.measureText(lastPhrase + w).width;
-        if (measure < l) {
-            lastPhrase += (w + " ");
-        } else {
-            phraseArray.push(lastPhrase);
-            lastPhrase = w;
-        }
-        if (i === wa.length - 1) {
-            phraseArray.push(lastPhrase);
-            break;
-        }
-    }
-    return phraseArray;
-}
+/**
+ * Инициализация. Создание своего игрока, карты, подключение к серверу, и т.д.
+ */
+function init() {
+    var lgn = document.getElementById('login_fild').value;
+    var pass = document.getElementById('password_fild').value;
+    var serv = document.getElementById('server_fild').value;
 
-function init(login_message, addr) {
+    self_player = new Player(SCR_W / 2, SCR_H / 2, 5, 5, lgn,
+                             new SpriteLoader(SPRITES));
+    map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
     server = new ServerInteraction();
-    server.connect(addr);
-    server.addMessage(login_message);
-    
+    server.connect(serv);
+    server.addMessage(new LoginMessage(lgn, pass));
+
     // Запускаем главный цикл.
-    setTimeout("main_loop();", 1000 / FPS);
+    setTimeout("mainLoop();", 1000 / FPS);
+
+    hideLoginForm();
+    return false;
 }
 
 /**
  * Главный цикл игры.
  */
-function main_loop() {
-    
+function mainLoop() {
+
     // Обработаем все сообщения полученные с сервера.
     server.processMessages();
-    
+
     // Отправим на сервер сообщения, ожидающие отправки.
     server.sendMessages();
-    
+
     var scr_context = scr.getContext('2d');
 
     // background
@@ -144,11 +132,12 @@ function main_loop() {
     // Отрисовка буфера с гуи в главной конве. Сейчас не используется.
     //scr_context.drawImage(gui_buffer, 0, 0);
 
-    setTimeout("main_loop();", 1000 / FPS);
+    setTimeout("mainLoop();", 1000 / FPS);
 }
 
-// Обработчик щелчка мыли на конве. Передвигает игрока в клетку карты, в которой
-// произошле щелчёк.
+/**
+ * Обработчик щелчка мыли на главном холсте.
+ */
 function scrOnClick(e) {
     var x;
     var y;
@@ -174,7 +163,8 @@ function scrOnClick(e) {
         }
     }*/
 
-    // Calculate destination cell indexes and start movement.
+    // Вычислим клетку в которой был щелчёк и переместим туда игрока с
+    // случайной скоростью.
     var j = Map.getCellJFromScreen(x, self_player.x, self_player.j);
     var i = Map.getCellIFromScreen(y, self_player.y, self_player.i);
     if (!self_player.is_move) {
@@ -183,35 +173,20 @@ function scrOnClick(e) {
     }
 }
 
-// Выводит значение логина и пароля и скрывает форму логина.
-function login() {
-    var lgn = document.getElementById('login_fild').value;
-    var pass = document.getElementById('password_fild').value;
-    self_player = new Player(SCR_W / 2, SCR_H / 2, 5, 5, lgn,
-                             new SpriteLoader(SPRITES));
-    map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
-    document.getElementById('login_form').style.visibility = 'hidden';
-    init(new LoginMessage(lgn, pass),
-         document.getElementById('server_fild').value);
-    return false;
-}
-
 </script>
-<div id="messages"></div>
 
 <!-- Форма логина. -->
 <div id="login_form">
 Login: <input type="text" id="login_fild"><br>
 Password: <input type="text" id="password_fild"><br>
-Server: <input type="server_fild" id="server_fild" value="ws://localhost:8015/ws"><br>
-<input type="button" id="login_button" value="Login" onclick="login(); return false;">
+Server: <input type="server_fild" id="server_fild"
+               value="ws://localhost:8015/ws"><br>
+<input type="button" id="login_button" value="Login"
+       onclick="init(); return false;">
 </div>
 
 <script type="text/javascript">
-
-    // Отцентируем форму логина по середине конвы.
-    document.getElementById('login_form').style.left = (SCR_W / 2 - document.getElementById('login_form').offsetWidth / 2) + "px";
-    document.getElementById('login_form').style.top = (SCR_H / 2  - document.getElementById('login_form').offsetHeight / 2) + "px";
+    showLoginForm();
 </script>
 </body>
 </html>

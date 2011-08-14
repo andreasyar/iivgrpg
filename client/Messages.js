@@ -1,5 +1,6 @@
 
 // Сообщения дла взаимодействия с сервером.
+// require Player.js, Constants.js, SpriteLoader.js, resources.js
 
 /**
  * Сообщение входа в игру игрока.
