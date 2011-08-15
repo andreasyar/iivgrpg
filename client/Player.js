@@ -60,7 +60,7 @@ function Player(x, y, j, i, name, spriteLoader) {
             this.name_width = context.measureText(this.name).width;
         }
         context.fillText(this.name, x + CELL_HW - this.name_width / 2,
-                         y + CELL_H);
+                         y + CELL_H + 10);
     };
 
     // Запускает движение в заданную клетку.
