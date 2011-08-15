@@ -42,9 +42,8 @@ function Player(x, y, j, i, name, spriteLoader) {
     // Флаг движения.
     this.is_move = false;
 
-    // Индексы конечной клетки движения.
-    this.dest_j = null;
-    this.dest_i = null;
+    // Путь движения.
+    this.path = null;
 
     /**
      * Рисует игрока.
@@ -64,9 +63,8 @@ function Player(x, y, j, i, name, spriteLoader) {
     };
 
     // Запускает движение в заданную клетку.
-    this.move = function(j, i) {
-        this.dest_j = j;
-        this.dest_i = i;
+    this.move = function(path) {
+        this.path = path;
 
         // Запускаем движение.
         this.step.run = true;
@@ -88,22 +86,21 @@ function Player(x, y, j, i, name, spriteLoader) {
         // Здесь нет ни каких проверок, игрок просто тупо движется в заданную
         // точку и всё.
 
-        // Пока не дошли до точки назначения.
-        if (this.dest_j != null && this.dest_i != null
-                && (this.j != this.dest_j || this.i != this.dest_i)) {
+        // Пока не дошли до конца пути.
+        if (this.path.length > 1) {
 
             this.is_move = true;
 
-            if (this.j < this.dest_j) {
-                this.j++;
-            } else if (this.j > this.dest_j) {
-                this.j--;
-            }
-            if (this.i < this.dest_i) {
-                this.i++;
-            } else if (this.i > this.dest_i) {
-                this.i--;
-            }
+            // Индекс 0 в пути всегда имеет клетка на которой мы стоим.
+            // Соответственно индекс 1 имеет клетка на которю мы идём.
+            this.i = this.path[1][0];
+            this.j = this.path[1][1];
+
+            // Удалим из пути пойденную клетку.
+            this.path.splice(0, 1);
+
+            // Обновим путь для отрисовки на карте.
+            map.setPath(this.path);
 
             // Делаем следующий шаг.
             if (arguments.callee.run) {
@@ -114,11 +111,15 @@ function Player(x, y, j, i, name, spriteLoader) {
                 );
             }
         } else {
-            this.is_move = false;
-            arguments.callee.run = false;
-            this.dest_j = null;
-            this.dest_i = null;
-            return;
+            // Очистим путь.
+            this.path = null
+
+            // Обновим путь для отрисовки на карте.
+            map.setPath(this.path)
+
+            this.is_move = false
+            arguments.callee.run = false
+            return
         }
     };
 

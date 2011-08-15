@@ -169,8 +169,20 @@ function scrOnClick(e) {
     var j = Map.getCellJFromScreen(x, self_player.x, self_player.j);
     var i = Map.getCellIFromScreen(y, self_player.y, self_player.i);
     if (!self_player.is_move) {
-        self_player.speed = Math.floor(1 + Math.random() * 10); // 1-10
-        self_player.move(j, i);
+        self_player.speed = 3//Math.floor(1 + Math.random() * 10); // 1-10
+        var tmp = getPath(new Cell(self_player.i, self_player.j, 0, 0, null),
+                          new Cell(i, j, 0, 0, null))
+        if (tmp != false) {
+            var path = new Array(new Array(tmp.i, tmp.j))
+            while ( (tmp = tmp.parent) != null) {
+                path.push(new Array(tmp.i, tmp.j));
+            }
+            path = path.reverse()
+            console.log(path)
+            self_player.move(path);
+        } else {
+            console.log('Path not exits.')
+        }
     }
 }
 

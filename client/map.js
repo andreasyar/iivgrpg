@@ -60,10 +60,11 @@ function Map(width, height, selfPlayer, spriteLoader) {
             i_to = this.h - 1;
         }
 
+        var i, j, tmp//, x, y;
+
         // Нарисуем клетки вычисленного региона карты.
-        //var x, y;
-        for (var i = i_from; i < i_to; i++) {
-            for (var j = j_from; j < j_to; j++) {
+        for (i = i_from; i < i_to; i++) {
+            for (j = j_from; j < j_to; j++) {
                 //x = Map.getCellXOnScreen(j, this.player.x, this.player.j);
                 //y = Map.getCellXOnScreen(i, this.player.y, this.player.i);
                 context.drawImage(
@@ -76,7 +77,48 @@ function Map(width, height, selfPlayer, spriteLoader) {
                 //context.fillText(j + ',' + i, x + 2, y + 10);
             }
         }
+
+        // Если есть путь на карте, то нарисуем его.
+        if (this.path != null) {
+            for (i = 1; i < this.path.length; i++) {
+
+                // Последная клетка пути или промежуточная
+                if (i == this.path.length - 1) {
+                    tmp = 5
+                } else {
+                    tmp = 4
+                }
+
+                context.drawImage(
+                    this.loader.getSprite(tmp),
+                    Map.getCellXOnScreen(this.path[i][1], this.player.x, this.player.j),
+                    Map.getCellXOnScreen(this.path[i][0], this.player.y, this.player.i)
+                );
+            }
+        }
     };
+
+    /**
+     * Проверяет, принадлежит ли клетка карте.
+     * @param i i-индекс клетки.
+     * @param j j-индекс клетки.
+     */
+    this.isOnMap = function(i, j) {
+        return i >= 0 && j >= 0 && i < this.h && j < this.w
+    }
+
+    /**
+     * Путь на карте.
+     */
+    this.path = null;
+
+    /**
+     * Сохраняет путь на карте. Чтобы удалить путь установите его равным null.
+     * @param path Путь.
+     */
+    this.setPath = function(path) {
+        this.path = path
+    }
 
     return this;
 }

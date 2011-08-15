@@ -6,7 +6,9 @@ var SPRITES = {
     0: {name:"grass", src:"grass.png", acc:1},
     1: {name:"grass2", src:"grass2.png", acc:1},
     2: {name:"tree", src:"tree.png", acc:0},
-    3: {name:"player", src:"player.png", acc:1}
+    3: {name:"player", src:"player.png", acc:1},
+    4: {name:"path", src:"path.png", acc:1},
+    5: {name:"path_end", src:"path_end.png", acc:1}
 }
 
 // Типы сообщений.
