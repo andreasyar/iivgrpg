@@ -1,9 +1,9 @@
+package mmo;
+
 import mmo.config.XMLConfig;
-import mmo.websocketserver.WebServer;
+import mmo.webserver.WebServer;
 import mmo.db.DBWorker;
 import mmo.gameserver.GameServer;
-import mmo.gameserver.accounts.Account;
-
 
 public class MmoServer {
 	private static WebServer webserver;
@@ -28,18 +28,19 @@ public class MmoServer {
 		try {
 			// грузим конфиг
 			xmlconfig = new XMLConfig("server.xml");
-			// конектимся к БД
+
 			dbworker = new DBWorker(xmlconfig);
+			gameserver = new GameServer(xmlconfig,dbworker);
+			webserver = new WebServer(xmlconfig,gameserver);
+			
 			dbworker.connect();
 			System.out.println("DB connected");
-
-			webserver = new WebServer(xmlconfig);
+			
+			gameserver.start();			
+			System.out.println("Game server started");			
+		
 			webserver.start();
 			System.out.println("Web server bind on port " + webserver.getPort());
-			
-			gameserver = new GameServer(xmlconfig);
-			gameserver.start();			
-			System.out.println("Game server started");
 
 			test(); // непотребства
 
@@ -64,9 +65,9 @@ public class MmoServer {
 
 	public static void test() throws Exception {
 
-		Account acc = new Account(dbworker, "test");
+		//Account acc = new Account(dbworker, "test");
 		
-		acc.checkLogin("test");
+		//acc.checkLogin("test");
 		
 		/*ResultSet r = dbworker.select("SELECT * FROM `users`");
 

@@ -5,31 +5,85 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 
-import mmo.db.DBWorker;
-import mmo.untils.StringHash;
-import mmo.untils.log.Log;
+import mmo.gameserver.GameClient;
+import mmo.gameserver.commands.RequestCommand;
+import mmo.gameserver.gameobjects.Player;
+import mmo.utils.Log;
+import mmo.utils.StringHash;
+import mmo.gameserver.commands.CommandHandler;
 
-public class Account implements Loggins {
-	private static final String TABLE_NAME = "users";
-	
+public class Account implements Loggins, CommandHandler {
+	public static final String TABLE_NAME = "accounts";
+
 	private int id;
 	private String login;
 	private boolean loggedin;
-	private DBWorker dbcontext;
+
+	private GameClient client;
+	private Player currentPlayer;
+
+	public GameClient getClient() {
+		return client;
+	}
+
+	public Player getCurrentPlayer() {
+		return currentPlayer;
+	}
 
 	public int getId() {
 		return id;
 	}
 
-	public Account(DBWorker dbcontext, String login) {
-		this.login = login;
-		this.dbcontext = dbcontext;
-		loggedin = false;
+	public String getLogin() {
+		return login;
 	}
 
-	public boolean getIsLoggedIn() {
+	public Account(GameClient client, String login) {
+		this.login = login;
+		this.client = client;
+
+		loggedin = false;
+		currentPlayer = null;
+	}
+
+	public boolean isLoggedIn() {
 		return loggedin;
+	}
+
+	/**
+	 * @param password
+	 *            Пытается получить данные аккаунта, и загрузить персонажа
+	 *            (персонаж пока 1 на аккаунт)
+	 */
+	public boolean login(String password) {
+		try {
+			if (checkLogin(password)) {
+				
+				// получаем список игроков данного аккаунта
+				List<Integer> players = getPlayersIds();
+				currentPlayer = new Player(this);
+				// если нет создаём нового
+				if (players.size() == 0)
+					currentPlayer.createNew(login);
+				else {
+					// если есть, грузим первого (и по идее единственного)
+					currentPlayer.setId(players.get(0));
+					currentPlayer.loadFromDB();
+				}
+				
+				return true;
+			}
+		} catch (SQLException e) {
+			Log.error("SQL error within check login.");
+			e.printStackTrace();
+		} catch (Exception e) {
+			Log.error(e.getMessage());
+		}
+
+		return false;
 	}
 
 	public boolean checkLogin(String password) {
@@ -41,38 +95,48 @@ public class Account implements Loggins {
 			System.out.println(e.getMessage());
 			return false;
 		}
-		
+
 		try {
-			Statement st = dbcontext.newStatement();
-			String sql = "SELECT `password` FROM `"+TABLE_NAME+"` WHERE `login` = ''{0}''";
-			sql = MessageFormat.format(sql, new Object[] {login});
+			Statement st = client.getDBContext().newStatement();
+			String sql = "SELECT `id`, `password` FROM `{0}` WHERE `login` = ''{1}''";
+			sql = MessageFormat.format(sql, new Object[] { TABLE_NAME, login });
 
 			ResultSet rs = st.executeQuery(sql);
-			
-			//если ничего не нашли, регистрируем нового
-			if(!rs.next())
-			{
+
+			// если ничего не нашли, регистрируем нового
+			if (!rs.next()) {
+
+				// нужно будет где-то запилить такую настройку
+				/*
+				 * // если авторегистрация не включена - выходим
+				 * if(!AutoRegister) return false;
+				 */
+
 				loggedin = (registerNew(password) > 0);
-				return loggedin;  
+
+				rs.close();
+				st.close();
+				return loggedin;
 			}
-							
-			//если нашли, сравниваем пароль
-			loggedin = rs.getString(1).equals(getPasswordHash(password));
-			
-			if(loggedin)
-				Log.add("User "+login+" has successfully logged.");
+
+			// если нашли, сравниваем пароль
+			id = rs.getInt(1);
+			loggedin = rs.getString(2).equals(getPasswordHash(password));
+
+			if (loggedin)
+				Log.error("User " + login + " (id: "+id+") has successfully logged.");
 			else
-				Log.add("Unsuccessful attempt to login. User: "+login);
+				Log.error("Unsuccessful attempt to login. User: " + login);
 
 			rs.close();
+			st.close();
 		} catch (SQLException e) {
+			Log.error("SQL error within check login.");
 			e.printStackTrace();
-			return false;
 		} catch (Exception e) {
-			Log.add(e.getMessage());
+			Log.error(e.getMessage());
 		}
-		
-		
+
 		return loggedin;
 	}
 
@@ -82,36 +146,64 @@ public class Account implements Loggins {
 
 	public int registerNew(String password) {
 		try {
-			Statement st = dbcontext.newStatement();
+			Statement st = client.getDBContext().newStatement();
+			String sql = "INSERT INTO `{0}` (`login`,`password`,`createAt`,`registerIP`) VALUES (''{1}'', ''{2}'', NOW(), ''{3}'')";
+			sql = MessageFormat.format(sql, new Object[] { TABLE_NAME, login, getPasswordHash(password), "ip" });
 
-			String sql = "INSERT INTO `"+TABLE_NAME+"` (`login`,`password`,`createAt`,`registerIP`) VALUES (''{0}'', ''{1}'', NOW(), ''{2}'')";
-
-			sql = MessageFormat.format(sql, new Object[] {login, getPasswordHash(password), "ip"});
-
-			if(st.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS) > 0)
-			{
+			if (st.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS) > 0) {
 				ResultSet rs = st.getGeneratedKeys();
-				if(!rs.next())
+				if (!rs.next())
 					throw new Exception("Some error within registration");
-					
+
 				id = rs.getInt(1);
-				Log.add("New user ("+login+") registered.");
-				rs.close();	
+				Log.error("New user (" + login + ") registered.");
+				rs.close();
+				st.close();
 				return id;
 			}
-			 
 
 		} catch (NoSuchAlgorithmException e) {
-			Log.add("Can't register new user");
+			Log.error("Can't register new user");
 			e.printStackTrace();
 		} catch (SQLException e) {
-			Log.add("Can't register new user");
+			Log.error("Can't register new user");
 			e.printStackTrace();
 		} catch (Exception e) {
-			Log.add(e.getMessage());
+			Log.error(e.getMessage());
+		}
+		return 0;
+	}
+
+	/**
+	 * @return ID персонажа Пытается получить ID первого связанного с аккаунтом
+	 *         персонажа
+	 * @throws SQLException
+	 */
+	private List<Integer> getPlayersIds() throws SQLException {
+		Statement st = client.getDBContext().newStatement();
+		String sql = "SELECT `id` FROM `{0}` WHERE `account_id` = ''{1}''";
+		sql = MessageFormat.format(sql, new Object[] {Player.TABLE_NAME, id });
+
+		ResultSet rs = st.executeQuery(sql);
+		
+		List<Integer> res = new ArrayList<Integer>(); // new int[rs.getFetchSize()];
+
+		if (rs.next()) {
+			res.add(rs.getInt(1));
 		}
 
-		return 0;
+		rs.close();
+		st.close();
+
+		return res;
+	}
+
+	public boolean handleCommand(RequestCommand c) {
+
+		if (currentPlayer != null && currentPlayer.isLoaded())
+			return currentPlayer.handleCommand(c);
+		else
+			return false;
 	}
 
 }

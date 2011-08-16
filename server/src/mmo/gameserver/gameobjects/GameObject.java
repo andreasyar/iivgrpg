@@ -7,7 +7,7 @@ package mmo.gameserver.gameobjects;
  *
  */
 public abstract class GameObject {
-	private int id;
+	protected int id;
 	
 	public int getId() {
 		return id;

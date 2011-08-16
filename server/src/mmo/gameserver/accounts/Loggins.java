@@ -5,7 +5,7 @@ public interface Loggins {
 	/**
 	 * Залогинен ли
 	 */
-	public boolean getIsLoggedIn();
+	public boolean isLoggedIn();
 	
 	/**
 	 * Проверка авторизации, залогинивание
