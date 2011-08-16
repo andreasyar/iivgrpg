@@ -30,7 +30,15 @@ public class WebServerPipelineFactory implements ChannelPipelineFactory {
 
 		pipeline.addLast("channelGroupHandler", new SimpleChannelUpstreamHandler() {
 			public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) {
-				webserver.getChannels().add(e.getChannel());
+				webserver.onClientChannelOpen(ctx, e);
+			}
+			
+			public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
+				webserver.onClientChannelClose(ctx, e);
+			}
+			
+			public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
+				webserver.onClientDisconnected(ctx, e);
 			}
 		});
 

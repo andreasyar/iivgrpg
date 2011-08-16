@@ -86,6 +86,7 @@ public class GameClient implements NetActive, CommandHandler {
 			if(account.login(((Login) c).getPassword()))
 			{
 				getChannel().write(new DefaultWebSocketFrame( new Hello(account.getCurrentPlayer().getId(), account.getCurrentPlayer().getName()).toString() ));
+				gameserver.onClientLoggedIn(this);
 			} else
 				getChannel().write(new DefaultWebSocketFrame( new Wrongpass().toString() ));
 			

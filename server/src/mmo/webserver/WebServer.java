@@ -4,10 +4,13 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
 import mmo.config.XMLConfig;
+import mmo.gameserver.GameClient;
 import mmo.gameserver.GameServer;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
@@ -60,4 +63,19 @@ public class WebServer {
 	protected void finalize()  throws Exception {
 		 stop();
 	}
+	
+	public void onClientChannelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) {
+		getChannels().add(e.getChannel());
+	}
+	
+	public void onClientChannelClose(ChannelHandlerContext ctx, ChannelStateEvent e) {
+		getChannels().remove(e.getChannel());
+	}	
+	
+	public void onClientDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
+		gameserver.onClientDisconnect(GameClient.getClient(ctx.getChannel()));
+	}
+	
+
+	
 }

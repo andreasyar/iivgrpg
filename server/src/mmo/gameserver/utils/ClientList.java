@@ -13,18 +13,22 @@ public class ClientList {
 	public GameServer getGameserver() {
 		return gameserver;
 	}	
-	
+
+	public List<GameClient> getList() {
+		return list;
+	}
+
 	public ClientList(GameServer gameserver){
 		list = new ArrayList<GameClient>();
 		this.gameserver = gameserver;
 	}
 	
 	public void finalize(){
-		diconnectAll();
+		disconnectAll();
 		list.clear();
 	}
 	
-	public void diconnectAll() {
+	public void disconnectAll() {
 		for(GameClient p : list)
 		{
 			if(p.isConnected())
@@ -32,8 +36,14 @@ public class ClientList {
 		}
 	}
 	
-	public void addClient(GameClient p){
-		list.add(p);
+	public void disconnect(GameClient c) {
+		c.disconnect();
+		list.remove(c);
+	}	
+	
+
+	public void addClient(GameClient c){
+		list.add(c);
 	}
 
 

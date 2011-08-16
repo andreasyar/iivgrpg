@@ -7,10 +7,8 @@ import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
 
 import mmo.config.XMLConfig;
 import mmo.db.DBWorker;
-import mmo.gameserver.commands.ErrorResponse;
-import mmo.gameserver.commands.GameServerErrors;
-import mmo.gameserver.commands.RequestCommand;
-import mmo.gameserver.commands.RequestCommandFactory;
+import mmo.gameserver.commands.*;
+import mmo.gameserver.gameobjects.*;
 import mmo.gameserver.utils.ClientList;
 import mmo.utils.Log;
 
@@ -38,7 +36,7 @@ public class GameServer{
 	 * Выпиливание всего живого на сервере
 	 */
 	public void stop() {
-		clients.diconnectAll();
+		clients.disconnectAll();
 	}
 	
 	public void addClient(Channel channel)
@@ -92,5 +90,48 @@ public class GameServer{
 		
 		return false;
 	}
+	
+	/**
+	 * Рассылка сообщения всем клиентам
+	 *  
+	 * @param author клиент инициализатор сообщения
+	 * @param command класс сообщения
+	 */	
+	public void toAllClient(GameClient author, ResponseCommand command) {
+		DefaultWebSocketFrame frame = new DefaultWebSocketFrame(command.toString());
+		
+		for(GameClient client: clients.getList())
+		{
+			client.getChannel().write(frame);
+		}
+	}
+	
+	
+	// События
+	
+	
+	/**
+	 * Событие захода нового клиента в игру
+	 * @param client автор события
+	 */
+	public void onClientLoggedIn(GameClient client) {
+		Player p = client.getAccount().getCurrentPlayer();
+		toAllClient(client, new Newplayer(p.getId(), p.getName(), p.getY(),	p.getX(), p.getSpeed(), p.getSpriteCategory()));
+	}
+	
+	/**
+	 * Событие выхода клиента из игры
+	 * @param client автор события
+	 */
+	public void onClientDisconnect(GameClient client) {
+		if(client == null)
+			return;
+		
+		Player p = client.getAccount().getCurrentPlayer();
+		toAllClient(client, new Delplayer(p.getId()));
+		clients.disconnect(client);
+	}	
+	
+	
 
 }
