@@ -17,6 +17,9 @@ import mmo.gameserver.commands.CommandHandler;
 
 public class Account implements Loggins, CommandHandler {
 	public static final String TABLE_NAME = "accounts";
+	public static final String LOGIN_REGEX = "^[\\w_@^]{3,16}$";
+	public static final String PASSWORD_REGEX = "^[^\\s]{4,64}$";
+	
 
 	private int id;
 	private String login;
@@ -88,8 +91,11 @@ public class Account implements Loggins, CommandHandler {
 
 	public boolean checkLogin(String password) {
 		try {
-			if (!login.matches("^[\\w_@^]{3,16}$"))
+			if (!login.matches(LOGIN_REGEX))
 				throw new Exception("Wrong login string");
+			
+			if (!password.matches(PASSWORD_REGEX))
+				throw new Exception("Wrong password string");
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
