@@ -70,6 +70,7 @@ public class Player extends Unit implements CommandHandler {
 			e.printStackTrace();
 		} catch (Exception e) {
 			Log.error(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	
@@ -106,6 +107,7 @@ public class Player extends Unit implements CommandHandler {
 			e.printStackTrace();
 		} catch (Exception e) {
 			Log.error(e.getMessage());
+			e.printStackTrace();
 		}
 		
 		return 0;
