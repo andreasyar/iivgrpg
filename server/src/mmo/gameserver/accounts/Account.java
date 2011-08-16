@@ -84,6 +84,7 @@ public class Account implements Loggins, CommandHandler {
 			e.printStackTrace();
 		} catch (Exception e) {
 			Log.error(e.getMessage());
+			e.printStackTrace();
 		}
 
 		return false;
@@ -130,9 +131,9 @@ public class Account implements Loggins, CommandHandler {
 			loggedin = rs.getString(2).equals(getPasswordHash(password));
 
 			if (loggedin)
-				Log.error("User " + login + " (id: "+id+") has successfully logged.");
+				Log.print("User " + login + " (id: "+id+") has successfully logged.");
 			else
-				Log.error("Unsuccessful attempt to login. User: " + login);
+				Log.print("Unsuccessful attempt to login. User: " + login);
 
 			rs.close();
 			st.close();
@@ -141,6 +142,7 @@ public class Account implements Loggins, CommandHandler {
 			e.printStackTrace();
 		} catch (Exception e) {
 			Log.error(e.getMessage());
+			e.printStackTrace();
 		}
 
 		return loggedin;
@@ -162,7 +164,7 @@ public class Account implements Loggins, CommandHandler {
 					throw new Exception("Some error within registration");
 
 				id = rs.getInt(1);
-				Log.error("New user (" + login + ") registered.");
+				Log.print("New user (" + login + ") registered.");
 				rs.close();
 				st.close();
 				return id;
@@ -176,6 +178,7 @@ public class Account implements Loggins, CommandHandler {
 			e.printStackTrace();
 		} catch (Exception e) {
 			Log.error(e.getMessage());
+			e.printStackTrace();
 		}
 		return 0;
 	}
