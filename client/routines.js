@@ -42,6 +42,18 @@ function showLoginForm() {
     login_form.style.left = (SCR_W / 2 - login_form.offsetWidth / 2) + "px";
     login_form.style.top = (SCR_H / 2  - login_form.offsetHeight / 2) + "px";
 }
+/**
+ * Возвращает логин, введённый в форме ввода логина пароля.
+ */
+function getLogin() {
+    return document.getElementById('login_fild').value
+}
+/**
+ * Возвращает пароль, введённый в форме ввода логина пароля.
+ */
+function getPassword() {
+    return document.getElementById('password_fild').value
+}
 
 // Поиск пути на карте.
 function Cell(i, j, g, h, parent) {

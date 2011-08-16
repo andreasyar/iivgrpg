@@ -26,6 +26,13 @@ function LoginMessage(login, password) {
      * Пароль.
      */
     this.password = password;
+    
+    /**
+     * Преобразование в JSON. Временно.
+     */
+    this.toJSON = function() {
+        return JSON.stringify(new Array(this.type, {login:this.login, password:this.password}))
+    }
 
     return this;
 }
@@ -67,7 +74,7 @@ var MESSAGE_HANDLERS = {
             SCR_H / 2,
             5,
             5,
-            msg.name,
+            msg[1].name,
             new SpriteLoader(SPRITES)
         );
         map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));

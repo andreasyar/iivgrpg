@@ -9,7 +9,7 @@ function ServerInteraction() {
     if (this.constructor !== arguments.callee) {
         throw new Error("Constructor called like a simple function!");
     }
-    
+
     // Поддерживаются ли веб сокеты браузером клиента?
     if (!window.WebSocket) {
         throw new Error("Your browser does not support Web Socket!");
@@ -36,12 +36,23 @@ function ServerInteraction() {
 
         // Обработчик получения сообщения от сервера.
         this.socket.onmessage = function(event) {
-            this.parent.inQueue.push(event.data);
+            var obj = JSON.parse(event.data);
+            for (var key in MESSAGE_HANDLERS) {
+                if (obj[0] != undefined && obj[0] == key) {
+                    console.log("<- " + event.data);
+                    MESSAGE_HANDLERS[key](obj);
+                    break;
+                }
+            }
         };
 
         // Обработчик открытия соединения с сервером.
         this.socket.onopen = function(event) {
-            console.log("Web Socket opened.");
+            console.log("Web Socket opened. Send login message");
+            this.parent.sendMessage(new LoginMessage(
+                getLogin(),
+                getPassword()
+            ));
         };
 
         // Обработчик закрытия соединения с сервером.
@@ -54,7 +65,7 @@ function ServerInteraction() {
     this.addMessage = function(obj) {
         this.outQueue.push(obj);
     };
-    
+
     // Отправляет все сообщения из очереди исходящих сообщений.
     this.sendMessages = function() {
         if (this.socket == null || this.socket.readyState != WebSocket.OPEN) {
@@ -63,15 +74,15 @@ function ServerInteraction() {
         } else if (this.outQueue.length > 0) {
             var msg, obj;
             while ( (obj = this.outQueue.shift()) != undefined) {
-                msg = JSON.stringify(obj);
+                msg = obj.toJSON()//JSON.stringify(obj);
                 console.log("-> " + msg);
                 this.socket.send(msg);
             }
         }
-        
+
         return true;
     }
-    
+
     // Обрабатывает все сообщения из очереди входящих сообщений.
     this.processMessages = function() {
         if (this.inQueue.length > 0) {
@@ -87,5 +98,21 @@ function ServerInteraction() {
                 }
             }
         }
+    }
+
+    /**
+     * Отправляет сообщение.
+     * @param msg Сообщение.
+     */
+    this.sendMessage = function(msg) {
+        if (this.socket == null || this.socket.readyState != WebSocket.OPEN) {
+            throw new Error("Cant send message. Connection not established.")
+        } else {
+            msg = msg.toJSON()
+            console.log("-> " + msg);
+            this.socket.send(msg);
+        }
+
+        return true;
     }
 }
