@@ -18,6 +18,7 @@ public class GameClient implements NetActive, CommandHandler {
 	private DBWorker dbcontext;
 	private Channel channel;
 	private Account account;
+	private GameServer gameserver;
 	
 	static {
 		clients = new HashMap<Channel,GameClient>(); 
@@ -38,10 +39,15 @@ public class GameClient implements NetActive, CommandHandler {
 	public Account getAccount() {
 		return account;
 	}
+	
+	public GameServer getGameserver() {
+		return gameserver;
+	}
 
-	public GameClient(DBWorker dbcontext, Channel channel){
+	public GameClient(DBWorker dbcontext, Channel channel, GameServer gameserver){
 		this.dbcontext = dbcontext; 
 		this.channel = channel;
+		this.gameserver = gameserver; 
 		
 		clients.put(channel, this);
 	}
@@ -89,5 +95,6 @@ public class GameClient implements NetActive, CommandHandler {
 		if(account.isLoggedIn())
 			return account.handleCommand(c);
 		else return false;
-	}	
+	}
+
 }

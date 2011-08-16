@@ -91,7 +91,7 @@ public class Player extends Unit implements CommandHandler {
 			{
 				ResultSet rs = st.getGeneratedKeys();
 				if(!rs.next())
-					throw new Exception("Some error within create new character");
+					throw new Exception("Some error within create new character.");
 					
 				id = rs.getInt(1);
 				loaded = true;	
@@ -103,7 +103,7 @@ public class Player extends Unit implements CommandHandler {
 			}
 			 
 		} catch (SQLException e) {
-			Log.error("Can't register new character");
+			Log.error("Can't register new character.");
 			e.printStackTrace();
 		} catch (Exception e) {
 			Log.error(e.getMessage());

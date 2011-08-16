@@ -35,7 +35,7 @@ public class GameServer{
 	}
 	
 	/**
-	 * Выпиливание всего живого на сервер
+	 * Выпиливание всего живого на сервере
 	 */
 	public void stop() {
 		clients.diconnectAll();
@@ -43,7 +43,7 @@ public class GameServer{
 	
 	public void addClient(Channel channel)
 	{
-		clients.addClient(new GameClient(dbcontext, channel));
+		clients.addClient(new GameClient(dbcontext, channel, this));
 	}
 	
 	public boolean handleRequest(ChannelHandlerContext ctx, WebSocketFrame frame) {
@@ -51,7 +51,7 @@ public class GameServer{
 		{
 			String jsonString = frame.getTextData();
 			RequestCommand command;
-			
+
 			if(jsonString.isEmpty())
 			{
 				ctx.getChannel().write(new DefaultWebSocketFrame( new ErrorResponse(GameServerErrors.EMPTY_COMMAND).toString() ));
@@ -66,6 +66,7 @@ public class GameServer{
 			} catch (Exception e) {
 				ctx.getChannel().write(new DefaultWebSocketFrame( new ErrorResponse(GameServerErrors.COMMAND_PARSE).toString() ));
 				Log.error(GameServerErrors.COMMAND_PARSE.getDescription());
+				e.printStackTrace();
 				return true;	
 			}
 			

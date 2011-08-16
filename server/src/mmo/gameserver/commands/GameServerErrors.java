@@ -26,7 +26,8 @@ public enum GameServerErrors {
 	private String description;
 	
 	private GameServerErrors(int id, String description) {
-		
+		this.id = id;
+		this.description = description;
 	}
 
 	public int getId() {
