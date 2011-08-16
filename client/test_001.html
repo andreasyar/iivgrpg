@@ -3,6 +3,7 @@
 <html>
 <head>
 <title>Test</title>
+<meta http-equivequiv="Content-Type" content="text/html; charset=UTF-8">
 <style type="text/css" >
 #scr {
     border: 1px solid #000000;
@@ -60,10 +61,10 @@ players_buffer.height = SCR_H;
  *************************/
 
 // Свой игрок.
-var self_player;
+var self_player
 
 // Карта.
-var map;
+var map
 
 // Сервер.
 var server
@@ -73,24 +74,11 @@ var server
  ************/
 
 /**
- * Инициализация. Создание своего игрока, карты, подключение к серверу, и т.д.
+ * Инициализация.
  */
 function init() {
-    var lgn = document.getElementById('login_fild').value;
-    var pass = document.getElementById('password_fild').value;
-    var serv = document.getElementById('server_fild').value;
-
-    self_player = new Player(SCR_W / 2, SCR_H / 2, 5, 5, lgn,
-                             new SpriteLoader(SPRITES));
-    map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
     server = new ServerInteraction();
-    server.connect(serv);
-
-    // Запускаем главный цикл.
-    setTimeout("mainLoop();", 1000 / FPS);
-
-    hideLoginForm();
-    scr.addEventListener("click", scrOnClick, false);
+    server.connect(document.getElementById('server_fild').value);
     return false;
 }
 

@@ -26,7 +26,7 @@ function LoginMessage(login, password) {
      * Пароль.
      */
     this.password = password;
-    
+
     /**
      * Преобразование в JSON. Временно.
      */
@@ -78,5 +78,14 @@ var MESSAGE_HANDLERS = {
             new SpriteLoader(SPRITES)
         );
         map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
+
+        // Запускаем главный цикл.
+        setTimeout("mainLoop();", 1000 / FPS);
+
+        hideLoginForm();
+        scr.addEventListener("click", scrOnClick, false);
+    },
+    "WRONGPASS": function(msg) {
+        alert("Wrong password for user " + getLogin())
     }
 };
