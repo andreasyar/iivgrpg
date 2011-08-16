@@ -86,6 +86,6 @@ var MESSAGE_HANDLERS = {
         scr.addEventListener("click", scrOnClick, false);
     },
     "WRONGPASS": function(msg) {
-        alert("Wrong password for user " + getLogin())
+        alert("Неверный пароль для пользователя " + getLogin())
     }
 };
