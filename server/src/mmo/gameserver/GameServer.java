@@ -7,6 +7,7 @@ import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
 
 import mmo.config.XMLConfig;
 import mmo.db.DBWorker;
+import mmo.gameserver.accounts.Account;
 import mmo.gameserver.commands.*;
 import mmo.gameserver.gameobjects.*;
 import mmo.gameserver.utils.ClientList;
@@ -102,6 +103,7 @@ public class GameServer{
 		
 		for(GameClient client: clients.getList())
 		{
+			if(client.getChannel().isOpen() && client.getChannel().isConnected())
 			client.getChannel().write(frame);
 		}
 	}
@@ -127,7 +129,13 @@ public class GameServer{
 		if(client == null)
 			return;
 		
-		Player p = client.getAccount().getCurrentPlayer();
+		Account a = client.getAccount();
+		if(a == null)
+			return;
+		Player p = a.getCurrentPlayer();
+		if(p == null)
+			return;
+		
 		toAllClient(client, new Delplayer(p.getId()));
 		clients.disconnect(client);
 	}	
