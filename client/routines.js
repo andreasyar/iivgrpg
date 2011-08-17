@@ -259,3 +259,86 @@ function getPath(beg, end) {
     console.log(stat)
     return false    // Нет пути
 }
+
+// Отображает форму чата.
+function showChat() {
+    var chat = document.getElementById('chat');
+    
+    // Сделаем форму видимой и отцентируем форму логина по середине конвы.
+    chat.style.visibility = 'visible';
+    chat.style.left = (SCR_W + 20) + "px";
+    chat.style.top = (20) + "px";
+    document.getElementById("chat_bar_common").style.color = "blue"
+    
+    chatToggle(cur_chat_type)
+}
+// Выводи содержимое чата.
+function chatToggle(type) {
+    var c, e,
+        t = document.getElementById("chat_field"),
+        input = document.getElementById("chat_input")
+    
+    switch (type) {
+        case 0:
+            e = document.getElementById("chat_bar_common")
+            c = common_chat
+            cur_chat_type = 0
+            
+            e.style.color = "blue"
+            document.getElementById("chat_bar_private").style.color = "black"
+            break
+        case 1:
+            e = document.getElementById("chat_bar_private")
+            c = private_chat
+            cur_chat_type = 1
+            
+            e.style.color = "blue"
+            document.getElementById("chat_bar_common").style.color = "black"
+            break
+    }
+    
+    var tmp = ""
+    for (var i in c) {
+        tmp += c[i].name + ": " + c[i].message + "\n"
+    }
+    t.value = tmp
+    setCaretToPos(t, t.value.length)
+    setCaretToPos(input, input.value.length)
+}
+// Отправляе сообщение на сервер.
+function chatSend() {
+    var input = document.getElementById("chat_input")
+    var t = document.getElementById("chat_field")
+    
+    t.value += self_player.name + ": " + input.value + "\n"
+    switch (cur_chat_type) {
+        case 0:
+            common_chat.push({name:self_player.name, message:input.value})
+            break
+        case 1:
+            private_chat.push({name:self_player.name, message:input.value})
+            break
+    }
+    
+    server.sendMessage(new NewchatMessage(input.value))
+    setCaretToPos(t, t.value.length)
+    setCaretToPos(input, input.value.length)
+    input.value = ""
+}
+// http://stackoverflow.com/questions/499126/jquery-set-cursor-position-in-text-area
+function setSelectionRange(input, selectionStart, selectionEnd) {
+  if (input.setSelectionRange) {
+    input.focus();
+    input.setSelectionRange(selectionStart, selectionEnd);
+  }
+  else if (input.createTextRange) {
+    var range = input.createTextRange();
+    range.collapse(true);
+    range.moveEnd('character', selectionEnd);
+    range.moveStart('character', selectionStart);
+    range.select();
+  }
+}
+function setCaretToPos(input, pos) {
+  setSelectionRange(input, pos, pos);
+}

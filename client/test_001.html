@@ -16,6 +16,27 @@
     left: 300px;
     visibility: hidden;
 }
+#chat {
+    background-color: tan;
+    z-index: 2;
+    position: absolute;
+    top: 300px;
+    left: 300px;
+    visibility: hidden;
+}
+#chat_field {
+    width: 300px;
+    height: 200px;
+}
+#chat_input {
+    width: 300px;
+}
+#chat_bar_common {
+    cursor: pointer;
+}
+#chat_bar_private {
+    cursor: pointer;
+}
 </style>
 <script type="text/javascript" src="Constants.js"></script>
 <script type="text/javascript" src="routines.js"></script>
@@ -63,11 +84,23 @@ players_buffer.height = SCR_H;
 // Свой игрок.
 var self_player
 
+// Список игроков.
+var players_list = new Array()
+
 // Карта.
 var map
 
 // Сервер.
 var server
+
+// Сообщения общего чата.
+var common_chat = new Array()
+
+// Сообщения приватного чата.
+var private_chat = new Array()
+
+// Тип чата, отображающегося в окне чата.
+var cur_chat_type = 0
 
 /************
  * Функции. *
@@ -96,34 +129,34 @@ function logout() {
  * Главный цикл игры.
  */
 function mainLoop() {
-    var scr_context = scr.getContext('2d');
+    var scr_context = scr.getContext('2d')
+    var players_context = players_buffer.getContext('2d')
+    var map_context = map_buffer.getContext('2d')
+    
+    // Фон.
+    scr_context.fillStyle = "#FFFFEE"
+    scr_context.fillRect(0, 0, SCR_W, SCR_H)
 
-    // background
-    scr_context.fillStyle = "#FFFFEE";
-    scr_context.fillRect(0, 0, SCR_W, SCR_H);
-
-    // Пока что будем очищать всю конву целиком, а не только область в которой
+    // Пока что будем очищать весь холст целиком, а не только область, в которой
     // было что-то нарисовано.
-    players_buffer.getContext('2d').clearRect(0, 0, players_buffer.width,
-                                              players_buffer.height);
-    map_buffer.getContext('2d').clearRect(0, 0, map_buffer.width,
-                                          map_buffer.height);
-    //gui_buffer.getContext('2d').clearRect(0, 0, gui_buffer.width,
-    //                                      gui_buffer.height);
+    players_context.clearRect(0, 0, players_buffer.width,
+                              players_buffer.height)
+    map_context.clearRect(0, 0, map_buffer.width, map_buffer.height)
 
-    map.draw(map_buffer.getContext('2d'));
-    self_player.draw(players_buffer.getContext('2d'));
+    // Нарисуем карту и своего игрока с буфер.
+    map.draw(map_context)
+    self_player.draw(players_context)
+    
+    // Нарисуем в буфер остальных игроков.
+    for (var i in players_list) {
+        players_list[i].draw(players_context)
+    }
 
-    // draw map
-    scr_context.drawImage(map_buffer, 0, 0);
+    // Нарисуем карту и игроков на основном холсте.
+    scr_context.drawImage(map_buffer, 0, 0)
+    scr_context.drawImage(players_buffer, 0, 0)
 
-    // draw players
-    scr_context.drawImage(players_buffer, 0, 0);
-
-    // Отрисовка буфера с гуи в главной конве. Сейчас не используется.
-    //scr_context.drawImage(gui_buffer, 0, 0);
-
-    setTimeout("mainLoop();", 1000 / FPS);
+    setTimeout("mainLoop();", 1000 / FPS)
 }
 
 /**
@@ -144,15 +177,6 @@ function scrOnClick(e) {
     }
     x -= scr.offsetLeft;
     y -= scr.offsetTop;
-
-    // Код, оставшийся после тестирования своих элементов управления.
-    /*for (var i in drawable_objects) {
-        if (drawable_objects[i].contains != undefined) {
-            if (drawable_objects[i].contains(x, y)) {
-                drawable_objects[i].onPress(x, y);
-            }
-        }
-    }*/
 
     // Вычислим клетку в которой был щелчёк и переместим туда игрока с
     // случайной скоростью.
@@ -188,8 +212,19 @@ Server: <input type="server_fild" id="server_fild"
        onclick="login(); return false;">
 </div>
 
+<!-- Чат. -->
+<div id="chat">
+<ul id="chat_bar">
+<li><span id="chat_bar_common" onclick="chatToggle(0);return false;">Общий</span></li>
+<li><span id="chat_bar_private" onclick="chatToggle(1);return false;">Приват</span></li>
+</ul>
+<textarea id="chat_field"></textarea><br>
+<input id="chat_input" type="text"><br>
+<input id="chat_send" type="button" value="Send" onclick="chatSend();return false;">
+</div>
+
 <script type="text/javascript">
-    showLoginForm();
+    showLoginForm()
     document.onkeydown = function(event){
         var events = event || window.event
         if (events.keyCode == 116) {    // F5

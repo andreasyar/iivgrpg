@@ -55,8 +55,8 @@ function Player(id, x, y, j, i, name, spriteLoader, speed) {
      * @param context Контекст для рисования.
      */
     this.draw = function(context) {
-        var x = Map.getCellXOnScreen(this.j, this.x, this.j);
-        var y = Map.getCellYOnScreen(this.i, this.y, this.i);
+        var x = Map.getCellXOnScreen(this.j, self_player.x, self_player.j);
+        var y = Map.getCellYOnScreen(this.i, self_player.y, self_player.i);
         context.drawImage(this.loader.getSprite(3), x, y);
 
         // Нарисуем имя.
