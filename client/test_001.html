@@ -27,7 +27,7 @@
 <script type="text/javascript" src="ServerInteraction.js"></script>
 <script type="text/javascript" src="Messages.js"></script>
 </head>
-<body>
+<body onunload="logout();return false;">
 <script type="text/javascript">
 
 /*********************
@@ -73,13 +73,23 @@ var server
  * Функции. *
  ************/
 
-/**
- * Инициализация.
- */
-function init() {
-    server = new ServerInteraction();
-    server.connect(document.getElementById('server_fild').value);
-    return false;
+function login() {
+    if (server == undefined) {
+        server = new ServerInteraction()
+        server.connect(document.getElementById('server_fild').value)
+    } else if (server.socket.readyState == WebSocket.OPEN) {
+        server.sendMessage(new LoginMessage(getLogin(), getPassword()))
+    } else {
+        server.connect(document.getElementById('server_fild').value)
+    }
+    return false
+}
+
+function logout() {
+    if (server != undefined && server.socket != null) {
+        server.sendMessage(new LogoutMessage())
+        server.socket.close()
+    }
 }
 
 /**
@@ -175,11 +185,17 @@ Password: <input type="text" id="password_fild"><br>
 Server: <input type="server_fild" id="server_fild"
                value="ws://localhost:8015/ws"><br>
 <input type="button" id="login_button" value="Login"
-       onclick="init(); return false;">
+       onclick="login(); return false;">
 </div>
 
 <script type="text/javascript">
     showLoginForm();
+    document.onkeydown = function(event){
+        var events = event || window.event
+        if (events.keyCode == 116) {    // F5
+            logout()
+        }
+    }
 </script>
 </body>
 </html>

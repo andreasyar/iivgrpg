@@ -38,9 +38,9 @@ function LoginMessage(login, password) {
 }
 
 /**
- * Сообщение об успешном входе в игру.
+ * Сообщение о выходе игрока из игры.
  */
-function HelloMessage(id, name) {
+function LogoutMessage() {
 
     // Эту функцию можно вызвать только как конструктор (с new).
     if (this.constructor !== arguments.callee) {
@@ -50,42 +50,61 @@ function HelloMessage(id, name) {
     /**
      * Тип сообщения.
      */
-    this.type = "HELLO";
+    this.type = "LOGOUT";
 
     /**
-     * Id игрока.
+     * Преобразование в JSON. Временно.
      */
-    this.id = id;
-
-    /**
-     * Имя игрока.
-     */
-    this.name = name;
+    this.toJSON = function() {
+        return JSON.stringify(new Array(this.type))
+    }
 
     return this;
 }
 
 // Обработчики сообщений.
 var MESSAGE_HANDLERS = {
-    "LOGIN": function(msg) {},
     "HELLO": function(msg) {
-        self_player = new Player(
-            SCR_W / 2,
-            SCR_H / 2,
-            5,
-            5,
-            msg[1].name,
-            new SpriteLoader(SPRITES)
-        );
-        map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
+        // ["HELLO",{"id":"идентификатор игрока","name":"имя игрока"}]
+        if (self_player != undefined) {
+            console.log("Клиент уже вошел в игру. Сообщение будет проигнорировано.")
+            return
+        }
 
-        // Запускаем главный цикл.
-        setTimeout("mainLoop();", 1000 / FPS);
-
-        hideLoginForm();
-        scr.addEventListener("click", scrOnClick, false);
+        arguments.callee.selfPlayerId = msg[1].id
     },
     "WRONGPASS": function(msg) {
+        // ["WRONGPASS"]
         alert("Неверный пароль для пользователя " + getLogin())
+    },
+    "NEWPLAYER": function(msg) {
+        // ["NEWPLAYER",{"id":"идентификатор игрока","name":"имя игрока","j":"индекс","i":"индекс","speed":"3", "spriteCategory":"player"}]
+        if (MESSAGE_HANDLERS["HELLO"].selfPlayerId == msg[1].id) {
+            if (self_player != undefined) {
+                console.log("Свой игрок уже создан. Сообщение будет проигнорировано.")
+            } else {
+                self_player = new Player(
+                    msg[1].id,
+                    SCR_W / 2,
+                    SCR_H / 2,
+                    msg[1].j,
+                    msg[1].i,
+                    msg[1].name,
+                    new SpriteLoader(SPRITES),
+                    msg[1].speed
+                );
+                map = new Map(100, 100, self_player, new SpriteLoader(SPRITES))
+
+                // Запускаем главный цикл.
+                setTimeout("mainLoop();", 1000 / FPS)
+
+                hideLoginForm()
+                scr.addEventListener("click", scrOnClick, false)
+            }
+
+            return
+        }
+
+        console.log("TODO Создание игрока.")
     }
 };

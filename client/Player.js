@@ -4,12 +4,17 @@
 
 // Для работы методов необходимо загрузить скрипт с картой.
 // Для работы методов необходимо загрузить скрипт с константами.
-function Player(x, y, j, i, name, spriteLoader) {
+function Player(id, x, y, j, i, name, spriteLoader, speed) {
 
     // Эту функцию можно вызвать только как конструктор (с new).
     if (this.constructor !== arguments.callee) {
         throw new Error("Constructor called like a simple function!");
     }
+
+    /**
+     * Идентификатор игрока.
+     */
+    this.id = id;
 
     // Положение относительно конвы в пикселах по оси Х.
     this.x = x;
@@ -37,7 +42,7 @@ function Player(x, y, j, i, name, spriteLoader) {
     this.loader = spriteLoader;
 
     // Скорость передвижения в клетках в секунду.
-    this.speed = 0;
+    this.speed = speed;
 
     // Флаг движения.
     this.is_move = false;
