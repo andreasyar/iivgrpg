@@ -1,5 +1,8 @@
 package mmo.gameserver;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -138,12 +141,25 @@ public class GameServer{
 		
 		for(GameClient client: clients.getList())
 		{
-			if(client.getChannel().isOpen() && client.getChannel().isConnected())
+			if(client.getChannel() != null && client.getChannel().isOpen() && client.getChannel().isConnected())
 			channels.add(client.getChannel());			
 		}
 		
 		channels.write(frame);
 	}
+	
+	/**
+	 * Сообщение для клиента
+	 *  
+	 * @param to получатель сообщения
+	 * @param command класс сообщения
+	 */	
+	public void toClient(GameClient to, ResponseCommand command) {
+		DefaultWebSocketFrame frame = new DefaultWebSocketFrame(command.toString());
+		
+		if(to != null && to.getChannel() != null && to.getChannel().isOpen() && to.getChannel().isConnected())
+			to.getChannel().write(frame);
+	}	
 	
 	
 	// События
@@ -154,8 +170,30 @@ public class GameServer{
 	 * @param client автор события
 	 */
 	public void onClientLoggedIn(GameClient client) {
-		Player p = client.getAccount().getCurrentPlayer();
-		toAllClient(client, new Newplayer(p.getId(), p.getName(), p.getY(),	p.getX(), p.getSpeed(), p.getSpriteCategory()));
+		if(client == null || client.getAccount() == null)
+			return;
+		
+		Player p = client.getPlayer();
+		if(p == null)
+			return;
+		
+		//высылаем всем информацию о подключившемся клиенте
+		toAllClient(client, new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getY(), p.getX(), p.getSpeed(), p.getSpriteCategory())));
+		
+		//высылаем клиенту информацию обо всех
+		
+		List<Unitstatus> clientlist = new ArrayList<Unitstatus>();
+		
+		for(GameClient c: clients.getList())
+		{
+			p = c.getPlayer();
+			if(p != null)
+				clientlist.add(new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getY(), p.getX(), p.getSpeed(), p.getSpriteCategory())));	
+		}
+		
+		toClient(client, new UnitsList(clientlist));
+		
+		
 	}
 	
 	/**
@@ -173,7 +211,7 @@ public class GameServer{
 		if(p == null)
 			return;
 		
-		toAllClient(client, new Delplayer(p.getId()));
+		toAllClient(client, new Delunit(UnitTypes.PLAYER, p.getId()));
 		clients.disconnect(client);
 	}	
 	

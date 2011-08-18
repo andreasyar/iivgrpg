@@ -1,9 +1,13 @@
 package mmo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import mmo.config.XMLConfig;
 import mmo.webserver.WebServer;
 import mmo.db.DBWorker;
 import mmo.gameserver.GameServer;
+import mmo.gameserver.commands.*;
 
 public class MmoServer {
 	private static WebServer webserver;
@@ -64,16 +68,23 @@ public class MmoServer {
 	}
 
 	public static void test() throws Exception {
-
-		//Account acc = new Account(dbworker, "test");
 		
-		//acc.checkLogin("test");
+		System.out.println(UnitTypes.PLAYER);
 		
-		/*ResultSet r = dbworker.select("SELECT * FROM `users`");
-
-		while (r.next()) {
-			System.out.println("ID: "+r.getString(1)+" User: "+r.getString(2));
-		}*/
-
+		List<Unitstatus> nl = new ArrayList<Unitstatus>();
+		
+		Unitstatus pl = new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(35, "test", 5, 1, 13, "player"));
+		Unitstatus npc = new Unitstatus(UnitTypes.NPC, new Unitstatus.Npc(669, 55, 152, 5, "woolf"));
+		
+		nl.add(pl);
+		nl.add(npc);
+		
+		UnitsList list = new UnitsList(nl);
+		
+		System.out.println(pl.toString());
+		System.out.println(npc.toString());
+		System.out.println(list.toString());
+		
+		
 	}
 }

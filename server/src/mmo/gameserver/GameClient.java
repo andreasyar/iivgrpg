@@ -9,6 +9,7 @@ import mmo.db.DBWorker;
 import mmo.gameserver.accounts.Account;
 import mmo.gameserver.commands.*;
 import mmo.gameserver.gameobjects.NetActive;
+import mmo.gameserver.gameobjects.Player;
 import mmo.utils.Log;
 
 public class GameClient implements NetActive, CommandHandler {
@@ -42,6 +43,13 @@ public class GameClient implements NetActive, CommandHandler {
 	public GameServer getGameserver() {
 		return gameserver;
 	}
+	
+	public Player getPlayer() {
+		if(getAccount() != null && getAccount().isLoggedIn() && getAccount().getCurrentPlayer() != null && getAccount().getCurrentPlayer().isLoaded())
+			return getAccount().getCurrentPlayer();
+		else
+			return null;
+	}	
 
 	public GameClient(DBWorker dbcontext, Channel channel, GameServer gameserver) {
 		this.dbcontext = dbcontext;
