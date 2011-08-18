@@ -1,18 +1,18 @@
 package mmo.gameserver.commands;
 
 public abstract class ResponseCommand {
-	protected transient String type;
+	protected transient String command;
 	
-	public String getType() {
-		return type;
+	public String getCommand() {
+		return command;
 	}
 	
 	public ResponseCommand(String type)	{
-		this.type = type;
+		this.command = type;
 	}
 	
 	public String getJson() {
-		return "[\""+type.toUpperCase()+"\"]";
+		return "[\""+command.toUpperCase()+"\"]";
 	}
 	
 	@Override

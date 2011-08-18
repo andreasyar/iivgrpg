@@ -4,11 +4,17 @@
 var socket;
 if (window.WebSocket) {
   socket = new WebSocket("ws://localhost:8015/ws");
-  socket.onmessage = function(event) { alert(event.data); };
-  socket.onopen = function(event) { alert("Web Socket opened!"); };
-  socket.onclose = function(event) { alert("Web Socket closed."); };
+  socket.onmessage = function(event) { alrt(event.data); };
+  socket.onopen = function(event) { alrt("Web Socket opened!"); };
+  socket.onclose = function(event) { alrt("Web Socket closed."); };
 } else {
   alert("Your browser does not support Web Socket.");
+}
+
+function alrt(message)
+{
+	document.getElementById('log').innerHTML  =  message + "<br>" + document.getElementById('log').innerHTML  ;
+
 }
 
 function send(message) {
@@ -21,7 +27,10 @@ function send(message) {
 }
 </script>
 <form onsubmit="return false;">
-<input type="text" name="message" value='["LOGIN",{"login":"test","password":"test"}]'/><input type="button" value="Send Web Socket Data" onclick="send(this.form.message.value)" />
+<textarea name="message" cols="60" rows="15"/>["LOGIN",{"login":"test","password":"test"}]</textarea><br><input type="button" value="Send Web Socket Data" onclick="send(this.form.message.value)" />
 </form>
+
+<div id="log">
+</div>
 </body>
 </html>

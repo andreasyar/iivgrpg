@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mmo.gameserver.GameClient;
-import mmo.gameserver.commands.RequestCommand;
+import mmo.gameserver.commands.*;
 import mmo.gameserver.gameobjects.Player;
 import mmo.utils.Log;
 import mmo.utils.StringHash;
@@ -209,6 +209,13 @@ public class Account implements Loggins, CommandHandler {
 
 	public boolean handleCommand(RequestCommand c) {
 
+		if (c instanceof Newchat) {
+			if(client != null && client.getGameserver() != null && client.getGameserver().getChat() != null)
+				client.getGameserver().getChat().sendMessage(this, ((Newchat) c).getMessage());		
+
+			return true;
+		}
+		
 		if (currentPlayer != null && currentPlayer.isLoaded())
 			return currentPlayer.handleCommand(c);
 		else

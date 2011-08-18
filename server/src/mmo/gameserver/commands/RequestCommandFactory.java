@@ -12,6 +12,7 @@ public class RequestCommandFactory {
 		commandsList = new HashMap<String,Class<?>>();
 		commandsList.put("login",Login.class);
 		commandsList.put("logout",Logout.class);
+		commandsList.put("newchat",Newchat.class);
     }	
 	
 	public static RequestCommand getCommand(String jsonString) throws InstantiationException, IllegalAccessException {
@@ -32,7 +33,7 @@ public class RequestCommandFactory {
 	    else 
 	    	command = (RequestCommand) r.newInstance();
 	    
-	    command.setType(type);
+	    command.setCommand(type);
 	      
 		return command;
 	}

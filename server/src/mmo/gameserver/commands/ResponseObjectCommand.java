@@ -11,6 +11,6 @@ public abstract class ResponseObjectCommand extends ResponseCommand {
 	public String getJson() {
 		Gson gson = new Gson();
 		
-		return "[\""+type.toUpperCase()+"\", "+gson.toJson(this)+"]";
+		return "[\""+command.toUpperCase()+"\", "+gson.toJson(this)+"]";
 	}
 }

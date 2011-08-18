@@ -15,6 +15,10 @@ public class ErrorResponse extends ResponseObjectCommand {
 		return description;
 	}
 	
+	public String getAdditionalDescription() {
+		return additionalDescription;
+	}
+	
 	public ErrorResponse(GameServerErrors err) {
 		super(COMMAND);
 		this.id = err.getId();

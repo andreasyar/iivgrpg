@@ -1,14 +1,14 @@
 package mmo.gameserver.commands;
 
 public class RequestCommand {
-	protected String type;
+	protected String command;
 	
-	public String getType(){
-		return type;		
+	public String getCommand(){
+		return command;		
 	}
 
-	public void setType(String type) {
-		this.type = type;
+	public void setCommand(String type) {
+		this.command = type;
 	}
 	
 	

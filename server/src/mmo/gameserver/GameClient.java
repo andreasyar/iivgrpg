@@ -79,7 +79,7 @@ public class GameClient implements NetActive, CommandHandler {
 
 			account = new Account(this, ((Login) c).getLogin());
 			if (account.login(((Login) c).getPassword())) {
-				channel.write(new DefaultWebSocketFrame(new Hello(account.getCurrentPlayer().getId(), account.getCurrentPlayer().getName())
+				channel.write(new DefaultWebSocketFrame(new Hello(account.getCurrentPlayer().getId(), account.getCurrentPlayer().getName(), gameserver.getStartTime())
 						.toString()));
 				gameserver.onClientLoggedIn(this);
 			} else {
@@ -100,7 +100,7 @@ public class GameClient implements NetActive, CommandHandler {
 			return true;
 		}
 
-		if (account.isLoggedIn())
+		if (account != null && account.isLoggedIn())
 			return account.handleCommand(c);
 		else
 			return false;
