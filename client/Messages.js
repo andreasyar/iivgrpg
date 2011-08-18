@@ -94,7 +94,9 @@ function NewchatMessage(message) {
 // Обработчики сообщений.
 var MESSAGE_HANDLERS = {
     "HELLO": function(msg) {
-        // ["HELLO",{"id":"идентификатор игрока","name":"имя игрока"}]
+        // ["HELLO",{"id":"идентификатор игрока","name":"имя игрока","servertime":"100500"}]
+        GAMETIME.set(msg[1].servertime)
+
         if (self_player != undefined) {
             console.log("Клиент уже вошел в игру. Сообщение будет проигнорировано.")
             return
@@ -151,10 +153,10 @@ var MESSAGE_HANDLERS = {
         
         switch (msg[1].type) {
             case 0:
-                c = common_chat
-                break
-            case 0:
                 c = private_chat
+                break
+            case 1:
+                c = common_chat
                 break
             default:
                 return
@@ -164,6 +166,14 @@ var MESSAGE_HANDLERS = {
             c.splice(0, c.length - 100)
         }
         c.push({name:msg[1].name, message:msg[1].message})
+
+        if (cur_chat_type == msg[1].type) {
+            var t = document.getElementById("chat_field")
+            var input = document.getElementById("chat_input")
+            t.value += msg[1].name + ": " + msg[1].message + "\n"
+            setCaretToPos(t, t.value.length)
+            setCaretToPos(input, input.value.length)
+        }
     },
     "ERROR": function(msg) {
         // ["ERROR",{"id":"идентификатор ошибки","description":"описание","additionalDescription":"ещё описание"}]

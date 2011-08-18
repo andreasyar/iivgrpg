@@ -48,6 +48,7 @@
 <script type="text/javascript" src="ServerInteraction.js"></script>
 <script type="text/javascript" src="Messages.js"></script>
 <script type="text/javascript" src="Camera.js"></script>
+<script type="text/javascript" src="Time.js"></script>
 </head>
 <body onunload="logout();return false;">
 <script type="text/javascript">
@@ -101,7 +102,7 @@ var common_chat = new Array()
 var private_chat = new Array()
 
 // Тип чата, отображающегося в окне чата.
-var cur_chat_type = 0
+var cur_chat_type = 1
 
 // Камера. "Показывает" место, которое будет нарисовано на основном холсте.
 var camera
@@ -219,8 +220,8 @@ Server: <input type="server_fild" id="server_fild"
 <!-- Чат. -->
 <div id="chat">
 <ul id="chat_bar">
-<li><span id="chat_bar_common" onclick="chatToggle(0);return false;">Общий</span></li>
-<li><span id="chat_bar_private" onclick="chatToggle(1);return false;">Приват</span></li>
+<li><span id="chat_bar_private" onclick="chatToggle(0);return false;">Приват</span></li>
+<li><span id="chat_bar_common" onclick="chatToggle(1);return false;">Общий</span></li>
 </ul>
 <textarea id="chat_field"></textarea><br>
 <input id="chat_input" type="text"><br>
