@@ -12,6 +12,9 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
+import mmo.utils.Log;
+import mmo.utils.LogMessageTypes;
+
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -148,7 +151,7 @@ public class WebServerFileHandler {
 		}
 
 		// Convert to absolute path.
-		System.out.println("SEND " + System.getProperty("user.dir") + CLIENT_PATH + File.separator + uri);
+		Log.print(LogMessageTypes.WEB_SERVER_FILE_HANDELER, "SEND " + System.getProperty("user.dir") + CLIENT_PATH + File.separator + uri);
 		return System.getProperty("user.dir") + CLIENT_PATH + File.separator + uri;
 	}
 

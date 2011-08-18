@@ -11,6 +11,7 @@ public class RequestCommandFactory {
 	static {
 		commandsList = new HashMap<String,Class<?>>();
 		commandsList.put("login",Login.class);
+		commandsList.put("logout",Logout.class);
     }	
 	
 	public static RequestCommand getCommand(String jsonString) throws InstantiationException, IllegalAccessException {
@@ -22,11 +23,17 @@ public class RequestCommandFactory {
 	    
 	    Class<?> r = commandsList.get(type.toLowerCase());
 	    if(r == null)
-	    	return null;	    
+	    	return null;	
 	    
-	    RequestCommand command = (RequestCommand) gson.fromJson(array.get(1), r);
-	    command.setType(type);	    		
-  
+	    RequestCommand command;
+	    
+	    if(array.size() >= 2)
+	    	command = (RequestCommand) gson.fromJson(array.get(1), r);
+	    else 
+	    	command = (RequestCommand) r.newInstance();
+	    
+	    command.setType(type);
+	      
 		return command;
 	}
 	

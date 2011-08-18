@@ -2,6 +2,8 @@ package mmo.gameserver;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
 
@@ -63,7 +65,7 @@ public class GameServer{
 				if(command == null)
 					throw new Exception();
 			} catch (Exception e) {
-				ctx.getChannel().write(new DefaultWebSocketFrame( new ErrorResponse(GameServerErrors.COMMAND_PARSE).toString() ));
+				ctx.getChannel().write(new DefaultWebSocketFrame( new ErrorResponse(GameServerErrors.COMMAND_PARSE, jsonString).toString() ));
 				Log.error(GameServerErrors.COMMAND_PARSE.getDescription());
 				e.printStackTrace();
 				return true;	
@@ -95,17 +97,21 @@ public class GameServer{
 	/**
 	 * Рассылка сообщения всем клиентам
 	 *  
-	 * @param author клиент инициализатор сообщения
+	 * @param author клиент инициатор сообщения
 	 * @param command класс сообщения
 	 */	
 	public void toAllClient(GameClient author, ResponseCommand command) {
+		ChannelGroup channels = new DefaultChannelGroup();
+		
 		DefaultWebSocketFrame frame = new DefaultWebSocketFrame(command.toString());
 		
 		for(GameClient client: clients.getList())
 		{
 			if(client.getChannel().isOpen() && client.getChannel().isConnected())
-			client.getChannel().write(frame);
+			channels.add(client.getChannel());			
 		}
+		
+		channels.write(frame);
 	}
 	
 	

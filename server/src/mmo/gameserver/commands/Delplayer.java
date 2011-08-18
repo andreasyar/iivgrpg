@@ -1,7 +1,7 @@
 package mmo.gameserver.commands;
 
 public class Delplayer extends ResponseObjectCommand {
-	private static final String COMMAND = "dellayer";
+	private static final String COMMAND = "delpayer";
 	
 	private int id;
 	

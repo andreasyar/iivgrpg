@@ -54,7 +54,8 @@ public abstract class Unit extends GameObject {
 	}
 
 	public Unit() {
-
+		spriteCategory = "player";
+		speed = 3;
 	}
 
 }

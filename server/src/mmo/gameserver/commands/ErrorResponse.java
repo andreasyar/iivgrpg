@@ -5,6 +5,7 @@ public class ErrorResponse extends ResponseObjectCommand {
 	
 	private int id;
 	private String description;
+	private String additionalDescription;
 	
 	public int getId() {
 		return id;
@@ -13,10 +14,18 @@ public class ErrorResponse extends ResponseObjectCommand {
 	public String getDescription() {
 		return description;
 	}
-
+	
 	public ErrorResponse(GameServerErrors err) {
 		super(COMMAND);
 		this.id = err.getId();
 		this.description = err.getDescription();
+		this.additionalDescription = "";
+	}
+
+	public ErrorResponse(GameServerErrors err, String additionalDescription) {
+		super(COMMAND);
+		this.id = err.getId();
+		this.description = err.getDescription();
+		this.additionalDescription = additionalDescription;
 	}
 }
