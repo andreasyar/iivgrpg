@@ -1,6 +1,5 @@
 
 // Сообщения дла взаимодействия с сервером.
-// require Player.js, Constants.js, SpriteLoader.js, resources.js
 
 /**
  * Сообщение входа в игру игрока.
@@ -109,14 +108,15 @@ var MESSAGE_HANDLERS = {
     },
     "NEWPLAYER": function(msg) {
         // ["NEWPLAYER",{"id":"идентификатор игрока","name":"имя игрока","j":"индекс","i":"индекс","speed":"3", "spriteCategory":"player"}]
-        var p = new Player(msg[1].id, SCR_W / 2, SCR_H / 2, msg[1].j, msg[1].i,
-                           msg[1].name, new SpriteLoader(SPRITES), msg[1].speed)
+        var p = new Player(msg[1].id, msg[1].j, msg[1].i, msg[1].name,
+                           new SpriteLoader(SPRITES), msg[1].speed)
         if (MESSAGE_HANDLERS["HELLO"].selfPlayerId == msg[1].id) {
             if (self_player != undefined) {
                 console.log("Свой игрок уже создан. Сообщение будет проигнорировано.")
             } else {
                 self_player = p
                 map = new Map(100, 100, self_player, new SpriteLoader(SPRITES))
+                camera = new Camera(self_player)
 
                 // Запускаем главный цикл.
                 setTimeout("mainLoop();", 1000 / FPS)
@@ -166,7 +166,9 @@ var MESSAGE_HANDLERS = {
         c.push({name:msg[1].name, message:msg[1].message})
     },
     "ERROR": function(msg) {
-        // ["ERROR",{"id":"идентификатор ошибки","description":"описание"}]
-        alert("Error.\nid: " + msg[1].id + "\ndescription: " + msg[1].description)
+        // ["ERROR",{"id":"идентификатор ошибки","description":"описание","additionalDescription":"ещё описание"}]
+        alert("Error.\nid: " + msg[1].id +
+              "\ndescription: " + msg[1].description +
+              "\nmore info: " + msg[1].additionalDescription)
     }
 };

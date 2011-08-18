@@ -47,6 +47,7 @@
 <script type="text/javascript" src="Player.js"></script>
 <script type="text/javascript" src="ServerInteraction.js"></script>
 <script type="text/javascript" src="Messages.js"></script>
+<script type="text/javascript" src="Camera.js"></script>
 </head>
 <body onunload="logout();return false;">
 <script type="text/javascript">
@@ -101,6 +102,9 @@ var private_chat = new Array()
 
 // Тип чата, отображающегося в окне чата.
 var cur_chat_type = 0
+
+// Камера. "Показывает" место, которое будет нарисовано на основном холсте.
+var camera
 
 /************
  * Функции. *
@@ -180,10 +184,10 @@ function scrOnClick(e) {
 
     // Вычислим клетку в которой был щелчёк и переместим туда игрока с
     // случайной скоростью.
-    var j = Map.getCellJFromScreen(x, self_player.x, self_player.j);
-    var i = Map.getCellIFromScreen(y, self_player.y, self_player.i);
+    var tAxis = camera.reTranslateAxis(x, y)
+    var j = Map.getCellJOnMap(tAxis.x)
+    var i = Map.getCellIOnMap(tAxis.y)
     if (!self_player.is_move) {
-        self_player.speed = 3//Math.floor(1 + Math.random() * 10); // 1-10
         var tmp = getPath(new Cell(self_player.i, self_player.j, 0, 0, null),
                           new Cell(i, j, 0, 0, null))
         if (tmp != false) {

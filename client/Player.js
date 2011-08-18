@@ -1,10 +1,7 @@
 
 // Игрок.
-// requied map.js, Constants.js
 
-// Для работы методов необходимо загрузить скрипт с картой.
-// Для работы методов необходимо загрузить скрипт с константами.
-function Player(id, x, y, j, i, name, spriteLoader, speed) {
+function Player(id, j, i, name, spriteLoader, speed) {
 
     // Эту функцию можно вызвать только как конструктор (с new).
     if (this.constructor !== arguments.callee) {
@@ -15,12 +12,6 @@ function Player(id, x, y, j, i, name, spriteLoader, speed) {
      * Идентификатор игрока.
      */
     this.id = id;
-
-    // Положение относительно конвы в пикселах по оси Х.
-    this.x = x;
-
-    // Положение относительно конвы в пикселах по оси Y.
-    this.y = y;
 
     // Положение относительно карты в клетках по ширине.
     this.j = j;
@@ -55,17 +46,24 @@ function Player(id, x, y, j, i, name, spriteLoader, speed) {
      * @param context Контекст для рисования.
      */
     this.draw = function(context) {
-        var x = Map.getCellXOnScreen(this.j, self_player.x, self_player.j);
-        var y = Map.getCellYOnScreen(this.i, self_player.y, self_player.i);
-        context.drawImage(this.loader.getSprite(3), x, y);
+
+        // По своим координатам на карте получим координаты в кадре камеры
+        // (на холсте).
+        var tAxis = camera.translateAxis(this.x, this.y)
+
+        // Нарисуем игрока.
+        context.drawImage(this.loader.getSprite(3), tAxis.x, tAxis.y)
 
         // Нарисуем имя.
         if (this.name_width == null) {
             this.name_width = context.measureText(this.name).width;
         }
-        context.fillText(this.name, x + CELL_HW - this.name_width / 2,
-                         y + CELL_H + 10);
-    };
+        context.fillText(
+            this.name,
+            tAxis.x + CELL_HW - this.name_width / 2,
+            tAxis.y + CELL_H + 10
+        )
+    }
 
     // Запускает движение в заданную клетку.
     this.move = function(path) {
@@ -75,7 +73,7 @@ function Player(id, x, y, j, i, name, spriteLoader, speed) {
         this.step.run = true;
         var a = this;
         setTimeout(
-            function () { return function(b) { b.step() }(a) },
+            function () {return function(b) {b.step()}(a)},
             1000 / this.speed
         );
     };
@@ -88,9 +86,6 @@ function Player(id, x, y, j, i, name, spriteLoader, speed) {
     // Тред движения. Перемещает игрока по клеткам в направлении его движения.
     this.step = function() {
 
-        // Здесь нет ни каких проверок, игрок просто тупо движется в заданную
-        // точку и всё.
-
         // Пока не дошли до конца пути.
         if (this.path.length > 1) {
 
@@ -100,6 +95,10 @@ function Player(id, x, y, j, i, name, spriteLoader, speed) {
             // Соответственно индекс 1 имеет клетка на которю мы идём.
             this.i = this.path[1][0];
             this.j = this.path[1][1];
+
+            // Обновим так же и координаты игрока на карте.
+            this.x = this.getX()
+            this.y = this.getY()
 
             // Удалим из пути пойденную клетку.
             this.path.splice(0, 1);
@@ -111,7 +110,7 @@ function Player(id, x, y, j, i, name, spriteLoader, speed) {
             if (arguments.callee.run) {
                 var a = this;
                 setTimeout(
-                    function () { return function(b) { b.step() }(a) },
+                    function () {return function(b) {b.step()}(a)},
                     1000 / this.speed
                 );
             }
@@ -127,6 +126,30 @@ function Player(id, x, y, j, i, name, spriteLoader, speed) {
             return
         }
     };
+
+    /**
+     * Возвращает x координату игрока на карте.
+     */
+    this.getX = function() {
+        return Map.getCellXOnMap(this.j)
+    }
+
+    /**
+     * Возвращает y координату игрока на карте.
+     */
+    this.getY = function() {
+        return Map.getCellYOnMap(this.i)
+    }
+
+    /**
+     * Положение на карте по оси x.
+     */
+    this.x = this.getX()
+
+    /**
+     * Положение на карте по оси y.
+     */
+    this.y = this.getY()
 
     return this;
 }

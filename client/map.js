@@ -1,8 +1,6 @@
 
 // Карта.
-// require Constants.js
 
-// Для работы методов класса необходимо снчала загрузить скрипт с константами.
 function Map(width, height, selfPlayer, spriteLoader) {
 
     // Эту функцию можно вызвать только как конструктор (с new).
@@ -33,67 +31,64 @@ function Map(width, height, selfPlayer, spriteLoader) {
         // с клеткой 1, 1 в центре экрана.
 
         // j_from - индекс самой левой клетки, которая умещается на экран.
-        var j_from = this.player.j
-                     - Math.ceil((this.player.x - CELL_HW) / CELL_W);
+        var j_from = this.player.j - Math.ceil(SCR_HW / CELL_W)
         if (j_from < 0) {
             j_from = 0;
         }
 
         // j_to  - индекс самой правой клетки, которая умещается на экран.
-        var j_to = this.player.j
-                   + Math.ceil((this.player.x + CELL_HW) / CELL_W);
+        var j_to = this.player.j + Math.ceil(SCR_HW / CELL_W)
         if (j_to >= this.w) {
             j_to = this.w - 1;
         }
 
         // i_from - индекс самой верхней клетки, которая умещается на экран.
-        var i_from = this.player.i
-                     - Math.ceil((this.player.y - CELL_HH) / CELL_H);
+        var i_from = this.player.i - Math.ceil(SCR_HH / CELL_H)
         if (i_from < 0) {
             i_from = 0;
         }
 
         // i_to - индекс самой нижней клетки, которая умещается на экран.
-        var i_to = this.player.i
-                   + Math.ceil((this.player.y + CELL_HH) / CELL_H);
+        var i_to = this.player.i + Math.ceil(SCR_HH / CELL_H)
         if (i_to >= this.h) {
             i_to = this.h - 1;
         }
 
-        var i, j, tmp//, x, y;
+        var i, j,
+            tAxis   // Translated axis. Map -> Camera.
 
         // Нарисуем клетки вычисленного региона карты.
         for (i = i_from; i < i_to; i++) {
             for (j = j_from; j < j_to; j++) {
-                //x = Map.getCellXOnScreen(j, this.player.x, this.player.j);
-                //y = Map.getCellXOnScreen(i, this.player.y, this.player.i);
+                tAxis = camera.translateAxis(Map.getCellXOnMap(j),
+                                             Map.getCellYOnMap(i))
                 context.drawImage(
                     this.loader.getSprite(GEODATA[i][j]),
-                    Map.getCellXOnScreen(j, this.player.x, this.player.j),
-                    Map.getCellXOnScreen(i, this.player.y, this.player.i)
-                );
-                
-                // Нарисуем номера клеток. Для отладки.
-                //context.fillText(j + ',' + i, x + 2, y + 10);
+                    tAxis.x,
+                    tAxis.y
+                )
             }
         }
 
         // Если есть путь на карте, то нарисуем его.
+        var sprId
         if (this.path != null) {
             for (i = 1; i < this.path.length; i++) {
 
                 // Последная клетка пути или промежуточная
                 if (i == this.path.length - 1) {
-                    tmp = 5
+                    sprId = 5
                 } else {
-                    tmp = 4
+                    sprId = 4
                 }
 
+                tAxis = camera.translateAxis(Map.getCellXOnMap(this.path[i][1]),
+                                             Map.getCellYOnMap(this.path[i][0]))
                 context.drawImage(
-                    this.loader.getSprite(tmp),
-                    Map.getCellXOnScreen(this.path[i][1], this.player.x, this.player.j),
-                    Map.getCellXOnScreen(this.path[i][0], this.player.y, this.player.i)
-                );
+                    this.loader.getSprite(sprId),
+                    tAxis.x,
+                    tAxis.y
+                )
             }
         }
     };
@@ -122,41 +117,27 @@ function Map(width, height, selfPlayer, spriteLoader) {
 
     return this;
 }
-// Возвращает x-координату в конве клетки с индексом j. px - координата x
-// своего игрока, pj - индекс j клетки где находится свой игрок.
-Map.getCellXOnScreen = function(j, px, pj) {
-    return (px - CELL_HW) + (j - pj) * CELL_W;
+/**
+ * Возвращает координату x карты, которую имеет клетка с индексом j.
+ */
+Map.getCellXOnMap = function(j) {
+    return j * CELL_W
 };
-// Возвращает y-координату в конве клетки с индексом i. py - координата y
-// своего игрока, pi - индекс i клетки где находится свой игрок.
-Map.getCellYOnScreen = function(i, py, pi) {
-    return (py - CELL_HH) + (i - pi) * CELL_H;
+/**
+ * Возвращает координату y карты, которую имеет клетка с индексом i.
+ */
+Map.getCellYOnMap = function(i) {
+    return i * CELL_H
 };
-// Возвращает индекс j клетки, которая имеет в конве координату x.
-// px - координата x своего игрока, pj - индекс j клетки где находится свой
-// игрок.
-Map.getCellJFromScreen = function(x, px, pj) {
-    var _;
-    if (x < px) {
-        _ = pj - Math.abs(Math.ceil((px - CELL_HW - x) / CELL_W));
-    } else if (x > px) {
-        _ = pj + Math.abs(Math.ceil((x - (px + CELL_HW)) / CELL_W));
-    } else {
-        _ = pj;
-    }
-    return _;
+/**
+ * Возвращает j индекс клетки по x координате карты.
+ */
+Map.getCellJOnMap = function(x) {
+    return Math.floor(x / CELL_W)
 };
-// Возвращает индекс i клетки, которая имеет в конве координату y.
-// py - координата y своего игрока, pi - индекс i клетки где находится свой
-// игрок.
-Map.getCellIFromScreen = function(y, py, pi) {
-    var _;
-    if (y < py) {
-        _ = pi - Math.abs(Math.ceil((py - CELL_HH - y) / CELL_H));
-    } else if (y > py) {
-        _ = pi + Math.abs(Math.ceil((y - (py + CELL_HH)) / CELL_H));
-    } else {
-        _ = pi;
-    }
-    return _;
+/**
+ * Возвращает i индекс клетки по y координате карты.
+ */
+Map.getCellIOnMap = function(y) {
+    return Math.floor(y / CELL_H)
 };
