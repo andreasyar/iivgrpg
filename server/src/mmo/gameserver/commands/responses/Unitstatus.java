@@ -1,4 +1,6 @@
-package mmo.gameserver.commands;
+package mmo.gameserver.commands.responses;
+
+import mmo.gameserver.gameobjects.UnitTypes;
 
 public class Unitstatus extends ResponseObjectCommand {
 	private static final String COMMAND = "unitstatus";

@@ -1,4 +1,4 @@
-package mmo.gameserver.commands;
+package mmo.gameserver.commands.responses;
 
 public abstract class ResponseCommand {
 	protected transient String command;

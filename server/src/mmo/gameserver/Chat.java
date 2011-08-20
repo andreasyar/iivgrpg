@@ -1,7 +1,7 @@
 package mmo.gameserver;
 
 import mmo.gameserver.accounts.Account;
-import mmo.gameserver.commands.ChatMsg;
+import mmo.gameserver.commands.responses.ChatMsg;
 
 public class Chat {
 	private static final int MAX_MESSAGE_LENGTH = 150;

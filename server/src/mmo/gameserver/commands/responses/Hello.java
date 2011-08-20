@@ -1,4 +1,4 @@
-package mmo.gameserver.commands;
+package mmo.gameserver.commands.responses;
 
 public class Hello extends ResponseObjectCommand {
 	private static final String COMMAND = "hello";

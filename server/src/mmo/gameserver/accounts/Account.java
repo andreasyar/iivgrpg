@@ -14,6 +14,8 @@ import mmo.gameserver.gameobjects.Player;
 import mmo.utils.Log;
 import mmo.utils.StringHash;
 import mmo.gameserver.commands.CommandHandler;
+import mmo.gameserver.commands.requests.Newchat;
+import mmo.gameserver.commands.requests.RequestCommand;
 
 public class Account implements Loggins, CommandHandler {
 	public static final String TABLE_NAME = "accounts";

@@ -8,6 +8,9 @@ import mmo.webserver.WebServer;
 import mmo.db.DBWorker;
 import mmo.gameserver.GameServer;
 import mmo.gameserver.commands.*;
+import mmo.gameserver.commands.responses.UnitsList;
+import mmo.gameserver.commands.responses.Unitstatus;
+import mmo.gameserver.gameobjects.UnitTypes;
 
 public class MmoServer {
 	private static WebServer webserver;

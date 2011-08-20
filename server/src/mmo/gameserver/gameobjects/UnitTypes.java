@@ -1,4 +1,4 @@
-package mmo.gameserver.commands;
+package mmo.gameserver.gameobjects;
 
 public enum UnitTypes {
 	PLAYER(1), NPC(2);

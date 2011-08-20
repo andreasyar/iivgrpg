@@ -1,4 +1,4 @@
-package mmo.gameserver.commands;
+package mmo.gameserver.commands.requests;
 
 public class Login extends RequestCommand{
 	private String login;

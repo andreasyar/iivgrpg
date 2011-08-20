@@ -1,4 +1,4 @@
-package mmo.gameserver.commands;
+package mmo.gameserver.commands.requests;
 
 public class Newchat extends RequestCommand {
 	private String message;

@@ -1,4 +1,6 @@
-package mmo.gameserver.commands;
+package mmo.gameserver.commands.responses;
+
+import mmo.gameserver.gameobjects.UnitTypes;
 
 public class Delunit extends ResponseObjectCommand {
 	private static final String COMMAND = "delunit";

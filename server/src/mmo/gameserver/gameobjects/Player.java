@@ -6,9 +6,9 @@ import java.sql.Statement;
 import java.text.MessageFormat;
 
 import mmo.gameserver.accounts.*;
-import mmo.gameserver.commands.RequestCommand;
 import mmo.utils.Log;
 import mmo.gameserver.commands.CommandHandler;
+import mmo.gameserver.commands.requests.RequestCommand;
 
 /**
  * @author RzCoDer

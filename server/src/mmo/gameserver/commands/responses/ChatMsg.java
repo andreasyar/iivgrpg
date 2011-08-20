@@ -1,4 +1,5 @@
-package mmo.gameserver.commands;
+package mmo.gameserver.commands.responses;
+
 
 /**
  * @author RzCoDer
