@@ -233,10 +233,10 @@ var MESSAGE_HANDLERS = {
 
         switch (msg[1].type) {
             case "PLAYER":
-                DELUNIT_PLAYER(msg[1].unit)
+                DELUNIT_PLAYER(msg[1].id)
                 break
             case "NPC":
-                DELUNIT_NPC(msg[1].unit)
+                DELUNIT_NPC(msg[1].id)
                 break
             default:
                 console.log("Неизвестный тип юнита " + msg[1].type)
@@ -363,22 +363,22 @@ function UNITUPD_NPC(npc) {
     }
 }
 
-function DELUNIT_PLAYER(player) {
-    if (self_player.id == player.id) {
+function DELUNIT_PLAYER(id) {
+    if (self_player.id == id) {
         // TODO отключение игрока от сервера
         return
     }
 
     for (var i in players_list) {
-        if (players_list[i].id == player.id) {
+        if (players_list[i].id == id) {
             players_list.splice(i, 1)
             break
         }
     }
 }
-function DELUNIT_NPC(npc) {
+function DELUNIT_NPC(id) {
     for (var i in npc_list) {
-        if (npc_list[i].id == npc.id) {
+        if (npc_list[i].id == id) {
             npc_list.splice(i, 1)
             break
         }
