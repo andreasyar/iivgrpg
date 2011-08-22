@@ -33,7 +33,7 @@ var GROUNDS = {
 
 var MAPOBJECTS = {
     0: {
-        tiles: [[{src:"grass2.png",acc:1}]]
+        tiles: [[{src:"flower.png",acc:1}]]
     },
     1: {
         tiles: [[{src:"tree.png",acc:0}]]
@@ -81,7 +81,9 @@ function randomMap(w, h) {
     for (i = 0; i < h; i++) {
         for (j = 0; j < w; j++) {
             if (Math.floor(1 + Math.random() * 50) == 50) {
-                objects.push([1, i, j, id++])
+                if (!isMapObjectExists(i, j)) {
+                    objects.push([1, i, j, id++])
+                }
             }
         }
     }
@@ -89,7 +91,9 @@ function randomMap(w, h) {
     for (i = 0; i < h - 1; i++) {
         for (j = 0; j < w - 2; j++) {
             if (Math.floor(1 + Math.random() * 1000) == 1000) {
-                objects.push([2, i, j, id++])
+                if (!isMapObjectExists(i, j)) {
+                    objects.push([2, i, j, id++])
+                }
             }
         }
     }
@@ -184,6 +188,15 @@ function createMapTable(w, h) {
 
     body = document.getElementsByTagName('body')[0];
     body.appendChild(table);
+}
+function isMapObjectExists(i, j) {
+    for (var _i in objects) {
+        if (objects[_i][1] == i && objects[_i][2] == j) {
+            return true
+        }
+    }
+
+    return false
 }
 </script>
 
