@@ -54,7 +54,7 @@ function Map(width, height, selfPlayer, spriteLoader) {
             i_to = this.h - 1;
         }
 
-        var i, j,
+        var i, j, k,
             tAxis   // Translated axis. Map -> Camera.
 
         // Нарисуем клетки вычисленного региона карты.
@@ -63,10 +63,17 @@ function Map(width, height, selfPlayer, spriteLoader) {
                 tAxis = camera.translateAxis(Map.getCellXOnMap(j),
                                              Map.getCellYOnMap(i))
                 context.drawImage(
-                    this.loader.getSprite(GEODATA[i][j]),
+                    spriteMap[i][j].ground/*this.loader.getSprite(GEODATA[i][j])*/,
                     tAxis.x,
                     tAxis.y
                 )
+                for (k = 0; k < spriteMap[i][j].objs.length; k++) {
+                    context.drawImage(
+                        spriteMap[i][j].objs[k]/*this.loader.getSprite(GEODATA[i][j])*/,
+                        tAxis.x,
+                        tAxis.y
+                    )
+                }
             }
         }
 

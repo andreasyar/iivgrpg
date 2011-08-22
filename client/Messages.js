@@ -246,7 +246,7 @@ var MESSAGE_HANDLERS = {
 }
 
 function UNITSTATUS_PLAYER(player) {
-    var i, j
+    var i, j, k, o, tl, sloader
     
     if (self_player == undefined) {
 
@@ -267,12 +267,37 @@ function UNITSTATUS_PLAYER(player) {
                 new SpriteLoader(SPRITES)
             )
             camera = new Camera(self_player)
-            
-            geodata = new Array(100)
-            for (i in geodata) {
-                geodata[i] = new Array(100)
-                for (j in geodata[i]) {
-                    geodata[i][j] = 1
+
+            sloader = new SpriteLoader(SPRITES)
+            spriteMap = new Array(100)
+            accessMap = new Array(100)
+            eventMap = new Array(100)
+            for (i = 0; i < 100; i++) {
+                spriteMap[i] = new Array(100)
+                accessMap[i] = new Array(100)
+                eventMap[i] = new Array(100)
+                for (j = 0; j < 100; j++) {
+                    // 0 - трава
+                    spriteMap[i][j] = {ground:sloader.getSprite(0),objs: new Array()}
+                    accessMap[i][j] = parseInt(GROUNDS[0].acc)
+                }
+            }
+            for (k in mapObjects) {
+                o = mapObjects[k]
+                tl = MAPOBJECTS[o.type].tiles
+                for (i in tl) {
+                    i = parseInt(i)
+                    for (j in tl[i]) {
+                        j = parseInt(j)
+                        if (tl[i][j] != null) {
+                            spriteMap[o.y + i][o.x + j].objs.push(sloader.getSprite(tl[i][j].sprId))
+                            accessMap[o.y + i][o.x + j] = parseInt(tl[i][j].acc)
+                            if (tl[i][j].acc == 2) {
+                                var id = o.objid
+                                eventMap[o.y + i][o.x + j] = function() { return function(id) { console.log("Entering", id) }(id) }
+                            }
+                        }
+                    }
                 }
             }
 

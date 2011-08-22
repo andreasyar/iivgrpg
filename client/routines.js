@@ -109,29 +109,29 @@ function throughCorner(cur, i, j) {
     //[c][ ]
     //[ ][n]
     if (i > cur.i && j > cur.j) {
-        return SPRITES[GEODATA[i - 1][j]].acc == 0
-                || SPRITES[GEODATA[i][j - 1]].acc == 0;
+        return accessMap[i - 1][j] == 0
+                || accessMap[i][j - 1] == 0;
     }
 
     //[n][ ]
     //[ ][c]
     if (i < cur.i && j < cur.j) {
-        return SPRITES[GEODATA[i + 1][j]].acc == 0
-                || SPRITES[GEODATA[i][j + 1]].acc == 0;
+        return accessMap[i + 1][j] == 0
+                || accessMap[i][j + 1] == 0;
     }
 
     //[ ][n]
     //[c][ ]
     if (i < cur.i && j > cur.j) {
-        return SPRITES[GEODATA[i + 1][j]].acc == 0
-                || SPRITES[GEODATA[i][j - 1]].acc == 0;
+        return accessMap[i + 1][j] == 0
+                || accessMap[i][j - 1] == 0;
     }
 
     //[ ][c]
     //[n][ ]
     if (i > cur.i && j < cur.j) {
-        return SPRITES[GEODATA[i - 1][j]].acc == 0
-                || SPRITES[GEODATA[i][j + 1]].acc == 0;
+        return accessMap[i - 1][j] == 0
+                || accessMap[i][j + 1] == 0;
     }
 
     return false
@@ -150,7 +150,7 @@ function getPath(beg, end) {
         corner: 0
     }
 
-    if (!map.isOnMap(end.i, end.j) || SPRITES[GEODATA[end.i][end.j]].acc == 0) {
+    if (!map.isOnMap(end.i, end.j) || accessMap[end.i][end.j] == 0) {
         return false
     }
 
@@ -210,7 +210,7 @@ function getPath(beg, end) {
                 }
 
                 // Клетку, в которую нельзя ходить, не рассматриваем.
-                if (SPRITES[GEODATA[i][j]].acc == 0) {
+                if (accessMap[i][j] == 0) {
                     stat.geo++
                     continue
                 }

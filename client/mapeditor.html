@@ -21,11 +21,19 @@ var brush = "grass",    // Текущая кисть.
         grass: { id:0, name:"grass", src:"grass.png", acc:1 },
         grass2: { id:1, name:"grass2", src:"grass2.png", acc:1 },
         tree: { id:2, name:"tree", src:"tree.png", acc:0 }
-    }
+    },
+    spriteMap,
+    accessMap,
+    eventMap,
+    objects = new Array()
+
+var GROUNDS = {
+    0:{src:"grass.png",acc:1}
+}
 
 var MAPOBJECTS = {
     0: {
-        tiles: [[{src: "flower.png",acc:1}]]
+        tiles: [[{src:"grass2.png",acc:1}]]
     },
     1: {
         tiles: [[{src:"tree.png",acc:0}]]
@@ -48,52 +56,102 @@ function paint(elem, i, j) {
     map[i][j] = cellTypes[brush]
 }
 function save() {
-    var tmp = {}
-    tmp.w = map.w
-    tmp.h = map.h
+    var tmp = new Array()
 
-    for (var i = 0; i < map.h; i++) {
-        tmp[i] = new Array()
-        for (var j = 0; j < map.w; j++) {
-            tmp[i].push(map[i][j].id)
-        }
+    for (var i = 0; i < objects.length; i++) {
+        tmp.push({x:objects[i][2],y:objects[i][1],type:objects[i][0],objid:objects[i][3]})
     }
 
     console.log("Save map")
-    document.getElementById("saveArea").value = JSON.stringify(tmp);
+    document.getElementById("saveArea").value = JSON.stringify(tmp)
 }
 function loadMap() {}
 function randomMap(w, h) {
-    console.log("Create random map " + w + "x" + h)
-    map.w = w;
-    map.h = h;
+    console.log("Generate objects.")
+    var i, j, id = 1
 
-    for (var i = 0; i < h; i++) {
-        map[i] = {}
-        for (var j = 0; j < w; j++) {
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < w; j++) {
+            if (Math.floor(1 + Math.random() * 20) == 20) {
+                objects.push([0, i, j, id++])
+            }
+        }
+    }
+
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < w; j++) {
             if (Math.floor(1 + Math.random() * 50) == 50) {
-                map[i][j] = cellTypes.tree
-            } else if (Math.floor(1 + Math.random() * 20) == 20) {
-                map[i][j] = cellTypes.grass2
-            } else {
-                map[i][j] = cellTypes.grass
+                objects.push([1, i, j, id++])
+            }
+        }
+    }
+
+    for (i = 0; i < h - 1; i++) {
+        for (j = 0; j < w - 2; j++) {
+            if (Math.floor(1 + Math.random() * 1000) == 1000) {
+                objects.push([2, i, j, id++])
+            }
+        }
+    }
+
+    newMap(w, h)
+    createMapTable(w, h)
+}
+function newMap(w, h) {
+    console.log("Create new spriteMap, accessMap, eventMap. " + w + "x" + h)
+
+    spriteMap = new Array(h)
+    accessMap = new Array(h)
+    eventMap = new Array(h)
+    var i, j, k, img
+
+    for (i = 0; i < h; i++) {
+        spriteMap[i] = new Array(w)
+        accessMap[i] = new Array(w)
+        eventMap[i] = new Array(w)
+        for (j = 0; j < w; j++) {
+            spriteMap[i][j] = {ground: document.createElement('img'),
+                               objs: new Array()}
+            spriteMap[i][j].ground.border = 0
+            spriteMap[i][j].ground.src = GROUNDS[0].src
+            accessMap[i][j] = parseInt(GROUNDS[0].acc)
+        }
+    }
+
+    for (k in objects) {
+        //console.log("Map object id = " + objects[k][0])
+        for (i in MAPOBJECTS[objects[k][0]].tiles) {
+            i = parseInt(i)
+            for (j in MAPOBJECTS[objects[k][0]].tiles[i]) {
+                j = parseInt(j)
+                if (MAPOBJECTS[objects[k][0]].tiles[i][j] != null) {
+                    //console.log("Add object tile", MAPOBJECTS[objects[k][0]].tiles[i][j].src, "in", (objects[k][2] + j), (objects[k][1] + i))
+                    img = document.createElement('img')
+                    img.border = 0
+                    img.src = MAPOBJECTS[objects[k][0]].tiles[i][j].src
+                    spriteMap[objects[k][1] + i][objects[k][2] + j].objs.push(img)
+                    accessMap[objects[k][1] + i][objects[k][2] + j] = parseInt(MAPOBJECTS[objects[k][0]].tiles[i][j].acc)
+                    if (MAPOBJECTS[objects[k][0]].tiles[i][j].acc == 2) {
+                        var id = objects[k][3]
+                        eventMap[objects[k][1] + i][objects[k][2] + j] = function() { return function(id) { console.log("Entering", id) }(id) }
+                    }
+                } else {
+                    //console.log("No object tile in", (objects[k][2] + j), (objects[k][1] + i))
+                }
+            }
+        }
+    }
+    //console.log("Access map", accessMap)
+    //console.log("Event map", eventMap)
+    for (i in eventMap) {
+        for (j in eventMap[i]) {
+            if (eventMap[i][j] != undefined) {
+                //eventMap[i][j]()
             }
         }
     }
 }
-function newMap(w, h) {
-    console.log("Create new map " + w + "x" + h)
-    map.w = w;
-    map.h = h;
-
-    for (var i = 0; i < h; i++) {
-        map[i] = {}
-        for (var j = 0; j < w; j++) {
-            map[i][j] = cellTypes.grass;
-        }
-    }
-}
-function createMapTable() {
+function createMapTable(w, h) {
     var body, table, tr, td, img;
     if ( (table = document.getElementById("mapTable")) != null) {
         document.removeChild(table);
@@ -102,9 +160,9 @@ function createMapTable() {
     table.id = "mapTable";
     table.border = 1;
 
-    for (var i = 0; i < map.h; i++) {
+    for (var i = 0; i < h; i++) {
         tr = document.createElement('tr');
-        for (var j = 0; j < map.w; j++) {
+        for (var j = 0; j < w; j++) {
             td = document.createElement('td');
             td.addEventListener(
                 "click",
@@ -112,9 +170,11 @@ function createMapTable() {
                 false
             );
 
-            img = document.createElement('img');
-            img.border = 0;
-            img.src = map[i][j].src;
+            if (spriteMap[i][j].objs.length == 0) {
+                img = spriteMap[i][j].ground
+            } else {
+                img = spriteMap[i][j].objs[spriteMap[i][j].objs.length - 1]
+            }
 
             td.appendChild(img);
             tr.appendChild(td);
@@ -150,9 +210,7 @@ function createMapTable() {
 
 <!-- Карта. -->
 <script type="text/javascript">
-//newMap(10, 10)
 randomMap(100, 100)
-createMapTable()
 </script>
 <hr>
 
