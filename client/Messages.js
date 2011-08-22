@@ -246,6 +246,8 @@ var MESSAGE_HANDLERS = {
 }
 
 function UNITSTATUS_PLAYER(player) {
+    var i, j
+    
     if (self_player == undefined) {
 
         // Создадим своего игрока.
@@ -265,6 +267,14 @@ function UNITSTATUS_PLAYER(player) {
                 new SpriteLoader(SPRITES)
             )
             camera = new Camera(self_player)
+            
+            geodata = new Array(100)
+            for (i in geodata) {
+                geodata[i] = new Array(100)
+                for (j in geodata[i]) {
+                    geodata[i][j] = 1
+                }
+            }
 
             // Запускаем главный цикл.
             setTimeout("mainLoop();", 1000 / FPS)
@@ -288,7 +298,7 @@ function UNITSTATUS_PLAYER(player) {
         return
     }
 
-    for (var i in players_list) {
+    for (i in players_list) {
 
         // Изменим атрибуты существующего игрока.
         if (players_list[i].id == player.id) {
