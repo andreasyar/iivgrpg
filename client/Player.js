@@ -23,7 +23,7 @@ function Player(id, j, i, name, spriteLoader, speed) {
      * Имя игрока.
      */
     this.name = name;
-    
+
     /**
      * Длина имени игрока в пикселях.
      */
@@ -49,7 +49,14 @@ function Player(id, j, i, name, spriteLoader, speed) {
 
         // По своим координатам на карте получим координаты в кадре камеры
         // (на холсте).
-        var tAxis = camera.translateAxis(this.x, this.y)
+        var tAxis
+        
+        if (this.is_move) {
+            var curPos = this.movement.getCurPos()
+            tAxis = camera.translateAxis(curPos.x, curPos.y)
+        } else {
+            tAxis = camera.translateAxis(this.x, this.y)
+        }
 
         // Нарисуем игрока.
         context.drawImage(this.loader.getSprite(3), tAxis.x, tAxis.y)
@@ -167,12 +174,13 @@ function Player(id, j, i, name, spriteLoader, speed) {
         getCurPos: function() {
 
             // Найдём где сейчас находится игрок.
-            
+
             var t = GAMETIME.get()
-            var p1, p2, S
+            var p1, p2, s, S, ds, dx, dy, _dx, _dy, x, y
 
             // Движение закончено?
             if (this.pathP[this.pathP.length - 1][3] <= t) {
+                console.log("Movement complete")
                 return {
                     x: this.pathP[this.pathP.length - 1][0],
                     y: this.pathP[this.pathP.length - 1][1]
@@ -183,42 +191,65 @@ function Player(id, j, i, name, spriteLoader, speed) {
                 p1 = this.pathP[i - 1]
                 p2 = this.pathP[i]
 
-                if (p2[3] <= t) {
+                if (t >= p1[3] && t < p2[3]) {
                     break
                 }
             }
 
-            S = p2[2] * (t - p1[3])
+            // Пройденное расстояние между точками.
+            s = p2[2] / 1000 * (t - p1[3])
+
+            // Общее расстояение между точками.
+            S = p2[4] ? Math.sqrt(2) * CELL_W : CELL_W
+
+            //console.log("time", t, p1[3], p2[3], "move", p1[0], p1[1], "->", p2[0], p2[1], "var", s, S)
+                    
+            ds = s / S
+
+            dx = p2[0] - p1[0]
+            dy = p2[1] - p1[1]
+            _dx = ds * dx
+            _dy = ds * dy
+            x = p1[0] + _dx
+            y = p1[1] + _dy
+
+            return {x: x, y: y}
         },
         createWaypoints: function(path, begTime) {
             
+            // path - массив, содержащий клетки:
+            // 0 - i индекс клетки пути.
+            // 1 - j индекс клетки.
+            // Пример: [[0, 0], [0, 1]]. Путь из клетки 0,0 вправо в клетку 0,1.
+
             // Скорость движения по горизонтали в пикселях в секунду.
             var hSpeed = this.speedC * CELL_W
 
             // Скорость движения по диагонали.
             var dSpeed = hSpeed * Math.sqrt(2)
 
-            // Время движения между соседними клетками.
-            var t = 1 / this.speedC
+            // Время движения между соседними клетками в милисекундах.
+            var t = Math.ceil((1 / this.speedC) * 1000)
 
             this.pathP = new Array(new Array(
-                Map.getCellXOnMap(path[1]),
-                Map.getCellYOnMap(path[0]),
+                Map.getCellXOnMap(path[0][1]),
+                Map.getCellYOnMap(path[0][0]),
                 null,
                 begTime
             ))
 
-            var с1, с2
+            var с1, с2, isDiag
 
             for (var i = 1; i < path.length; i++) {
                 с1 = path[i - 1]
                 с2 = path[i]
+                isDiag = this.isDiagonalCells(с1[0], с1[1], с2[0], с2[1])
                 this.pathP.push(new Array(
                     Map.getCellXOnMap(с2[1]),
                     Map.getCellYOnMap(с2[0]),
-                    this.isDiagonalCells(с1[0], с1[1], с2[0], с2[1])
-                                    ? dSpeed : hSpeed,
-                    this.pathP[this.pathP.length - 1][3] + t
+                    isDiag ? dSpeed : hSpeed,
+                    this.pathP[this.pathP.length - 1][3] + t,
+                    isDiag
                 ))
             }
         },
@@ -228,6 +259,22 @@ function Player(id, j, i, name, spriteLoader, speed) {
             }
 
             return false
+        },
+        printWaypoints: function() {
+            console.log("Waypoints")
+            for (var i in this.pathP) {
+                console.log(this.pathP[i][0], this.pathP[i][1],
+                            this.pathP[i][2], this.pathP[i][3],
+                            this.pathP[i][4])
+            }
+        },
+        printCellPath: function() {
+            console.log("Cell path")
+            for (var i in this.pathC) {
+                console.log(this.pathC[i][0], this.pathC[i][1],
+                            Map.getCellXOnMap(this.pathC[i][0]),
+                            Map.getCellXOnMap(this.pathC[i][1]))
+            }
         }
     }
 

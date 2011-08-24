@@ -9,13 +9,13 @@ var GAMETIME = {
      * Устанавливает игровое время.
      */
     set: function(time) {
-        this.time = (new Date).getMilliseconds() - time
+        this.time = (new Date()).getTime() - time
     },
 
     /**
      * Возвращает текущее игровое время.
      */
     get: function() {
-        return (new Date).getMilliseconds() - this.time
+        return (new Date()).getTime() - this.time
     }
 }
