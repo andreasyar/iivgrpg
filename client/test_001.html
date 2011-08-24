@@ -214,6 +214,7 @@ function scrOnClick(e) {
             path = path.reverse()
             console.log(path)
             self_player.move(path);
+            self_player.movement.start(path, self_player.speed, GAMETIME.get())
         } else {
             console.log('Path not exits.')
         }
@@ -250,6 +251,15 @@ Server: <input type="server_fild" id="server_fild"
         if (events.keyCode == 116) {    // F5
             logout()
         }
+    }
+
+    // Загружает скрипт.
+    // Thanks http://www.quizful.net/post/dynamic-javascript-loading
+    function dhtmlLoadScript(url) {
+        var e = document.createElement("script");
+        e.src = url;
+        e.type="text/javascript";
+        document.getElementsByTagName("head")[0].appendChild(e);
     }
 </script>
 </body>

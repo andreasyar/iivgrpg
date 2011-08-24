@@ -63,13 +63,13 @@ function Map(width, height, selfPlayer, spriteLoader) {
                 tAxis = camera.translateAxis(Map.getCellXOnMap(j),
                                              Map.getCellYOnMap(i))
                 context.drawImage(
-                    spriteMap[i][j].ground/*this.loader.getSprite(GEODATA[i][j])*/,
+                    spriteMap[i][j].ground,
                     tAxis.x,
                     tAxis.y
                 )
                 for (k = 0; k < spriteMap[i][j].objs.length; k++) {
                     context.drawImage(
-                        spriteMap[i][j].objs[k]/*this.loader.getSprite(GEODATA[i][j])*/,
+                        spriteMap[i][j].objs[k],
                         tAxis.x,
                         tAxis.y
                     )

@@ -151,5 +151,85 @@ function Player(id, j, i, name, spriteLoader, speed) {
      */
     this.y = this.getY()
 
+    this.movement = {
+        pathC: null,    // Путь движения по клеткам.
+        pathP: null,    // Путь движения по точкам.
+        speedC: null,   // Скорость в клетках в секунду.
+        begTime: null,  // Время начала движения.
+        start: function(path, speed, begTime) {
+            this.pathC = path
+            this.begTime = begTime
+            this.speedC = speed
+            this.createWaypoints(path, begTime)
+            console.log(this.pathP)
+        },
+        stop: function() {},
+        getCurPos: function() {
+
+            // Найдём где сейчас находится игрок.
+            
+            var t = GAMETIME.get()
+            var p1, p2, S
+
+            // Движение закончено?
+            if (this.pathP[this.pathP.length - 1][3] <= t) {
+                return {
+                    x: this.pathP[this.pathP.length - 1][0],
+                    y: this.pathP[this.pathP.length - 1][1]
+                }
+            }
+
+            for (var i = 1; i < this.pathP.length; i++) {
+                p1 = this.pathP[i - 1]
+                p2 = this.pathP[i]
+
+                if (p2[3] <= t) {
+                    break
+                }
+            }
+
+            S = p2[2] * (t - p1[3])
+        },
+        createWaypoints: function(path, begTime) {
+            
+            // Скорость движения по горизонтали в пикселях в секунду.
+            var hSpeed = this.speedC * CELL_W
+
+            // Скорость движения по диагонали.
+            var dSpeed = hSpeed * Math.sqrt(2)
+
+            // Время движения между соседними клетками.
+            var t = 1 / this.speedC
+
+            this.pathP = new Array(new Array(
+                Map.getCellXOnMap(path[1]),
+                Map.getCellYOnMap(path[0]),
+                null,
+                begTime
+            ))
+
+            var с1, с2
+
+            for (var i = 1; i < path.length; i++) {
+                с1 = path[i - 1]
+                с2 = path[i]
+                this.pathP.push(new Array(
+                    Map.getCellXOnMap(с2[1]),
+                    Map.getCellYOnMap(с2[0]),
+                    this.isDiagonalCells(с1[0], с1[1], с2[0], с2[1])
+                                    ? dSpeed : hSpeed,
+                    this.pathP[this.pathP.length - 1][3] + t
+                ))
+            }
+        },
+        isDiagonalCells: function(i1, j1, i2, j2) {
+            if (Math.abs(i1 - i2) == Math.abs(j1 - j2)) {
+                return true
+            }
+
+            return false
+        }
+    }
+
     return this;
 }
