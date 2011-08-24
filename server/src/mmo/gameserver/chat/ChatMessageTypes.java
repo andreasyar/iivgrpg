@@ -1,4 +1,4 @@
-package mmo.gameserver;
+package mmo.gameserver.chat;
 
 public enum ChatMessageTypes {
 	PRIVATE(0), PUBLIC(1);

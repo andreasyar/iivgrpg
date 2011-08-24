@@ -13,16 +13,11 @@ import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
 import mmo.config.XMLConfig;
 import mmo.db.DBWorker;
 import mmo.gameserver.accounts.Account;
-import mmo.gameserver.commands.*;
-import mmo.gameserver.commands.requests.RequestCommand;
-import mmo.gameserver.commands.requests.RequestCommandFactory;
-import mmo.gameserver.commands.responses.Delunit;
-import mmo.gameserver.commands.responses.ErrorResponse;
-import mmo.gameserver.commands.responses.GameServerErrors;
-import mmo.gameserver.commands.responses.ResponseCommand;
-import mmo.gameserver.commands.responses.UnitsList;
-import mmo.gameserver.commands.responses.Unitstatus;
+import mmo.gameserver.chat.Chat;
+import mmo.gameserver.commands.requests.*;
+import mmo.gameserver.commands.responses.*;
 import mmo.gameserver.gameobjects.*;
+import mmo.gameserver.gameobjects.world.World;
 import mmo.gameserver.utils.ClientList;
 import mmo.utils.Log;
 
@@ -31,6 +26,7 @@ public class GameServer{
 	
 	private ClientList clients;
 	private Chat chat;
+	private World world;
 	
 	private long startTime;
 	
@@ -46,11 +42,17 @@ public class GameServer{
 		return startTime;
 	}	
 
+	public World getWorld() {
+		return world;
+	}
+
 	public GameServer (XMLConfig xmlconfig, DBWorker dbcontext) {
-		clients = new ClientList(this);
-		chat = new Chat(this);
 		this.dbcontext = dbcontext;
 		
+		clients = new ClientList(this);
+		chat = new Chat(this);
+		world = new World(this,dbcontext);
+
 		startTime = System.currentTimeMillis();
 	}
 
@@ -58,7 +60,8 @@ public class GameServer{
 	 * Создание/подгрузка игровых объектов
 	 */
 	public void start()	{
-		
+		world.loadFromDB();
+		world.makeCache();
 	}
 	
 	/**

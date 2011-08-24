@@ -1,5 +1,6 @@
-package mmo.gameserver;
+package mmo.gameserver.chat;
 
+import mmo.gameserver.GameServer;
 import mmo.gameserver.accounts.Account;
 import mmo.gameserver.commands.responses.ChatMsg;
 
