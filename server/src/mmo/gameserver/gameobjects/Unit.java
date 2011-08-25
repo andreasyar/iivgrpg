@@ -9,6 +9,7 @@ package mmo.gameserver.gameobjects;
 public abstract class Unit extends GameObject {
 	protected String name;
 	protected String spriteCategory;
+	protected int mapId;
 	protected int x;
 	protected int y;
 	protected int speed;
@@ -19,6 +20,14 @@ public abstract class Unit extends GameObject {
 
 	public void setSpriteCategory(String spriteCategory) {
 		this.spriteCategory = spriteCategory;
+	}
+	
+	public int getMapId() {
+		return mapId;
+	}
+
+	public void setMapId(int mapId) {
+		this.mapId = mapId;
 	}
 
 	public int getX() {
@@ -56,6 +65,7 @@ public abstract class Unit extends GameObject {
 	public Unit() {
 		spriteCategory = "player";
 		speed = 3;
+		mapId = 1;
 	}
 
 }

@@ -13,7 +13,7 @@ import mmo.gameserver.GameServer;
 import mmo.utils.Log;
 
 public class World {
-	public static final String CAHCE_DIRECTORY = ".."+File.separator+"client"+File.separator+"cahce";
+	public static final String CACHE_DIRECTORY = ".."+File.separator+"client"+File.separator+"cache";
 	private static final String MAPS_TABLE_NAME = "maps";	
 	
 	private DBWorker dbcontext;
@@ -66,6 +66,7 @@ public class World {
 	 * Грузит информацию о мире из БД
 	 */
 	public void loadFromDB() {
+		Log.print("Loading world data.");
 		tilesmanager.loadFromDB();
 		objectsmanager.loadFromDB();
 		
@@ -97,16 +98,18 @@ public class World {
 	 * Сохраняет данные о мире в кеш файлы
 	 */
 	public void makeCache() {
+		Log.print("Making world cache.");
 		try {
-			tilesmanager.makeCache(CAHCE_DIRECTORY);
-			objectsmanager.makeCache(CAHCE_DIRECTORY);
+			tilesmanager.makeCache(CACHE_DIRECTORY);
+			objectsmanager.makeCache(CACHE_DIRECTORY);
 			for(Map m : maps.values()) {
-				m.makeCache(CAHCE_DIRECTORY);
+				m.makeCache(CACHE_DIRECTORY);
 			}
 		} catch (IOException e) {
 			Log.error("Error with in make world cache.");
 			e.printStackTrace();
 		}
+		Log.print("World cache maked.");
 	}
 
 }

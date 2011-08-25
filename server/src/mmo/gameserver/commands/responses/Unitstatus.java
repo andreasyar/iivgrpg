@@ -17,22 +17,27 @@ public class Unitstatus extends ResponseObjectCommand {
 	}
 
 	public static abstract class Unit {
+		private int mapId;
 		private int id;		
 		private int speed;
-		private int i;
-		private int j;		
+		private int x;
+		private int y;		
 		private String spriteCategory;
 		
+		public int getMapId() {
+			return mapId;
+		}
+
 		public int getId() {
 			return id;
 		}
 	
-		public int getI() {
-			return i;
+		public int getX() {
+			return x;
 		}
 	
-		public int getJ() {
-			return j;
+		public int getY() {
+			return y;
 		}
 	
 		public int getSpeed() {
@@ -43,10 +48,11 @@ public class Unitstatus extends ResponseObjectCommand {
 			return spriteCategory;
 		}
 
-		public Unit(int id, int i, int j, int speed, String spriteCategory) {
+		public Unit(int id, int mapId, int x, int y, int speed, String spriteCategory) {
 			this.id = id;
-			this.i = i;
-			this.j = j;
+			this.mapId = mapId;
+			this.x = x;
+			this.y = y;
 			this.speed = speed;
 			this.spriteCategory = spriteCategory;
 		}		
@@ -59,15 +65,15 @@ public class Unitstatus extends ResponseObjectCommand {
 			return name;
 		}
 		
-		public Player(int id, String name, int i, int j, int speed, String spriteCategory) {
-			super(id,i, j, speed, spriteCategory);
+		public Player(int id, String name, int mapId, int x, int y, int speed, String spriteCategory) {
+			super(id, mapId, x, y, speed, spriteCategory);
 			this.name = name;
 		}
 	}
 	
 	public static class Npc extends Unit{
-		public Npc(int id, int i, int j, int speed, String spriteCategory) {
-			super(id, i, j, speed, spriteCategory);
+		public Npc(int id, int mapId, int x, int y, int speed, String spriteCategory) {
+			super(id, mapId, x, y, speed, spriteCategory);
 		}
 	}	
 

@@ -189,7 +189,7 @@ public class GameServer{
 			return;
 		
 		//высылаем всем информацию о подключившемся клиенте
-		toAllClient(client, new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getY(), p.getX(), p.getSpeed(), p.getSpriteCategory())));
+		toAllClient(client, new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMapId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));
 		
 		//высылаем клиенту информацию обо всех
 		
@@ -199,7 +199,7 @@ public class GameServer{
 		{
 			p = c.getPlayer();
 			if(p != null)
-				clientlist.add(new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getY(), p.getX(), p.getSpeed(), p.getSpriteCategory())));	
+				clientlist.add(new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMapId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));	
 		}
 		
 		toClient(client, new UnitsList(clientlist));
@@ -222,7 +222,7 @@ public class GameServer{
 		if(p == null)
 			return;
 		
-		toAllClient(client, new Delunit(UnitTypes.PLAYER, p.getId()));
+		toAllClient(client, new Delunit(p.getId()));
 		clients.disconnect(client);
 	}	
 	

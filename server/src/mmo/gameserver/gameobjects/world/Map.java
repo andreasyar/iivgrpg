@@ -145,7 +145,7 @@ public class Map {
 		outFile.write(s.getBytes());
 		
 		for(MapObjectInstance o : objects) {
-			s = o.getId()+":{x:"+o.getX()+",y:"+o.getY()+",type:"+o.getObject().getId()+"},\n";
+			s = "[id:"+o.getId()+"x:"+o.getX()+",y:"+o.getY()+",type:"+o.getObject().getId()+"],\n";
 			outFile.write(s.getBytes());
 		}
 		
