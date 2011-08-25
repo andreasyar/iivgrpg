@@ -91,6 +91,41 @@ function NewchatMessage(message) {
     return this;
 }
 
+/**
+ * Требование хода.
+ */
+function MoveToMessage(j, i) {
+
+    // Эту функцию можно вызвать только как конструктор (с new).
+    if (this.constructor !== arguments.callee) {
+        throw new Error("Constructor called like a simple function!");
+    }
+
+    /**
+     * Тип сообщения.
+     */
+    this.type = "MOVETO";
+
+    /**
+     * j-индекс клетки назначения.
+     */
+    this.j = j;
+
+    /**
+     * i-индекс клетки назначения.
+     */
+    this.i = i;
+
+    /**
+     * Преобразование в JSON.
+     */
+    this.toJSON = function() {
+        return JSON.stringify(new Array(this.type, {x:this.x,y:this.y}))
+    }
+
+    return this;
+}
+
 // Обработчики сообщений.
 var MESSAGE_HANDLERS = {
     "HELLO": function(msg) {
@@ -182,7 +217,7 @@ var MESSAGE_HANDLERS = {
               "\nmore info: " + msg[1].additionalDescription)
     },
     "UNITSTATUS": function(msg) {
-        // ["UNITSTATUS",{"type":"PLAYER","unit":{"id":"35","i":"5","j":"1","name":"test","spriteCategory":"player","speed":"13"}}]
+        // ["UNITSTATUS",{"type":"PLAYER","unit":{"id":"35","mapid":"1","x":"5","y":"1","name":"test","spriteCategory":"player","speed":"13"}}]
 
         switch (msg[1].type) {
             case "PLAYER":
@@ -212,7 +247,7 @@ var MESSAGE_HANDLERS = {
         }
     },
     "UNITSLIST": function(msg) {
-        // ["UNITSLIST",{"units":[{"type":"PLAYER","unit":{"name":"test","id":"35","speed":"13","i":"5","j":"1","spriteCategory":"player"}},{"type":"NPC","unit":{"id":"669","speed":"5","i":"55","j":"152","spriteCategory":"woolf"}}]}]
+        // ["UNITSLIST",{"units":[{"type":"PLAYER","unit":{"name":"test","id":"35","speed":"13","mapid":"1","x":"5","y":"1","spriteCategory":"player"}},{"type":"NPC","unit":{"id":"669","speed":"5","mapid":"1","x":"55","y":"152","spriteCategory":"woolf"}}]}]
 
         for (var i in msg[1].units) {
             switch (msg[1].units[i].type) {
@@ -231,17 +266,13 @@ var MESSAGE_HANDLERS = {
     "DELUNIT": function(msg) {
         // ["DELUNIT",{"type":"PLAYER","id":"идентификатор игрока"}]
 
-        switch (msg[1].type) {
-            case "PLAYER":
-                DELUNIT_PLAYER(msg[1].id)
-                break
-            case "NPC":
-                DELUNIT_NPC(msg[1].id)
-                break
-            default:
-                console.log("Неизвестный тип юнита " + msg[1].type)
-                break
-        }
+        DELUNIT_PLAYER(msg[1].id)
+        DELUNIT_NPC(msg[1].id)
+    },
+    "MOVE": function(msg) {
+        // ["MOVE",{"id":id_юнита,"time":"время начала движения",way:[[x1,y1],[x2,y2],...,[xn,yn]]}]
+
+        
     }
 }
 
@@ -254,8 +285,8 @@ function UNITSTATUS_PLAYER(player) {
         if (MESSAGE_HANDLERS["HELLO"].selfPlayerId == player.id) {
             self_player = new Player(
                 player.id,
-                player.j,
-                player.i,
+                player.x,
+                player.y,
                 player.name,
                 new SpriteLoader(SPRITES),
                 player.speed
@@ -315,8 +346,8 @@ function UNITSTATUS_PLAYER(player) {
     } else if (self_player.id == player.id) {
 
         // Изменим атрибуты своего игрока.
-        self_player.j = player.j
-        self_player.i = player.i
+        self_player.j = player.x
+        self_player.i = player.y
         self_player.name = player.name
         //players_list[i].spriteCategory = player.spriteCategory
         self_player.speed = player.speed
@@ -328,8 +359,8 @@ function UNITSTATUS_PLAYER(player) {
         // Изменим атрибуты существующего игрока.
         if (players_list[i].id == player.id) {
 
-            players_list[i].j = player.j
-            players_list[i].i = player.i
+            players_list[i].j = player.x
+            players_list[i].i = player.y
             players_list[i].name = player.name
             //players_list[i].spriteCategory = player.spriteCategory
             players_list[i].speed = player.speed
@@ -340,8 +371,8 @@ function UNITSTATUS_PLAYER(player) {
     // Если игрок не найден, то добавим нового игрока.
     players_list.push(new Player(
         player.id,
-        player.j,
-        player.i,
+        player.x,
+        player.y,
         player.name,
         new SpriteLoader(SPRITES),
         player.speed
@@ -353,8 +384,8 @@ function UNITSTATUS_NPC(npc) {
         // Изменим атрибуты существующего NPC
         if (npc_list[i].id == npc.id) {
 
-            npc_list[i].j = npc.j
-            npc_list[i].i = npc.i
+            npc_list[i].j = npc.x
+            npc_list[i].i = npc.y
             npc_list[i].name = npc.name
             //npc_list[i].spriteCategory = npc.spriteCategory
             npc_list[i].speed = npc.speed
@@ -365,8 +396,8 @@ function UNITSTATUS_NPC(npc) {
     // Если NPC не найден, то добавим нового NPC.
     npc_list.push(new NPC(
         npc.id,
-        npc.j,
-        npc.i,
+        npc.x,
+        npc.y,
         npc.name,
         new SpriteLoader(SPRITES),
         npc.speed

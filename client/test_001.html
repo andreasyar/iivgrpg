@@ -204,6 +204,8 @@ function scrOnClick(e) {
     var j = Map.getCellJOnMap(tAxis.x)
     var i = Map.getCellIOnMap(tAxis.y)
     if (!self_player.is_move) {
+        //server.sendMessage(new MoveToMessage(j, i))
+
         var tmp = getPath(new Cell(self_player.i, self_player.j, 0, 0, null),
                           new Cell(i, j, 0, 0, null))
         if (tmp != false) {
