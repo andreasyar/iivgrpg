@@ -3,17 +3,17 @@
 
 // Набор спрайтов.
 var SPRITES = {
-    0: {name:"grass", src:"grass.png", acc:1},
-    1: {name:"grass2", src:"grass2.png", acc:1},
-    2: {name:"tree", src:"tree.png", acc:0},
-    3: {name:"player", src:"player.png", acc:1},
-    4: {name:"path", src:"path.png", acc:1},
-    5: {name:"path_end", src:"path_end.png", acc:1},
-    6: {name:"pyramid1", src:"pyramid1.png", acc:0},
-    7: {name:"pyramid2", src:"pyramid2.png", acc:2},
-    8: {name:"pyramid3", src:"pyramid3.png", acc:0},
-    9: {name:"pyramid4", src:"pyramid4.png", acc:0},
-    10: {name:"flower", src:"flower.png", acc:1}
+    0:  {sname:"grass",      src:"grass.png"},
+    1:  {sname:"UNKNOWN",    src:"grass2.png"},
+    2:  {sname:"tree",       src:"tree.png"},
+    3:  {sname:"UNKNOWN",    src:"player.png"},
+    4:  {sname:"UNKNOWN",    src:"path.png"},
+    5:  {sname:"UNKNOWN",    src:"path_end.png"},
+    6:  {sname:"piramid1_0", src:"pyramid1.png"},
+    7:  {sname:"piramid1_1", src:"pyramid2.png"},
+    8:  {sname:"piramid1_2", src:"pyramid3.png"},
+    9:  {sname:"piramid0_1", src:"pyramid4.png"},
+    10: {sname:"flower",     src:"flower.png"}
 }
 
 // Типы сообщений.

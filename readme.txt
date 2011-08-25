@@ -1,6 +1,6 @@
--Развёртывание
-1. Распаковать архив с картинками (http://code.google.com/p/iivgprg/downloads/list) в папку клиента
-2. Иметь mysql сервер
-3. Иметь в mysql дамп бд (server/dump.sql)
-4. Скопировать server/loc.server.xml в server/server.xml и настроить под себя
-5. Создать в client/ папку cache
+-Р Р°Р·РІС‘СЂС‚С‹РІР°РЅРёРµ
+1. Р Р°СЃРїР°РєРѕРІР°С‚СЊ Р°СЂС…РёРІ СЃ РєР°СЂС‚РёРЅРєР°РјРё (http://code.google.com/p/iivgprg/downloads/list) РІ РїР°РїРєСѓ РєР»РёРµРЅС‚Р°
+2. РРјРµС‚СЊ mysql СЃРµСЂРІРµСЂ
+3. РРјРµС‚СЊ РІ mysql РґР°РјРї Р±Рґ (server/dump.sql)
+4. РЎРєРѕРїРёСЂРѕРІР°С‚СЊ server/loc.server.xml РІ server/server.xml Рё РЅР°СЃС‚СЂРѕРёС‚СЊ РїРѕРґ СЃРµР±СЏ
+5. РЎРѕР·РґР°С‚СЊ РІ client/ РїР°РїРєСѓ cache

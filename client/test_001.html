@@ -212,13 +212,9 @@ function scrOnClick(e) {
                 path.push(new Array(tmp.i, tmp.j));
             }
             path = path.reverse()
-            console.log(path)
-            self_player.movement.start(path, self_player.speed, GAMETIME.get())
-            //self_player.movement.printWaypoints()
-            //self_player.movement.printCellPath()
-            self_player.move(path);
+            self_player.move(path, GAMETIME.get())
         } else {
-            console.log('Path not exits.')
+            console.log('Сюда нельзя пройти.')
         }
     }
 }

@@ -234,7 +234,7 @@ function getPath(beg, end) {
                     nei = new Cell(i, j, g, h, cur)
 
                     if (nei.equal(end.i, end.j)) {
-                        console.log(stat)
+                        //console.log(stat)
                         return nei  // Путь найден!
                     } else {
                         open.push(nei)
@@ -256,7 +256,7 @@ function getPath(beg, end) {
         alert('Search limit reached.')
     }
 
-    console.log(stat)
+    //console.log(stat)
     return false    // Нет пути
 }
 
@@ -328,4 +328,73 @@ function setSelectionRange(input, selectionStart, selectionEnd) {
 }
 function setCaretToPos(input, pos) {
   setSelectionRange(input, pos, pos);
+}
+
+// Возвращает id спрайта по его серверному имени.
+function getSpriteIdByServerName(sname) {
+    for (var id in SPRITES) {
+        if (SPRITES[id].sname == sname) {
+            return id
+        }
+    }
+
+    throw new Error("Спрайт с именем " + sname + " не найден.")
+}
+
+// Загружает объекты карты.
+function loadMapObjects() {
+    var tmp, tiles
+
+    dhtmlLoadScript('cache/objects.js')
+
+    if (MAPOBJECTS == undefined) {
+        throw new Error("Не могу загрузить объекты карты.")
+    }
+
+    tmp = {}
+    for (var o in MAPOBJECTS) {
+        tiles = MAPOBJECTS[o].tiles
+        tmp[o].tiles = new Array(tiles.length)
+        for (var i = 0; i < tiles.length; i++) {
+            tmp[o].tiles[i] = new Array(tiles[i].length)
+            for (var j = 0; j < tiles[i].length; j++) {
+                if (tiles[i][j] == null) {
+                    tmp[o].tiles[i][j].push(null)
+                } else {
+                    tmp[o].tiles[i][j].push({
+                        sprId: getSpriteIdByServerName(tiles[i][j].src),
+                        acc: tiles[i][j].acc
+                    })
+                }
+            }
+        }
+    }
+
+    MAPOBJECTS = tmp
+}
+
+// Загружает информацию о тайлах земли.
+function loadGrounds() {
+    var tmp
+
+    dhtmlLoadScript('cache/groundtiles.js')
+
+    if (GROUNDS == undefined) {
+        throw new Error("Не могу загрузить информацию о тайлах земли.")
+    }
+
+    tmp = {}
+    for (var id in GROUNDS) {
+        tmp[id] = {
+            sprId: getSpriteIdByServerName(GROUNDS[id].src),
+            acc: GROUNDS[id].acc
+        }
+    }
+
+    GROUNDS = tmp
+}
+
+// Загружает главную карту.
+function loadMainMap() {
+    
 }

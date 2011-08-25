@@ -47,10 +47,10 @@ function Camera(self_player) {
     this.translateAxis = function(x, y) {
 
         // Обновим координаты камеры на карте.
-        this.x = this.self_player.getX() - SCR_W / 2
-        this.y = this.self_player.getY() - SCR_H / 2
+        this.x = this.self_player.x - SCR_W / 2
+        this.y = this.self_player.y - SCR_H / 2
 
-        return {x:x - this.x, y:y - this.y}
+        return {x: x - this.x, y: y - this.y}
     }
 
     /**
@@ -59,10 +59,10 @@ function Camera(self_player) {
     this.reTranslateAxis = function(x, y) {
 
         // Обновим координаты камеры на карте.
-        this.x = this.self_player.getX() - SCR_W / 2
-        this.y = this.self_player.getY() - SCR_H / 2
+        this.x = this.self_player.x - SCR_W / 2
+        this.y = this.self_player.y - SCR_H / 2
 
-        return {x:x + this.x, y:y + this.y}
+        return {x: x + this.x, y: y + this.y}
     }
 
     return this

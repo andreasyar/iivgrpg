@@ -148,3 +148,19 @@ Map.getCellJOnMap = function(x) {
 Map.getCellIOnMap = function(y) {
     return Math.floor(y / CELL_H)
 };
+/**
+ * Проверяет, лежат ли клетки на диагонали.
+ * @param i1 i индекс первой клетки.
+ * @param j1 j индекс первой клетки.
+ * @param i2 i индекс второй клетки.
+ * @param j2 j индекс второй клетки.
+ * @return Возвращает true, если клетки лежат на диагонали и false в
+ * противном случае.
+ */
+Map.isDiagonalCells = function(i1, j1, i2, j2) {
+    if (Math.abs(i1 - i2) == Math.abs(j1 - j2)) {
+        return true
+    }
+
+    return false
+}
