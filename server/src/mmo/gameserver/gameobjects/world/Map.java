@@ -118,10 +118,29 @@ public class Map {
 					if(ground[i][j] == 0) 
 						ground[i][j] = 1;
 			
+			
+			makePassabilityMap();
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			Log.error("Error within load map.");
 		}
+	}
+	
+	public void makePassabilityMap() {
+		for(int i = 0; i < height; i++) {
+			for(int j = 0; j < width; j++) {
+				passability[i][j] = (byte) Math.max(passability[i][j], ground[i][j]);
+			}
+		}
+		
+		for(MapObjectInstance o : objects) {
+			for(int i = 0; i < o.getObject().getHeight(); i++)
+				for(int j = 0; j < o.getObject().getWidth(); j++) {
+					if(o.getY()+i >= 0 && o.getY()+i <= height && o.getX()+j >= 0 && o.getX()+j <= width && o.getObject().getSubtiles()[i][j] != null)
+						passability[o.getY()+i][o.getX()+j] = (byte) Math.max(passability[i][j], o.getObject().getSubtiles()[i][j].getPassability());
+				}	
+		}	
 	}
 	
 	public void makeCache(String dir) throws IOException {
@@ -145,7 +164,7 @@ public class Map {
 		outFile.write(s.getBytes());
 		
 		for(MapObjectInstance o : objects) {
-			s = "[id:"+o.getId()+"x:"+o.getX()+",y:"+o.getY()+",type:"+o.getObject().getId()+"],\n";
+			s = "{id:"+o.getId()+",x:"+o.getX()+",y:"+o.getY()+",type:"+o.getObject().getId()+"},\n";
 			outFile.write(s.getBytes());
 		}
 		
