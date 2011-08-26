@@ -345,8 +345,6 @@ function getSpriteIdByServerName(sname) {
 function loadMapObjects() {
     var tmp, tiles
 
-    dhtmlLoadScript('cache/objects.js')
-
     if (MAPOBJECTS == undefined) {
         throw new Error("Не могу загрузить объекты карты.")
     }
@@ -354,14 +352,15 @@ function loadMapObjects() {
     tmp = {}
     for (var o in MAPOBJECTS) {
         tiles = MAPOBJECTS[o].tiles
+        tmp[o] = {}
         tmp[o].tiles = new Array(tiles.length)
         for (var i = 0; i < tiles.length; i++) {
             tmp[o].tiles[i] = new Array(tiles[i].length)
             for (var j = 0; j < tiles[i].length; j++) {
                 if (tiles[i][j] == null) {
-                    tmp[o].tiles[i][j].push(null)
+                    tmp[o].tiles[i].push(null)
                 } else {
-                    tmp[o].tiles[i][j].push({
+                    tmp[o].tiles[i].push({
                         sprId: getSpriteIdByServerName(tiles[i][j].src),
                         acc: tiles[i][j].acc
                     })
@@ -376,8 +375,6 @@ function loadMapObjects() {
 // Загружает информацию о тайлах земли.
 function loadGrounds() {
     var tmp
-
-    dhtmlLoadScript('cache/groundtiles.js')
 
     if (GROUNDS == undefined) {
         throw new Error("Не могу загрузить информацию о тайлах земли.")
@@ -395,6 +392,11 @@ function loadGrounds() {
 }
 
 // Загружает главную карту.
-function loadMainMap() {
-    
+function loadMap(id) {
+    if (MAPS[id] != undefined) {
+        console.log("Карта " + id + " уже загружена.")
+        return
+    } else {
+        throw new Error("Карта " + id + " не была загружена.")
+    }
 }

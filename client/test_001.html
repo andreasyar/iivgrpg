@@ -53,6 +53,8 @@
 <body onunload="logout();return false;">
 <script type="text/javascript">
 
+window.name = 'Durr'
+
 /*********************
  * Создание холстов. *
  *********************/
@@ -252,6 +254,10 @@ Server: <input type="server_fild" id="server_fild"
             logout()
         }
     }
+    dhtmlLoadScript('cache/objects.js')
+    dhtmlLoadScript('cache/groundtiles.js')
+    dhtmlLoadScript("cache/map_1.js")
+    dhtmlLoadScript("cache/map_2.js")
 
     // Загружает скрипт.
     // Thanks http://www.quizful.net/post/dynamic-javascript-loading
@@ -261,6 +267,10 @@ Server: <input type="server_fild" id="server_fild"
         e.type="text/javascript";
         document.getElementsByTagName("head")[0].appendChild(e);
     }
+    function staticLoadScript(url) {
+        document.write('<script src="', url, '" type="text/JavaScript"><\/script>');
+    }
+
 </script>
 </body>
 </html>

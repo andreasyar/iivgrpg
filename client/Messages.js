@@ -272,13 +272,13 @@ var MESSAGE_HANDLERS = {
     "MOVE": function(msg) {
         // ["MOVE",{"id":id_юнита,"time":"время начала движения",way:[[x1,y1],[x2,y2],...,[xn,yn]]}]
 
-        
+
     }
 }
 
 function UNITSTATUS_PLAYER(player) {
-    var i, j, k, o, tl, sloader
-    
+    var i, j, k, o, tl, sloader, mapw, maph, grnd, objs
+
     if (self_player == undefined) {
 
         // Создадим своего игрока.
@@ -291,30 +291,36 @@ function UNITSTATUS_PLAYER(player) {
                 new SpriteLoader(SPRITES),
                 player.speed
             )
+            loadMapObjects()
+            loadGrounds()
+            loadMap(player.mapId)
+            maph = MAPS[player.mapId].tiles.length
+            mapw = MAPS[player.mapId].tiles[0].length
             map = new Map(
-                100,
-                100,
+                mapw,
+                maph,
                 self_player,
                 new SpriteLoader(SPRITES)
             )
             camera = new Camera(self_player)
 
+            grnd = MAPS[player.mapId].tiles
+            objs = MAPS[player.mapId].objects
             sloader = new SpriteLoader(SPRITES)
-            spriteMap = new Array(100)
-            accessMap = new Array(100)
-            eventMap = new Array(100)
-            for (i = 0; i < 100; i++) {
-                spriteMap[i] = new Array(100)
-                accessMap[i] = new Array(100)
-                eventMap[i] = new Array(100)
-                for (j = 0; j < 100; j++) {
-                    // 0 - трава
-                    spriteMap[i][j] = {ground:sloader.getSprite(0),objs: new Array()}
-                    accessMap[i][j] = parseInt(GROUNDS[0].acc)
+            spriteMap = new Array(maph)
+            accessMap = new Array(maph)
+            eventMap = new Array(maph)
+            for (i = 0; i < maph; i++) {
+                spriteMap[i] = new Array(mapw)
+                accessMap[i] = new Array(mapw)
+                eventMap[i] = new Array(mapw)
+                for (j = 0; j < mapw; j++) {
+                    spriteMap[i][j] = {ground: sloader.getSprite(GROUNDS[grnd[i][j]].sprId), objs: new Array()}
+                    accessMap[i][j] = parseInt(GROUNDS[grnd[i][j]].acc)
                 }
             }
-            for (k in mapObjects) {
-                o = mapObjects[k]
+            for (k in objs) {
+                o = objs[k]
                 tl = MAPOBJECTS[o.type].tiles
                 for (i in tl) {
                     i = parseInt(i)
