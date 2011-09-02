@@ -120,7 +120,7 @@ function MoveToMessage(j, i) {
      * Преобразование в JSON.
      */
     this.toJSON = function() {
-        return JSON.stringify(new Array(this.type, {x:this.x,y:this.y}))
+        return JSON.stringify(new Array(this.type, {x:this.j,y:this.i}))
     }
 
     return this;
@@ -270,9 +270,30 @@ var MESSAGE_HANDLERS = {
         DELUNIT_NPC(msg[1].id)
     },
     "MOVE": function(msg) {
-        // ["MOVE",{"id":id_юнита,"time":"время начала движения",way:[[x1,y1],[x2,y2],...,[xn,yn]]}]
+        // ["MOVE",{"id":id_юнита,"time":"время начала движения",way:[{"x":x1,"y":y1},{"x":x2,"y":y2},...,{"x":xn,"y":yn}]}]
+        var data = msg[1]
+        var path = new Array()
+        var i
+        var player
+        
+        // Считаем путь.
+        for (i in data.way) {
+            path.push(new Array(data.way[i].y, data.way[i].x))
+        }
 
-
+        // Пока только для игроков.
+        
+        if (data.id == self_player.id) {
+            player = self_player
+        } else {
+            for (i in players_list) {
+                if (data.id == players_list[i].id) {
+                    player = players_list[i]
+                }
+            }
+        }
+        
+        player.move(path, data.time)
     }
 }
 
