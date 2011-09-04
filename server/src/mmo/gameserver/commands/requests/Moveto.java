@@ -11,8 +11,8 @@ public class Moveto extends RequestCommand {
 	public int getY() {
 		return y;
 	}
-	
-	public Moveto(int x, int y) {
+
+	public Moveto(int id, int x, int y) {
 		this.x = x;
 		this.y = y;
 	}

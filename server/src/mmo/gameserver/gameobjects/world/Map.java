@@ -11,7 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
+import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
+
 import mmo.db.DBWorker;
+import mmo.gameserver.GameClient;
+import mmo.gameserver.commands.responses.ResponseCommand;
+import mmo.gameserver.gameobjects.Player;
 import mmo.gameserver.gameobjects.Unit;
 import mmo.gameserver.gameobjects.world.utils.Astar;
 import mmo.gameserver.gameobjects.world.utils.PathFinder;
@@ -204,6 +211,31 @@ public class Map implements PathFinder{
 	public List<Point> findPath(Point from, Point to) {
 		PathFinder pf = new Astar(this);
 		return pf.findPath(from, to);
+	}
+	
+	/**
+	 * Рассылка сообщения всем игрокам на карте
+	 *  
+	 * @param author клиент инициатор сообщения
+	 * @param command класс сообщения
+	 */	
+	public void toAllPlayers(Player author, ResponseCommand command) {
+		ChannelGroup channels = new DefaultChannelGroup();
+		
+		DefaultWebSocketFrame frame = new DefaultWebSocketFrame(command.toString());
+		
+		for(Unit unit: units.values())
+		{
+			if(unit instanceof Player)
+			{
+				GameClient client = ((Player) unit).getAccount().getClient();
+				if(client != null && client.getChannel() != null && client.getChannel().isOpen() && client.getChannel().isConnected())
+				channels.add(client.getChannel());
+			}
+						
+		}
+		
+		channels.write(frame);
 	}
 	
 	

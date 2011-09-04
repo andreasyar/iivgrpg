@@ -205,7 +205,7 @@ public class GameServer{
 			return;
 		
 		//высылаем всем информацию о подключившемся клиенте
-		toAllClient(client, new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMap().getId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));
+		toAllClient(client, new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMap() == null ? 0 : p.getMap().getId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));
 		
 		//высылаем клиенту информацию обо всех
 		
@@ -215,12 +215,10 @@ public class GameServer{
 		{
 			p = c.getPlayer();
 			if(p != null)
-				clientlist.add(new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMap().getId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));	
+				clientlist.add(new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMap() == null ? 0 : p.getMap().getId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));	
 		}
 		
-		toClient(client, new UnitsList(clientlist));
-		
-		
+		toClient(client, new UnitsList(clientlist));	
 	}
 	
 	/**

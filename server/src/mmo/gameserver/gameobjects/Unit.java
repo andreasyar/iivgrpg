@@ -46,11 +46,14 @@ public abstract class Unit extends GameObject {
 		if(this.map != null)
 			this.map.getUnits().remove(this.getId());
 		
-		if(mapId <= 0)
+		if(mapId <= 0) {
 			this.map = null;
+			return;
+		}
 		
 		this.map = this.gameserver.getWorld().getMaps().get(mapId);
-		this.map.getUnits().put((Integer) this.getId(), this);
+		if(getId() > 0)
+			this.map.getUnits().put((Integer) this.getId(), this);
 	}
 
 	public int getX() {
@@ -94,14 +97,15 @@ public abstract class Unit extends GameObject {
 		return effects;
 	}
 
-	public Unit(GameServer gameserver) {
+	public Unit(int id, GameServer gameserver) {
+		super(id);
 		this.gameserver = gameserver;
 		effects = new ConcurrentSkipListSet<Effect>(); 
 		
 		spriteCategory = "player";
 		speed = 3;		
 
-		setMap(1);
+		setMap(0);
 	}
 
 }

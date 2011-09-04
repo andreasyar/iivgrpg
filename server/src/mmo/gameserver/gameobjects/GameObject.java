@@ -17,8 +17,8 @@ public abstract class GameObject {
 		this.id = id;
 	}
 
-	public GameObject(){
-		
+	public GameObject(int id){
+		setId(id);
 	}
 	
 }

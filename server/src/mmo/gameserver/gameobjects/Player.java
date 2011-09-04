@@ -6,8 +6,6 @@ import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.List;
 
-import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
-
 import mmo.gameserver.GameServer;
 import mmo.gameserver.accounts.*;
 import mmo.utils.Log;
@@ -26,7 +24,11 @@ import mmo.gameserver.commands.responses.Move;
  */
 
 public class Player extends Unit implements CommandHandler {
-	public static final String TABLE_NAME = "characters";	
+	public static final String TABLE_NAME = "characters";
+	
+	public static final int DEFAULT_MAP_ID = 1;
+	public static final int DEFAULT_POS_X = 1;
+	public static final int DEFAULT_POS_Y = 1;
 
 	private Account account;
 	private boolean loaded; //загружены ли данные из БД
@@ -39,15 +41,15 @@ public class Player extends Unit implements CommandHandler {
 		return account;
 	}
 
-	public Player(GameServer gameserver, Account account) {
-		super(gameserver);
+	public Player(int id, GameServer gameserver, Account account) {
+		super(id, gameserver);
 		this.account = account;
 		loaded = false;
 	}
 
 	public void loadFromDB() throws SQLException, Exception {
 		Statement st = account.getClient().getDBContext().newStatement();
-		String sql = "SELECT `name` FROM `{0}` WHERE `id` = ''{1}'' AND `account_id` = ''{2}''";
+		String sql = "SELECT `name`, `map_id`, `posX`, `posY` FROM `{0}` WHERE `id` = ''{1}'' AND `account_id` = ''{2}''";
 		sql = MessageFormat.format(sql, new Object[] {TABLE_NAME, id, account.getId()});
 
 		ResultSet rs = st.executeQuery(sql);
@@ -56,6 +58,8 @@ public class Player extends Unit implements CommandHandler {
 			throw new Exception("Character (id: "+id+") not found");
 						
 		name = rs.getString(1);
+		setMap(rs.getInt(2));
+		setPosition(new Point(rs.getInt(3), rs.getInt(4)));
 		
 		loaded = true;		
 		rs.close();
@@ -93,8 +97,8 @@ public class Player extends Unit implements CommandHandler {
 		try {
 			Statement st = account.getClient().getDBContext().newStatement();
 
-			String sql = "INSERT INTO `{0}` (`account_id`,`name`) VALUES (''{1}'', ''{2}'')";
-			sql = MessageFormat.format(sql, new Object[] {TABLE_NAME, account.getId(), this.name});
+			String sql = "INSERT INTO `{0}` (`account_id`,`name`,`map_id`,`posX`,`posY`) VALUES (''{1}'', ''{2}'', ''{3}'', ''{4}'', ''{5}'')";
+			sql = MessageFormat.format(sql, new Object[] {TABLE_NAME, account.getId(), this.name, DEFAULT_MAP_ID, DEFAULT_POS_X, DEFAULT_POS_Y});
 
 			if(st.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS) > 0)
 			{
@@ -131,7 +135,8 @@ public class Player extends Unit implements CommandHandler {
 			}
 			
 			this.getEffects().add(new Movement(this,path));
-			getAccount().getClient().getChannel().write(new DefaultWebSocketFrame(new Move(getId(), getGameserver().getTime(), path).toString()) );
+			if(this.map != null)
+				this.map.toAllPlayers(this, new Move(getId(), getGameserver().getTime(), path));
 
 			return true;
 		}

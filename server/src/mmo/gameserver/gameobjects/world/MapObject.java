@@ -12,8 +12,7 @@ public class MapObject extends GameObject {
 	private static final String SUBTILES_TABLE_NAME = "objectsubtiles";
 	
 	private DBWorker dbcontext;
-	
-	private int id;
+
 	private String name;
 	private String description;
 	private int width;
@@ -59,7 +58,7 @@ public class MapObject extends GameObject {
 	}
 
 	public MapObject(int id, String name, String description, int width, int height, DBWorker dbcontext) {
-		this.id = id;
+		super(id);
 		this.name = name;
 		this.description = description;
 		this.width = width;
