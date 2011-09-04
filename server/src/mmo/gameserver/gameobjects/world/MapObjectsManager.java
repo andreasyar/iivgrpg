@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import mmo.db.DBWorker;
 import mmo.utils.Log;
@@ -17,14 +17,14 @@ public class MapObjectsManager {
 	private static final String CACHE_FILENAME = "objects.js";
 	
 	private DBWorker dbcontext;
-	private HashMap<Integer, MapObject> objects;
+	private ConcurrentHashMap<Integer, MapObject> objects;
 	
-	public HashMap<Integer, MapObject> getTiles() {
+	public ConcurrentHashMap<Integer, MapObject> getTiles() {
 		return objects;
 	}
 	
 	public MapObjectsManager(DBWorker dbcontext) {
-		this.objects = new HashMap<Integer, MapObject>();
+		this.objects = new ConcurrentHashMap<Integer, MapObject>();
 		this.dbcontext = dbcontext;
 	}
 	

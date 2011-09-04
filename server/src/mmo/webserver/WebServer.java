@@ -1,5 +1,6 @@
 package mmo.webserver;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
@@ -17,8 +18,13 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
 public class WebServer {
 	private static final int DEFAULT_PORT = 8015;
+	private static final String DEFAULT_CLIENT_PATH =  File.separator + ".." + File.separator +"client";
+	private static final String DEFAULT_FILE =  "index.html";	
+		
 	
 	private int port;
+	private String clientFolder;
+	private String defaultFile;
 	private ServerBootstrap bootstrap;
 	private ChannelGroup channels = new DefaultChannelGroup();
 
@@ -33,13 +39,25 @@ public class WebServer {
 	{
 		return port;
 	}
-			
+	
+	public String getClientFolder() {
+		return clientFolder;
+	}
+
+	public String getDefaultFile() {
+		return defaultFile;
+	}
+
 	public WebServer(XMLConfig xmlconfig, GameServer gameserver)
 	{
 		if (xmlconfig!= null) {
 			port = xmlconfig.getInt("webserver/port", DEFAULT_PORT);
+			clientFolder = xmlconfig.getString("webserver/clientpath", DEFAULT_CLIENT_PATH);
+			defaultFile = xmlconfig.getString("webserver/defaultfile", DEFAULT_FILE);
 		} else {
 			port = DEFAULT_PORT;
+			clientFolder = DEFAULT_CLIENT_PATH;
+			defaultFile = DEFAULT_FILE;
 		}
 		
 		this.gameserver = gameserver; 

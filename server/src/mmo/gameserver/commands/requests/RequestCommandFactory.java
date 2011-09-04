@@ -1,18 +1,19 @@
 package mmo.gameserver.commands.requests;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 
 public class RequestCommandFactory {
-	private static HashMap<String, Class<?>> commandsList;
+	private static ConcurrentHashMap<String, Class<?>> commandsList;
 	static {
-		commandsList = new HashMap<String, Class<?>>();
+		commandsList = new ConcurrentHashMap<String, Class<?>>();
 		commandsList.put("login", Login.class);
 		commandsList.put("logout", Logout.class);
 		commandsList.put("newchat", Newchat.class);
+		commandsList.put("moveto", Moveto.class);
 	}
 
 	public static RequestCommand getCommand(String jsonString) throws InstantiationException, IllegalAccessException {

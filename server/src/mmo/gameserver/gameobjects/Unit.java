@@ -1,5 +1,12 @@
 package mmo.gameserver.gameobjects;
 
+import java.util.concurrent.ConcurrentSkipListSet;
+
+import mmo.gameserver.GameServer;
+import mmo.gameserver.gameobjects.effects.Effect;
+import mmo.gameserver.gameobjects.world.Map;
+import mmo.gameserver.gameobjects.world.utils.Point;
+
 /**
  * @author RzCoDer
  *
@@ -7,12 +14,21 @@ package mmo.gameserver.gameobjects;
  *  
  */
 public abstract class Unit extends GameObject {
+	protected GameServer gameserver; 
+	
 	protected String name;
 	protected String spriteCategory;
-	protected int mapId;
+	protected Map map;
 	protected int x;
 	protected int y;
 	protected int speed;
+	
+	protected ConcurrentSkipListSet<Effect> effects;
+	
+	
+	public GameServer getGameserver() {
+		return gameserver;
+	}	
 	
 	public String getSpriteCategory() {
 		return spriteCategory;
@@ -22,12 +38,19 @@ public abstract class Unit extends GameObject {
 		this.spriteCategory = spriteCategory;
 	}
 	
-	public int getMapId() {
-		return mapId;
+	public Map getMap() {
+		return map;
 	}
 
-	public void setMapId(int mapId) {
-		this.mapId = mapId;
+	public void setMap(int mapId) {
+		if(this.map != null)
+			this.map.getUnits().remove(this.getId());
+		
+		if(mapId <= 0)
+			this.map = null;
+		
+		this.map = this.gameserver.getWorld().getMaps().get(mapId);
+		this.map.getUnits().put((Integer) this.getId(), this);
 	}
 
 	public int getX() {
@@ -45,6 +68,11 @@ public abstract class Unit extends GameObject {
 	public void setY(int y) {
 		this.y = y;
 	}
+	
+	public void setPosition(Point pos) {
+		setX(pos.getX());
+		setY(pos.getY());
+	}	
 
 	public int getSpeed() {
 		return speed;
@@ -61,11 +89,19 @@ public abstract class Unit extends GameObject {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
+	public ConcurrentSkipListSet<Effect> getEffects() {
+		return effects;
+	}
 
-	public Unit() {
+	public Unit(GameServer gameserver) {
+		this.gameserver = gameserver;
+		effects = new ConcurrentSkipListSet<Effect>(); 
+		
 		spriteCategory = "player";
-		speed = 3;
-		mapId = 1;
+		speed = 3;		
+
+		setMap(1);
 	}
 
 }

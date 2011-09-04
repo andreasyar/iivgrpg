@@ -1,6 +1,6 @@
 package mmo.gameserver;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
@@ -18,7 +18,7 @@ import mmo.gameserver.gameobjects.Player;
 import mmo.utils.Log;
 
 public class GameClient implements NetActive, CommandHandler {
-	private static HashMap<Channel, GameClient> clients;
+	private static ConcurrentHashMap<Channel, GameClient> clients;
 
 	private DBWorker dbcontext;
 	private Channel channel;
@@ -26,7 +26,7 @@ public class GameClient implements NetActive, CommandHandler {
 	private GameServer gameserver;
 
 	static {
-		clients = new HashMap<Channel, GameClient>();
+		clients = new ConcurrentHashMap<Channel, GameClient>();
 	}
 
 	/**
@@ -69,6 +69,10 @@ public class GameClient implements NetActive, CommandHandler {
 	}
 
 	public void disconnect() {
+		Player p = getPlayer();
+		if(p != null) 
+			p.setMap(0);
+		
 		if (isConnected()) {
 			getChannel().disconnect();
 			getChannel().close().awaitUninterruptibly();
@@ -92,7 +96,7 @@ public class GameClient implements NetActive, CommandHandler {
 
 			account = new Account(this, ((Login) c).getLogin());
 			if (account.login(((Login) c).getPassword())) {
-				channel.write(new DefaultWebSocketFrame(new Hello(account.getCurrentPlayer().getId(), account.getCurrentPlayer().getName(), gameserver.getStartTime())
+				channel.write(new DefaultWebSocketFrame(new Hello(account.getCurrentPlayer().getId(), account.getCurrentPlayer().getName(), gameserver.getTime())
 						.toString()));
 				gameserver.onClientLoggedIn(this);
 			} else {

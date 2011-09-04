@@ -69,7 +69,8 @@ public class MmoServer {
 
 	public static void test() throws Exception {
 		
-		/*System.out.println(UnitTypes.PLAYER);
+		
+		/*
 		
 		List<Unitstatus> nl = new ArrayList<Unitstatus>();
 		

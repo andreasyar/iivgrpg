@@ -45,7 +45,7 @@ public class WebServerPipelineFactory implements ChannelPipelineFactory {
 		pipeline.addLast("decoder", new HttpRequestDecoder());
 		pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
 		pipeline.addLast("encoder", new HttpResponseEncoder());
-		pipeline.addLast("handler", new WebServerHandler(gameserver));
+		pipeline.addLast("handler", new WebServerHandler(webserver, gameserver));
 
 		return pipeline;
 	}

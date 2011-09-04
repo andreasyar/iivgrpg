@@ -68,7 +68,7 @@ public class Account implements Loggins, CommandHandler {
 				
 				// получаем список игроков данного аккаунта
 				List<Integer> players = getPlayersIds();
-				currentPlayer = new Player(this);
+				currentPlayer = new Player(getClient().getGameserver(), this);
 				// если нет создаём нового
 				if (players.size() == 0)
 					currentPlayer.createNew(login);

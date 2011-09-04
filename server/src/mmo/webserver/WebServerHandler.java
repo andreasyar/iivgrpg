@@ -43,12 +43,13 @@ import org.jboss.netty.handler.codec.http.websocket.WebSocketFrameEncoder;
  */
 
 public class WebServerHandler extends SimpleChannelUpstreamHandler {
-
 	private static final String WEBSOCKET_PATH = "/ws";
 
+	private WebServer webserver;
 	private GameServer gameserver;
 
-	public WebServerHandler(GameServer gameserver) {
+	public WebServerHandler(WebServer webserver, GameServer gameserver) {
+		this.webserver = webserver;
 		this.gameserver = gameserver;
 	}
 
@@ -120,7 +121,7 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
 		}
 
 		// В остальных случаях пытаемся отдать то, что попросили
-		WebServerFileHandler wfh = new WebServerFileHandler();
+		WebServerFileHandler wfh = new WebServerFileHandler(webserver);
 		wfh.messageReceived(ctx, req);
 
 		return;

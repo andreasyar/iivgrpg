@@ -4,11 +4,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
+import java.util.List;
 
+import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
+
+import mmo.gameserver.GameServer;
 import mmo.gameserver.accounts.*;
 import mmo.utils.Log;
+import mmo.gameserver.gameobjects.effects.*;
+import mmo.gameserver.gameobjects.world.utils.*;
 import mmo.gameserver.commands.CommandHandler;
+import mmo.gameserver.commands.requests.Moveto;
 import mmo.gameserver.commands.requests.RequestCommand;
+import mmo.gameserver.commands.responses.Move;
 
 /**
  * @author RzCoDer
@@ -31,7 +39,8 @@ public class Player extends Unit implements CommandHandler {
 		return account;
 	}
 
-	public Player(Account account) {
+	public Player(GameServer gameserver, Account account) {
+		super(gameserver);
 		this.account = account;
 		loaded = false;
 	}
@@ -114,6 +123,19 @@ public class Player extends Unit implements CommandHandler {
 	}
 	
 	public boolean handleCommand(RequestCommand c){
+		if (c instanceof Moveto) {
+			List<Point> path = map.findPath(new Point(this.getX(), this.getY()), new Point(((Moveto) c).getX(), ((Moveto) c).getY()));
+			if(path.isEmpty())
+			{
+				path.add(new Point(this.getX(), this.getY()));
+			}
+			
+			this.getEffects().add(new Movement(this,path));
+			getAccount().getClient().getChannel().write(new DefaultWebSocketFrame(new Move(getId(), getGameserver().getTime(), path).toString()) );
+
+			return true;
+		}
+		
 		return false;
 	}
 

@@ -1,5 +1,6 @@
 package mmo.gameserver;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,11 @@ import mmo.gameserver.utils.ClientList;
 import mmo.utils.Log;
 
 public class GameServer{
+	private static final String DEFAULT_CACHE_PATH =  File.separator + ".." + File.separator +"client" + File.separator + "cache";
+	
 	private DBWorker dbcontext;
+	
+	private String cacheFolder;
 	
 	private ClientList clients;
 	private Chat chat;
@@ -45,15 +50,26 @@ public class GameServer{
 	public World getWorld() {
 		return world;
 	}
+	
+	public String getCacheFolder() {
+		return cacheFolder;
+	}
 
 	public GameServer (XMLConfig xmlconfig, DBWorker dbcontext) {
+
+		if (xmlconfig!= null) {
+			cacheFolder = xmlconfig.getString("gameserver/cachepath", DEFAULT_CACHE_PATH);
+		} else {
+			cacheFolder = DEFAULT_CACHE_PATH;
+		}
+		
 		this.dbcontext = dbcontext;
 		
 		clients = new ClientList(this);
 		chat = new Chat(this);
 		world = new World(this,dbcontext);
 
-		startTime = System.currentTimeMillis();
+		startTime = System.currentTimeMillis();		
 	}
 
 	/**
@@ -189,7 +205,7 @@ public class GameServer{
 			return;
 		
 		//высылаем всем информацию о подключившемся клиенте
-		toAllClient(client, new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMapId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));
+		toAllClient(client, new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMap().getId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));
 		
 		//высылаем клиенту информацию обо всех
 		
@@ -199,7 +215,7 @@ public class GameServer{
 		{
 			p = c.getPlayer();
 			if(p != null)
-				clientlist.add(new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMapId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));	
+				clientlist.add(new Unitstatus(UnitTypes.PLAYER, new Unitstatus.Player(p.getId(), p.getName(), p.getMap().getId(), p.getX(), p.getY(), p.getSpeed(), p.getSpriteCategory())));	
 		}
 		
 		toClient(client, new UnitsList(clientlist));

@@ -39,9 +39,11 @@ import org.jboss.netty.util.CharsetUtil;
 
 public class WebServerFileHandler {
 	
-	private static final String CLIENT_PATH =  File.separator + ".." + File.separator +"client";
-	private static final String DEFAULT_FILE =  "index.html";
-
+	private WebServer webserver;
+	
+	public WebServerFileHandler(WebServer webserver) {
+		this.webserver = webserver;
+	}
 	
 	public void messageReceived(ChannelHandlerContext ctx, HttpRequest request) throws Exception {
 		if (request.getMethod() != GET) {
@@ -141,7 +143,7 @@ public class WebServerFileHandler {
 			uri = uri.substring(1, uri.length());
 		
 		if(uri.length() == 0)
-			uri = DEFAULT_FILE;
+			uri = webserver.getDefaultFile();
 		
 
 		// Simplistic dumb security check.
@@ -151,8 +153,8 @@ public class WebServerFileHandler {
 		}
 
 		// Convert to absolute path.
-		Log.print(LogMessageTypes.WEB_SERVER_FILE_HANDELER, "SEND " + System.getProperty("user.dir") + CLIENT_PATH + File.separator + uri);
-		return System.getProperty("user.dir") + CLIENT_PATH + File.separator + uri;
+		Log.print(LogMessageTypes.WEB_SERVER_FILE_HANDELER, "SEND " + System.getProperty("user.dir") + webserver.getClientFolder() + File.separator + uri);
+		return System.getProperty("user.dir") + webserver.getClientFolder() + File.separator + uri;
 	}
 
 	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {

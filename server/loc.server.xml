@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configfile>
+	<gameserver>
+		<cachepath>..\client\cache</cachepath>
+	</gameserver>
 	<webserver>
 		<port>8015</port>
+		<clientpath>\..\client</clientpath>
+		<defaultfile>index.html</defaultfile>
 	</webserver>
 	<database>
 		<server>localhost</server>

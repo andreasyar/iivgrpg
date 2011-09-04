@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import mmo.db.DBWorker;
 import mmo.utils.Log;
@@ -17,14 +17,14 @@ public class GroundTilesManager {
 	private static final String CACHE_FILENAME = "groundtiles.js";
 	
 	private DBWorker dbcontext;
-	private HashMap<Integer, GroundTile> tiles;
+	private ConcurrentHashMap<Integer, GroundTile> tiles;
 	
-	public HashMap<Integer, GroundTile> getTiles() {
+	public ConcurrentHashMap<Integer, GroundTile> getTiles() {
 		return tiles;
 	}
 	
 	public GroundTilesManager(DBWorker dbcontext) {
-		this.tiles = new HashMap<Integer, GroundTile>();
+		this.tiles = new ConcurrentHashMap<Integer, GroundTile>();
 		this.dbcontext = dbcontext;
 		
 	}

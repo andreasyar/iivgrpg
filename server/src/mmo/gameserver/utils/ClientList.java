@@ -1,10 +1,12 @@
 package mmo.gameserver.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import mmo.gameserver.GameClient;
 import mmo.gameserver.GameServer;
+
 
 public class ClientList {
 	private List<GameClient> list;
@@ -19,7 +21,7 @@ public class ClientList {
 	}
 
 	public ClientList(GameServer gameserver){
-		list = new ArrayList<GameClient>();
+		list = Collections.synchronizedList(new ArrayList<GameClient>());
 		this.gameserver = gameserver;
 	}
 	
@@ -37,6 +39,7 @@ public class ClientList {
 	}
 	
 	public void disconnect(GameClient c) {
+		
 		c.disconnect();
 		list.remove(c);
 	}	

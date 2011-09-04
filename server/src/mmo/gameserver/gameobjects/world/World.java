@@ -1,6 +1,5 @@
 package mmo.gameserver.gameobjects.world;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,7 +12,6 @@ import mmo.gameserver.GameServer;
 import mmo.utils.Log;
 
 public class World {
-	public static final String CACHE_DIRECTORY = ".."+File.separator+"client"+File.separator+"cache";
 	private static final String MAPS_TABLE_NAME = "maps";	
 	
 	private DBWorker dbcontext;
@@ -100,10 +98,10 @@ public class World {
 	public void makeCache() {
 		Log.print("Making world cache.");
 		try {
-			tilesmanager.makeCache(CACHE_DIRECTORY);
-			objectsmanager.makeCache(CACHE_DIRECTORY);
+			tilesmanager.makeCache(gameserver.getCacheFolder());
+			objectsmanager.makeCache(gameserver.getCacheFolder());
 			for(Map m : maps.values()) {
-				m.makeCache(CACHE_DIRECTORY);
+				m.makeCache(gameserver.getCacheFolder());
 			}
 		} catch (IOException e) {
 			Log.error("Error with in make world cache.");

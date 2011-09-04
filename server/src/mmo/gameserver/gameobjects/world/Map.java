@@ -9,11 +9,16 @@ import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import mmo.db.DBWorker;
+import mmo.gameserver.gameobjects.Unit;
+import mmo.gameserver.gameobjects.world.utils.Astar;
+import mmo.gameserver.gameobjects.world.utils.PathFinder;
+import mmo.gameserver.gameobjects.world.utils.Point;
 import mmo.utils.Log;
 
-public class Map {
+public class Map implements PathFinder{
 	private static final String MAP_TILES_TABLE_NAME = "maptiles";	
 	private static final String MAP_OBJETCS_TABLE_NAME = "mapobjects";	
 	
@@ -26,14 +31,21 @@ public class Map {
 	
 	private int[][] ground;
 	private List<MapObjectInstance> objects;
-	
 	private byte[][] passability;
-
 	
+	private ConcurrentHashMap<Integer,Unit> units;
+
+	private MapWorker worker; 
+	private Thread process; 
+		
 	public World getWorld() {
 		return world;
 	}
 	
+	public ConcurrentHashMap<Integer, Unit> getUnits() {
+		return units;
+	}
+
 	public DBWorker getDbcontext() {
 		return world.getDbcontext();
 	}
@@ -55,19 +67,19 @@ public class Map {
 	}
 
 	public int getGround(int x, int y) {
-		return ground[x][y];
+		return ground[y][x];
 	}
 	
 	/*
 	public MapObject getObject(int x, int y) {
-		return objects[x][y];
+		return objects[y][x];
 	}*/
 	
 	public byte getPassability(int x, int y) {
 		if(x < 0 || x > width || y < 0 || y > height)
 			return 0;
 		
-		return passability[x][y];
+		return passability[y][x];
 	}	
 
 	public Map(int id, String name, int width, int height, World world) {
@@ -76,10 +88,26 @@ public class Map {
 		this.width = width;
 		this.height = height;
 		this.world = world;
-		
+				
 		ground = new int[height][width];
 		objects = new ArrayList<MapObjectInstance>();
 		passability = new byte[height][width];
+		
+		units = new ConcurrentHashMap<Integer, Unit>();
+		
+		worker = new MapWorker(this);
+		process = new Thread(worker);
+		process.setName("Map worker "+name+" ("+this.id+")");
+		process.start();
+	}
+	
+	public void stopProcess() {
+		try {
+			worker.setStopFlag(true);
+			process.join();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -138,7 +166,7 @@ public class Map {
 			for(int i = 0; i < o.getObject().getHeight(); i++)
 				for(int j = 0; j < o.getObject().getWidth(); j++) {
 					if(o.getY()+i >= 0 && o.getY()+i <= height && o.getX()+j >= 0 && o.getX()+j <= width && o.getObject().getSubtiles()[i][j] != null)
-						passability[o.getY()+i][o.getX()+j] = (byte) Math.max(passability[i][j], o.getObject().getSubtiles()[i][j].getPassability());
+						passability[o.getY()+i][o.getX()+j] = o.getObject().getSubtiles()[i][j].getPassability();
 				}	
 		}	
 	}
@@ -173,4 +201,11 @@ public class Map {
 		outFile.close();
 	}
 
+	public List<Point> findPath(Point from, Point to) {
+		PathFinder pf = new Astar(this);
+		return pf.findPath(from, to);
+	}
+	
+	
+	
 }
