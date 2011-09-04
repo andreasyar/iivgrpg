@@ -355,7 +355,7 @@ function loadMapObjects() {
         tmp[o] = {}
         tmp[o].tiles = new Array(tiles.length)
         for (var i = 0; i < tiles.length; i++) {
-            tmp[o].tiles[i] = new Array(tiles[i].length)
+            tmp[o].tiles[i] = new Array()
             for (var j = 0; j < tiles[i].length; j++) {
                 if (tiles[i][j] == null) {
                     tmp[o].tiles[i].push(null)
