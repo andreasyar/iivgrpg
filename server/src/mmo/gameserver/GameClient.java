@@ -7,12 +7,9 @@ import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
 
 import mmo.db.DBWorker;
 import mmo.gameserver.accounts.Account;
-import mmo.gameserver.commands.*;
-import mmo.gameserver.commands.requests.Login;
-import mmo.gameserver.commands.requests.Logout;
-import mmo.gameserver.commands.requests.RequestCommand;
-import mmo.gameserver.commands.responses.Hello;
-import mmo.gameserver.commands.responses.Wrongpass;
+import mmo.gameserver.commands.requests.*;
+import mmo.gameserver.commands.responses.*;
+import mmo.gameserver.commands.CommandHandler;
 import mmo.gameserver.gameobjects.NetActive;
 import mmo.gameserver.gameobjects.Player;
 import mmo.utils.Log;
@@ -114,6 +111,9 @@ public class GameClient implements NetActive, CommandHandler {
 				Log.print("Client disconnected.");
 			}			
 			
+			return true;
+		} else if (c instanceof Ping) {
+			channel.write(new DefaultWebSocketFrame(new Pong(gameserver.getTime()).toString()));			
 			return true;
 		}
 

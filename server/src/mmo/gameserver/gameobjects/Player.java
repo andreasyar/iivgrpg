@@ -107,6 +107,8 @@ public class Player extends Unit implements CommandHandler {
 					throw new Exception("Some error within create new character.");
 					
 				id = rs.getInt(1);
+				setMap(DEFAULT_MAP_ID);
+				setPosition(new Point(DEFAULT_POS_X, DEFAULT_POS_Y));
 				loaded = true;	
 				
 				Log.print("New character ("+name+") for account '"+account.getLogin()+"' registered.");

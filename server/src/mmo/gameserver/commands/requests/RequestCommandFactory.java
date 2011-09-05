@@ -14,6 +14,7 @@ public class RequestCommandFactory {
 		commandsList.put("logout", Logout.class);
 		commandsList.put("newchat", Newchat.class);
 		commandsList.put("moveto", Moveto.class);
+		commandsList.put("ping", Ping.class);
 	}
 
 	public static RequestCommand getCommand(String jsonString) throws InstantiationException, IllegalAccessException {
