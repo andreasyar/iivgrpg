@@ -1,6 +1,6 @@
 package mmo.gameserver.commands.responses;
 
-public class Pong extends ResponseCommand {
+public class Pong extends ResponseObjectCommand {
 	private static final String COMMAND = "pong";
 	
 	private long time;

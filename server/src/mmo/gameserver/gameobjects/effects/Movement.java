@@ -22,7 +22,8 @@ public class Movement extends TimeEffect {
 			lastTime = unit.getGameserver().getTime();
 		
 		boolean needTimeUpdate = false;
-		for (int i = 0; i < ((unit.getGameserver().getTime() - lastTime) * unit.getSpeed()) / 1000; i++) {
+		int iterations = (unit.getGameserver().getTime() - lastTime) * unit.getSpeed() / 1000;
+		for (int i = 0; i < iterations; i++) {
 			if (path != null && !path.isEmpty()) {
 				unit.setPosition(path.get(0));
 				path.remove(0);
