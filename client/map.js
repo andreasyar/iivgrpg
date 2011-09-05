@@ -31,25 +31,25 @@ function Map(width, height, selfPlayer, spriteLoader) {
         // с клеткой 1, 1 в центре экрана.
 
         // j_from - индекс самой левой клетки, которая умещается на экран.
-        var j_from = this.player.j - Math.ceil(SCR_HW / CELL_W)
+        var j_from = this.player.j - Math.ceil(SCR_HW / CELL_W) - 1
         if (j_from < 0) {
             j_from = 0;
         }
 
         // j_to  - индекс самой правой клетки, которая умещается на экран.
-        var j_to = this.player.j + Math.ceil(SCR_HW / CELL_W)
+        var j_to = this.player.j + Math.ceil(SCR_HW / CELL_W) + 1
         if (j_to >= this.w) {
             j_to = this.w - 1;
         }
 
         // i_from - индекс самой верхней клетки, которая умещается на экран.
-        var i_from = this.player.i - Math.ceil(SCR_HH / CELL_H)
+        var i_from = this.player.i - Math.ceil(SCR_HH / CELL_H) - 1
         if (i_from < 0) {
             i_from = 0;
         }
 
         // i_to - индекс самой нижней клетки, которая умещается на экран.
-        var i_to = this.player.i + Math.ceil(SCR_HH / CELL_H)
+        var i_to = this.player.i + Math.ceil(SCR_HH / CELL_H) + 1
         if (i_to >= this.h) {
             i_to = this.h - 1;
         }

@@ -126,6 +126,31 @@ function MoveToMessage(j, i) {
     return this;
 }
 
+/**
+ * Запрос для синхронизации игрового времени.
+ */
+function PingMessage() {
+
+    // Эту функцию можно вызвать только как конструктор (с new).
+    if (this.constructor !== arguments.callee) {
+        throw new Error("Constructor called like a simple function!")
+    }
+
+    /**
+     * Тип сообщения.
+     */
+    this.type = "PING"
+
+    /**
+     * Преобразование в JSON.
+     */
+    this.toJSON = function() {
+        return JSON.stringify(new Array(this.type))
+    }
+
+    return this
+}
+
 // Обработчики сообщений.
 var MESSAGE_HANDLERS = {
     "HELLO": function(msg) {
@@ -280,14 +305,14 @@ var MESSAGE_HANDLERS = {
             console.log("Неверный путь движения:", data.way)
             return
         }
-        
+
         // Считаем путь.
         for (i in data.way) {
             path.push(new Array(data.way[i].y, data.way[i].x))
         }
 
         // Пока только для игроков.
-        
+
         if (data.id == self_player.id) {
             player = self_player
         } else {
@@ -297,8 +322,13 @@ var MESSAGE_HANDLERS = {
                 }
             }
         }
-        
+
         player.move(path, data.time)
+    },
+    "PONG": function(msg) {
+        // ["PONG",{"time":1050}]
+        var netDiff = ((new Date()).getTime() - timeSync.requestTime) / 2
+        GAMETIME.set(msg[1].time + Math.ceil(netDiff))
     }
 }
 
@@ -357,12 +387,15 @@ function UNITSTATUS_PLAYER(player) {
                             accessMap[o.y + i][o.x + j] = parseInt(tl[i][j].acc)
                             if (tl[i][j].acc == 2) {
                                 var id = o.objid
-                                eventMap[o.y + i][o.x + j] = function() { return function(id) { console.log("Entering", id) }(id) }
+                                eventMap[o.y + i][o.x + j] = function() {return function(id) {console.log("Entering", id)}(id)}
                             }
                         }
                     }
                 }
             }
+
+            // Запускаем синхронизацию игрового времени.
+            timeSync.run(5000)
 
             // Запускаем главный цикл.
             setTimeout("mainLoop();", 1000 / FPS)
