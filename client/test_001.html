@@ -206,7 +206,8 @@ function scrOnClick(e) {
     var tAxis = camera.reTranslateAxis(x, y)
     var j = Map.getCellJOnMap(tAxis.x)
     var i = Map.getCellIOnMap(tAxis.y)
-    if (!self_player.isMove && j != self_player.j && i != self_player.i) {
+    console.log("Click on", j, i, "access", accessMap[i][j])
+    if (!self_player.isMove && (j != self_player.j || i != self_player.i)) {
         server.sendMessage(new MoveToMessage(j, i))
     } else {
         if (self_player.isMove) {
