@@ -36,7 +36,7 @@ public class Movement extends TimeEffect {
 		}
 		
 		if(needTimeUpdate) {
-			lastTime = unit.getGameserver().getTime();
+			lastTime = unit.getGameserver().getTime() - (unit.getGameserver().getTime() - lastTime) * unit.getSpeed() % 1000;
 		}
 	}
 }
