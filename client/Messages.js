@@ -275,6 +275,11 @@ var MESSAGE_HANDLERS = {
         var path = new Array()
         var i
         var player
+
+        if (data.way.length < 2) {
+            console.log("Неверный путь движения:", data.way)
+            return
+        }
         
         // Считаем путь.
         for (i in data.way) {

@@ -205,21 +205,15 @@ function scrOnClick(e) {
     var tAxis = camera.reTranslateAxis(x, y)
     var j = Map.getCellJOnMap(tAxis.x)
     var i = Map.getCellIOnMap(tAxis.y)
-    if (!self_player.is_move) {
+    if (!self_player.isMove && j != self_player.j && i != self_player.i) {
         server.sendMessage(new MoveToMessage(j, i))
-
-        /*var tmp = getPath(new Cell(self_player.i, self_player.j, 0, 0, null),
-                          new Cell(i, j, 0, 0, null))
-        if (tmp != false) {
-            var path = new Array(new Array(tmp.i, tmp.j))
-            while ( (tmp = tmp.parent) != null) {
-                path.push(new Array(tmp.i, tmp.j));
-            }
-            path = path.reverse()
-            self_player.move(path, GAMETIME.get())
-        } else {
-            console.log('Сюда нельзя пройти.')
-        }*/
+    } else {
+        if (self_player.isMove) {
+            console.log("Игрок уже движется.")
+        }
+        if (j == self_player.j && i == self_player.i) {
+            console.log("Движение из клетки где вы находитесь в эту же клетку завершено :)")
+        }
     }
 }
 
@@ -256,6 +250,7 @@ Server: <input type="server_fild" id="server_fild"
     }
     dhtmlLoadScript('cache/objects.js')
     dhtmlLoadScript('cache/groundtiles.js')
+    dhtmlLoadScript("cache/map_0.js")
     dhtmlLoadScript("cache/map_1.js")
     dhtmlLoadScript("cache/map_2.js")
 
