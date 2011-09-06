@@ -323,6 +323,10 @@ var MESSAGE_HANDLERS = {
             }
         }
 
+        if (player.i != data.way[0].y || player.j != data.way[0].x) {
+            console.log("WARNING:", "Server-Client movement async!")
+        }
+
         player.move(path, data.time)
     },
     "PONG": function(msg) {

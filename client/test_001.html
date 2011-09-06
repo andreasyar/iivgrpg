@@ -249,10 +249,12 @@ Server: <input type="server_fild" id="server_fild"
         if (events.keyCode == 116) {    // F5
             logout()
         }
+        if (events.keyCode == 65) { // a
+            map.showAccessMap = map.showAccessMap ? false : true
+        }
     }
     dhtmlLoadScript('cache/objects.js')
     dhtmlLoadScript('cache/groundtiles.js')
-    dhtmlLoadScript("cache/map_0.js")
     dhtmlLoadScript("cache/map_1.js")
     dhtmlLoadScript("cache/map_2.js")
 

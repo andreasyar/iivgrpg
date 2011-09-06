@@ -22,6 +22,8 @@ function Map(width, height, selfPlayer, spriteLoader) {
     // Загрузчик спрайтов.
     this.loader = spriteLoader;
 
+    this.showAccessMap = false
+
     // Метод рисования карты.
     this.draw = function(context) {
 
@@ -74,23 +76,29 @@ function Map(width, height, selfPlayer, spriteLoader) {
                         tAxis.y
                     )
                 }
+                if (this.showAccessMap) {
+                    context.fillText(accessMap[i][j], tAxis.x + CELL_W / 2, tAxis.y + CELL_H / 2)
+                }
             }
         }
 
-        // Если есть путь на карте, то нарисуем его.
-        var sprId
-        if (this.path != null) {
-            for (i = 1; i < this.path.length; i++) {
+        // Если свой игрок движется, то нарисуем его путь.
+        var sprId, path = this.player.pathC
+        if (this.player.isMove && path != null) {
+            for (i = 1; i < path.length; i++) {
 
                 // Последная клетка пути или промежуточная
-                if (i == this.path.length - 1) {
+                if (i == path.length - 1) {
                     sprId = 5
                 } else {
                     sprId = 4
                 }
 
-                tAxis = camera.translateAxis(Map.getCellXOnMap(this.path[i][1]),
-                                             Map.getCellYOnMap(this.path[i][0]))
+                if (path[i] == undefined) {
+                    console.log("DEBUG", "Incorrect path or path cell index", path, i)
+                }
+                tAxis = camera.translateAxis(Map.getCellXOnMap(path[i][1]),
+                                             Map.getCellYOnMap(path[i][0]))
                 context.drawImage(
                     this.loader.getSprite(sprId),
                     tAxis.x,
@@ -98,7 +106,7 @@ function Map(width, height, selfPlayer, spriteLoader) {
                 )
             }
         }
-    };
+    }
 
     /**
      * Проверяет, принадлежит ли клетка карте.
@@ -122,7 +130,7 @@ function Map(width, height, selfPlayer, spriteLoader) {
         this.path = path
     }
 
-    return this;
+    return this
 }
 /**
  * Возвращает координату x карты, которую имеет клетка с индексом j.

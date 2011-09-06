@@ -99,18 +99,30 @@ function Player(id, j, i, name, spriteLoader, speed) {
         // Временные переменные.
         var с1, с2, i
 
+        // Скорость анимации движения игрока. Необходима для плавного движения по пути.
+        var movementAdjustedSpeed
+
         this.pathC = path
 
-        hSpeed = (this.speed * CELL_W) / 1000
+        movementAdjustedSpeed = (path.length * 1000) / ((begTime + ((path.length / this.speed) * 1000)) - GAMETIME.get())
+
+        console.log("Speed updated:", this.speed, "->", movementAdjustedSpeed)
+
+        hSpeed = (movementAdjustedSpeed * CELL_W) / 1000
         dSpeed = hSpeed * Math.sqrt(2)
-        t = Math.ceil((1 / this.speed) * 1000)
+        t = Math.ceil((1 / movementAdjustedSpeed) * 1000)
+
+        if (movementAdjustedSpeed <= 0) {
+            console.log("Движение уже закончилось.")
+            return
+        }
 
         // Добавим отправную точку пути.
         this.path = new Array(new WayPoint(
             Map.getCellXOnMap(path[0][1]),
             Map.getCellYOnMap(path[0][0]),
             null,
-            begTime,
+            GAMETIME.get(),
             null
         ))
 
@@ -137,6 +149,7 @@ function Player(id, j, i, name, spriteLoader, speed) {
         console.log("Начато движение из клетки", path[0][1], path[0][0],
                     "в клетку", path[path.length - 1][1],
                     path[path.length - 1][0])
+        console.log(this.path, this.speed)
     }
 
     /**
@@ -177,7 +190,7 @@ function Player(id, j, i, name, spriteLoader, speed) {
 
         // Движение закончено?
         if (this.path[this.path.length - 1].t <= t) {
-            console.log("Движение завершено.")
+            console.log("Движение завершено.", t)
 
             this.x = this.path[this.path.length - 1].x
             this.y = this.path[this.path.length - 1].y

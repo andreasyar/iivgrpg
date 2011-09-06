@@ -31,15 +31,15 @@ function ServerInteraction() {
 
         // Обработчик получения сообщения от сервера.
         this.socket.onmessage = function(event) {
-            var obj = JSON.parse(event.data);
-            console.log("<- " + event.data);
+            console.log("<- " + event.data)
+            var obj = JSON.parse(event.data)
             for (var key in MESSAGE_HANDLERS) {
                 if (obj[0] != undefined && obj[0] == key) {
-                    MESSAGE_HANDLERS[key](obj);
-                    break;
+                    MESSAGE_HANDLERS[key](obj)
+                    break
                 }
             }
-        };
+        }
 
         // Обработчик открытия соединения с сервером.
         this.socket.onopen = function(event) {
