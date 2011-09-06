@@ -1,7 +1,6 @@
 package mmo.gameserver.commands.responses;
 
-import java.util.List;
-
+import java.util.Deque;
 import mmo.gameserver.gameobjects.world.utils.Point;
 
 /**
@@ -13,7 +12,7 @@ public class Move extends ResponseObjectCommand {
 	
 	private int id;
 	private long time;
-	private List<Point> way;
+	private Deque<Point> way;
 	
 	public int getId() {
 		return id;
@@ -23,11 +22,11 @@ public class Move extends ResponseObjectCommand {
 		return time;
 	}
 	
-	public List<Point> getWay() {
+	public Deque<Point> getWay() {
 		return way;
 	}
 	
-	public Move(int id, long time, List<Point> way) {
+	public Move(int id, long time, Deque<Point> way) {
 		super(COMMAND);
 		this.id = id;
 		this.time = time;

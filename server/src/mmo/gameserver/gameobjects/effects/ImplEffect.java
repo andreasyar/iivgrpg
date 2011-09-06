@@ -21,6 +21,10 @@ public abstract class ImplEffect implements Effect, Comparable<ImplEffect> {
 	public boolean isFinalized() {
 		return this.finalized;
 	}
+	
+	public void setFinalized(boolean finalized) {
+		this.finalized = finalized;
+	}	
 
 	@Override
 	public int compareTo(ImplEffect ef) {		

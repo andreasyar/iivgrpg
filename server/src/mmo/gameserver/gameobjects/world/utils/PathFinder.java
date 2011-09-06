@@ -1,7 +1,7 @@
 package mmo.gameserver.gameobjects.world.utils;
 
-import java.util.List;
+import java.util.Deque;
 
 public interface PathFinder {
-	public List<Point> findPath(Point from, Point to);
+	public Deque<Point> findPath(Point from, Point to);
 }

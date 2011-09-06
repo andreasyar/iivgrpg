@@ -3,7 +3,7 @@ package mmo.gameserver.gameobjects;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import mmo.gameserver.GameServer;
-import mmo.gameserver.gameobjects.effects.Effect;
+import mmo.gameserver.gameobjects.effects.*;
 import mmo.gameserver.gameobjects.world.Map;
 import mmo.gameserver.gameobjects.world.utils.Point;
 
@@ -95,6 +95,21 @@ public abstract class Unit extends GameObject {
 	
 	public ConcurrentSkipListSet<Effect> getEffects() {
 		return effects;
+	}
+	
+	public boolean isMovement() {
+		for(Effect e: effects) {
+			if(e instanceof Movement && ! ((Movement) e).isFinalized())
+				return true;
+		}
+		return false;			
+	}
+	
+	public void stopMovement() {
+		for(Effect e: effects) {
+			if(e instanceof Movement)
+				((Movement) e).setFinalized(true);
+		}
 	}
 
 	public Unit(int id, GameServer gameserver) {

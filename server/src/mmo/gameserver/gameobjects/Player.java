@@ -4,8 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
-import java.util.List;
-
+import java.util.Deque;
 import mmo.gameserver.GameServer;
 import mmo.gameserver.accounts.*;
 import mmo.utils.Log;
@@ -130,16 +129,19 @@ public class Player extends Unit implements CommandHandler {
 	
 	public boolean handleCommand(RequestCommand c){
 		if (c instanceof Moveto) {
-			List<Point> path = map.findPath(new Point(this.getX(), this.getY()), new Point(((Moveto) c).getX(), ((Moveto) c).getY()));
+			stopMovement();
+			
+			Deque<Point> path = map.findPath(new Point(this.getX(), this.getY()), new Point(((Moveto) c).getX(), ((Moveto) c).getY()));
 			if(path.isEmpty())
 			{
 				path.add(new Point(this.getX(), this.getY()));
 			}
 			
-			this.getEffects().add(new Movement(this,path));
 			if(this.map != null)
 				this.map.toAllPlayers(this, new Move(getId(), getGameserver().getTime(), path));
-
+			
+			this.getEffects().add(new Movement(this,path));
+			
 			return true;
 		}
 		

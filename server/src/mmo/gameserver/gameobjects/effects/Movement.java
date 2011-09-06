@@ -1,6 +1,6 @@
 package mmo.gameserver.gameobjects.effects;
 
-import java.util.List;
+import java.util.Queue;
 
 import mmo.gameserver.gameobjects.Unit;
 import mmo.gameserver.gameobjects.world.utils.Point;
@@ -10,28 +10,34 @@ import mmo.gameserver.gameobjects.world.utils.Point;
  * Передвижение
  */
 public class Movement extends TimeEffect {
-	private List<Point> path;
+	private Queue<Point> path;
 
-	public Movement(Unit unit, List<Point> path) {
+	public Movement(Unit unit, Queue<Point> path) {
 		super(unit);
 		this.path = path;
 	}
+	
+	private boolean nextMove() {
+		if (path != null && !path.isEmpty()) {
+			unit.setPosition(path.poll());
+			setFinalized(isFinalized() || path.isEmpty());
+		} else {
+			setFinalized(true);
+			return true;
+		}			
+		return false;
+	}
 
 	public void execute() {
-		if(lastTime < 0)
+		if(lastTime < 0) {
 			lastTime = unit.getGameserver().getTime();
+			nextMove();
+		}
 		
 		boolean needTimeUpdate = false;
 		long iterations = (unit.getGameserver().getTime() - lastTime) * unit.getSpeed() / 1000;
 		for (int i = 0; i < iterations; i++) {
-			if (path != null && !path.isEmpty()) {
-				unit.setPosition(path.get(0));
-				path.remove(0);
-				finalized = path.isEmpty();
-			} else {
-				finalized = true;
-				break;
-			}	
+			if(nextMove()) break;
 			needTimeUpdate = true;			
 		}
 		

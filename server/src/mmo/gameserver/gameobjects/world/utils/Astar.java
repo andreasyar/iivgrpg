@@ -1,9 +1,9 @@
 package mmo.gameserver.gameobjects.world.utils;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.List;
-
+import java.util.concurrent.LinkedBlockingDeque;
 import mmo.gameserver.gameobjects.world.Map;
 
 public class Astar implements PathFinder {
@@ -91,8 +91,8 @@ public class Astar implements PathFinder {
 		return res;
 	}
 
-	public List<Point> findPath(Point from, Point to) {
-		List<Point> res = new LinkedList<Point>();
+	public Deque<Point> findPath(Point from, Point to) {
+		Deque<Point> res =  new LinkedBlockingDeque<Point>();
 
 		try {
 
@@ -111,16 +111,19 @@ public class Astar implements PathFinder {
 				openList.remove(cp);
 				closedList.add(cp);
 				if (addNeighboringCells(cp))
+				{
+					cp = goal;
+					while (cp != null) {
+						res.addFirst(cp);
+						cp = cp.getParent();
+					}
 					break;
+				}
+				
 				cp = getMin();
 			}
 			
-			cp = goal;
-			while (cp != null) {
-				res.add(0, cp);
-				cp = cp.getParent();
-			}
-
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

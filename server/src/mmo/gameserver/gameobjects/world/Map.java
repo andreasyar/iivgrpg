@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -83,7 +84,7 @@ public class Map implements PathFinder{
 	}*/
 	
 	public byte getPassability(int x, int y) {
-		if(x < 0 || x > width || y < 0 || y > height)
+		if(x < 0 || x > width-1 || y < 0 || y > height-1)
 			return 0;
 		
 		return passability[y][x];
@@ -208,7 +209,7 @@ public class Map implements PathFinder{
 		outFile.close();
 	}
 
-	public List<Point> findPath(Point from, Point to) {
+	public Deque<Point> findPath(Point from, Point to) {
 		PathFinder pf = new Astar(this);
 		return pf.findPath(from, to);
 	}
