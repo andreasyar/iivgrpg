@@ -149,7 +149,6 @@ function Player(id, j, i, name, spriteLoader, speed) {
         console.log("Начато движение из клетки", path[0][1], path[0][0],
                     "в клетку", path[path.length - 1][1],
                     path[path.length - 1][0])
-        console.log(this.path, this.speed)
     }
 
     /**
@@ -227,8 +226,8 @@ function Player(id, j, i, name, spriteLoader, speed) {
 
         this.x = wp1.x + _dx
         this.y = wp1.y + _dy
-        newi = Map.getCellIOnMap(this.y)
-        newj = Map.getCellJOnMap(this.x)
+        newi = Map.getCellIOnMap(this.y + CELL_HH)
+        newj = Map.getCellJOnMap(this.x + CELL_HW)
         if (newi != this.i || newj != this.j) {
             this.j = newj
             this.i = newi

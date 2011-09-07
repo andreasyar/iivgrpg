@@ -45,7 +45,7 @@ function Map(width, height, selfPlayer, spriteLoader) {
         }
 
         // i_from - индекс самой верхней клетки, которая умещается на экран.
-        var i_from = this.player.i - Math.ceil(SCR_HH / CELL_H)
+        var i_from = this.player.i - Math.ceil(SCR_HH / CELL_H) - 1
         if (i_from < 0) {
             i_from = 0;
         }
