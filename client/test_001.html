@@ -207,15 +207,10 @@ function scrOnClick(e) {
     var j = Map.getCellJOnMap(tAxis.x)
     var i = Map.getCellIOnMap(tAxis.y)
     console.log("Click on", j, i, "access", accessMap[i][j])
-    if (!self_player.isMove && (j != self_player.j || i != self_player.i)) {
+    if (j != self_player.j || i != self_player.i) {
         server.sendMessage(new MoveToMessage(j, i))
     } else {
-        if (self_player.isMove) {
-            console.log("Игрок уже движется.")
-        }
-        if (j == self_player.j && i == self_player.i) {
-            console.log("Движение из клетки где вы находитесь в эту же клетку завершено :)")
-        }
+        console.log("Вы уже находитесь в этой клетой.")
     }
 }
 
