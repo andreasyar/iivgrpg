@@ -239,15 +239,20 @@ Server: <input type="server_fild" id="server_fild"
 
 <script type="text/javascript">
     showLoginForm()
-    document.onkeydown = function(event){
+    
+    document.onkeydown = function(event) {
         var events = event || window.event
         if (events.keyCode == 116) {    // F5
             logout()
         }
-        if (events.keyCode == 65) { // a
+        if (map != undefined && events.keyCode == 65) { // a
             map.showAccessMap = map.showAccessMap ? false : true
         }
+        if (server != undefined && events.keyCode == 13) {  // Enter
+            chatSend()
+        }
     }
+
     dhtmlLoadScript('cache/objects.js')
     dhtmlLoadScript('cache/groundtiles.js')
     dhtmlLoadScript("cache/map_1.js")

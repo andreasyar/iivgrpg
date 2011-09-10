@@ -229,10 +229,8 @@ var MESSAGE_HANDLERS = {
 
         if (cur_chat_type == msg[1].type) {
             var t = document.getElementById("chat_field")
-            var input = document.getElementById("chat_input")
             t.value += msg[1].name + ": " + msg[1].message + "\n"
-            setCaretToPos(t, t.value.length)
-            setCaretToPos(input, input.value.length)
+            t.scrollTop = t.scrollHeight;
         }
     },
     "ERROR": function(msg) {
@@ -339,7 +337,7 @@ var MESSAGE_HANDLERS = {
 }
 
 function UNITSTATUS_PLAYER(player) {
-    var i, j, k, o, tl, sloader, mapw, maph, grnd, objs
+    var i, j, k, o, tl, sloader, mapw, maph, grnd, objs, chat_field
 
     if (self_player == undefined) {
 
@@ -448,6 +446,9 @@ function UNITSTATUS_PLAYER(player) {
         new SpriteLoader(SPRITES),
         player.speed
     ))
+    chat_field = document.getElementById("chat_field")
+    chat_field.value += "Player " + player.name + " logged in.\n"
+    chat_field.scrollTop = chat_field.scrollHeight
 }
 function UNITSTATUS_NPC(npc) {
     for (var i in npc_list) {
@@ -501,6 +502,8 @@ function UNITUPD_NPC(npc) {
 }
 
 function DELUNIT_PLAYER(id) {
+    var chat_field
+    
     if (self_player.id == id) {
         // TODO отключение игрока от сервера
         return
@@ -508,6 +511,9 @@ function DELUNIT_PLAYER(id) {
 
     for (var i in players_list) {
         if (players_list[i].id == id) {
+            chat_field = document.getElementById("chat_field")
+            chat_field.value += "Player " + players_list[i].name + " logged out.\n"
+            chat_field.scrollTop = chat_field.scrollHeight
             players_list.splice(i, 1)
             break
         }

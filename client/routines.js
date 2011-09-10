@@ -308,9 +308,12 @@ function chatToggle(type) {
 // Отправляет сообщение на сервер.
 function chatSend() {
     var input = document.getElementById("chat_input")
-    server.sendMessage(new NewchatMessage(input.value))
-    setCaretToPos(input, input.value.length)
-    input.value = ""
+        
+    if (input.value != "") {
+        server.sendMessage(new NewchatMessage(input.value))
+        setCaretToPos(input, input.value.length)
+        input.value = ""
+    }
 }
 // http://stackoverflow.com/questions/499126/jquery-set-cursor-position-in-text-area
 function setSelectionRange(input, selectionStart, selectionEnd) {
@@ -327,7 +330,7 @@ function setSelectionRange(input, selectionStart, selectionEnd) {
   }
 }
 function setCaretToPos(input, pos) {
-  setSelectionRange(input, pos, pos);
+    setSelectionRange(input, pos, pos);
 }
 
 // Возвращает id спрайта по его серверному имени.
