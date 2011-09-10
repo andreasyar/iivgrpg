@@ -325,8 +325,8 @@ var MESSAGE_HANDLERS = {
 
         if (player.i != data.way[0].y || player.j != data.way[0].x) {
             console.log("ВНИМАНИЕ:", "Обнаружена разсинхронизация клиента и сервера. Игрок должен начать движение не из той клетки, в которой находится.")
-            path.unshift(new Array(self_player.i, self_player.j))
-            data.time -= (1 / self_player.speed) * 1000
+            path.unshift(new Array(player.i, player.j))
+            data.time -= (1 / player.speed) * 1000
         }
 
         player.move(path, data.time)
