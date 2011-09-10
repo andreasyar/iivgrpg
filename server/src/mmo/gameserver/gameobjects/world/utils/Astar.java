@@ -16,12 +16,14 @@ public class Astar implements PathFinder {
 	private List<AStarPoint> closedList;
 
 	private boolean addCell(AStarPoint p, AStarPoint np) {
-		if (np.equals(goal)) {
+		if (np.equals(goal)
+				&& (!np.onDiagonal(p) || (map.getPassability(p.x - (p.x - np.x), p.y) == 1 || map.getPassability(p.x, p.y - (p.y - np.y)) == 1))) {
 			goal.setParent(p);
 			return true;
 		}
 
-		if (!closedList.contains(np) && map.getPassability(np.x, np.y) == 1)
+		if (!closedList.contains(np) && map.getPassability(np.x, np.y) == 1
+				&& (!np.onDiagonal(p) || (map.getPassability(p.x - (p.x - np.x), p.y) == 1 || map.getPassability(p.x, p.y - (p.y - np.y)) == 1))) {
 			if (!openList.contains(np)) {
 				openList.add(np);
 			} else {
@@ -29,6 +31,7 @@ public class Astar implements PathFinder {
 				if (op.getG() + p.getDistance(op) < p.getG())
 					p.setParent(op);
 			}
+		}
 
 		return false;
 	}
@@ -92,7 +95,7 @@ public class Astar implements PathFinder {
 	}
 
 	public Deque<Point> findPath(Point from, Point to) {
-		Deque<Point> res =  new LinkedBlockingDeque<Point>();
+		Deque<Point> res = new LinkedBlockingDeque<Point>();
 
 		try {
 
@@ -110,8 +113,7 @@ public class Astar implements PathFinder {
 				counter++;
 				openList.remove(cp);
 				closedList.add(cp);
-				if (addNeighboringCells(cp))
-				{
+				if (addNeighboringCells(cp)) {
 					cp = goal;
 					while (cp != null) {
 						res.addFirst(cp);
@@ -119,11 +121,10 @@ public class Astar implements PathFinder {
 					}
 					break;
 				}
-				
+
 				cp = getMin();
 			}
-			
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
