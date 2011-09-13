@@ -150,7 +150,7 @@ function getPath(beg, end) {
         corner: 0
     }
 
-    if (!map.isOnMap(end.i, end.j) || accessMap[end.i][end.j] == 0) {
+    if (!maps[self_player.mapId].isOnMap(end.i, end.j) || accessMap[end.i][end.j] == 0) {
         return false
     }
 
@@ -204,7 +204,7 @@ function getPath(beg, end) {
                 }
 
                 // Клетку вне карты не рассматриваем.
-                if (!map.isOnMap(i, j)) {
+                if (!maps[self_player.mapId].isOnMap(i, j)) {
                     stat.onmap++
                     continue
                 }
@@ -344,26 +344,28 @@ function getSpriteIdByServerName(sname) {
     throw new Error("Спрайт с именем " + sname + " не найден.")
 }
 
-// Загружает объекты карты.
-function loadMapObjects() {
+/**
+ * Обработчик события загрузки объектов карты.
+ */
+function onLoadMapObjects(event) {
     var tmp, tiles
 
     if (MAPOBJECTS == undefined) {
-        throw new Error("Не могу загрузить объекты карты.")
+        throw new Error("Объекты карты не были загружены.")
     }
 
     tmp = {}
-    for (var o in MAPOBJECTS) {
-        tiles = MAPOBJECTS[o].tiles
-        tmp[o] = {}
-        tmp[o].tiles = new Array(tiles.length)
+    for (var obj in MAPOBJECTS) {
+        tiles = MAPOBJECTS[obj].tiles
+        tmp[obj] = {}
+        tmp[obj].tiles = new Array(tiles.length)
         for (var i = 0; i < tiles.length; i++) {
-            tmp[o].tiles[i] = new Array()
+            tmp[obj].tiles[i] = new Array()
             for (var j = 0; j < tiles[i].length; j++) {
                 if (tiles[i][j] == null) {
-                    tmp[o].tiles[i].push(null)
+                    tmp[obj].tiles[i].push(null)
                 } else {
-                    tmp[o].tiles[i].push({
+                    tmp[obj].tiles[i].push({
                         sprId: getSpriteIdByServerName(tiles[i][j].src),
                         acc: tiles[i][j].acc
                     })
@@ -371,16 +373,19 @@ function loadMapObjects() {
             }
         }
     }
+    console.log("Загрузка объектов карты завершена.")
 
     MAPOBJECTS = tmp
 }
 
-// Загружает информацию о тайлах земли.
-function loadGrounds() {
+/**
+ * Обработчик события загрузки тайлов земли.
+ */
+function onLoadGroundTiles(event) {
     var tmp
 
     if (GROUNDS == undefined) {
-        throw new Error("Не могу загрузить информацию о тайлах земли.")
+        throw new Error("Тайлы земли не были загружены.")
     }
 
     tmp = {}
@@ -390,16 +395,67 @@ function loadGrounds() {
             acc: GROUNDS[id].acc
         }
     }
+    console.log("Загрузка тайлов земли завершена.")
 
     GROUNDS = tmp
 }
 
-// Загружает главную карту.
-function loadMap(id) {
-    if (MAPS[id] != undefined) {
-        console.log("Карта " + id + " уже загружена.")
+/**
+ * Обработчик события загрузки карты.
+ * @param mapId Идентификатор карты.
+ */
+function onLoadMap(mapId) {
+    if (maps[mapId] != undefined) {
+        console.warn("Попытка повторной загрузки карты " + mapId + ".")
         return
-    } else {
-        throw new Error("Карта " + id + " не была загружена.")
     }
+    if (MAPS[mapId] == undefined) {
+        throw new Error("Карта " + mapId + " не была загружена.")
+    }
+
+    var i, j, k, obj, tiles
+
+    var mapH = MAPS[mapId].tiles.length
+    var mapW = MAPS[mapId].tiles[0].length
+    var grnd = MAPS[mapId].tiles
+    var objs = MAPS[mapId].objects
+    var sloader = new SpriteLoader(SPRITES)
+    var spriteMap = new Array(mapH)
+    var accessMap = new Array(mapH)
+    var eventMap = new Array(mapH)
+
+    for (i = 0; i < mapH; i++) {
+        spriteMap[i] = new Array(mapW)
+        accessMap[i] = new Array(mapW)
+        eventMap[i] = new Array(mapW)
+        for (j = 0; j < mapW; j++) {
+            spriteMap[i][j] = {
+                ground: sloader.getSprite(GROUNDS[grnd[i][j]].sprId),
+                objs: new Array()
+            }
+            accessMap[i][j] = parseInt(GROUNDS[grnd[i][j]].acc)
+        }
+    }
+    for (k in objs) {
+        obj = objs[k]
+        tiles = MAPOBJECTS[obj.type].tiles
+        for (i in tiles) {
+            i = parseInt(i)
+            for (j in tiles[i]) {
+                j = parseInt(j)
+                if (tiles[i][j] != null) {
+                    spriteMap[obj.y + i][obj.x + j].objs.push(sloader.getSprite(tiles[i][j].sprId))
+                    accessMap[obj.y + i][obj.x + j] = parseInt(tiles[i][j].acc)
+                    if (tiles[i][j].acc == 2) {
+                        var _id = obj.objid
+                        eventMap[obj.y + i][obj.x + j] = function() {return function(id) {console.log("Entering map object " + id + ".")}(_id)}
+                    }
+                }
+            }
+        }
+    }
+
+    maps[mapId] = new Map(mapId, mapW, mapH, sloader, spriteMap, accessMap,
+                          eventMap)
+    console.log("Загрузка карты %s (%sx%s) завершена.", mapId, mapW, mapH)
 }

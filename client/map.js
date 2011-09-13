@@ -1,12 +1,17 @@
 
 // Карта.
 
-function Map(width, height, selfPlayer, spriteLoader) {
+function Map(id, width, height, spriteLoader, spriteMap, accessMap, eventMap) {
 
     // Эту функцию можно вызвать только как конструктор (с new).
     if (this.constructor !== arguments.callee) {
         throw new Error("Constructor called like a simple function!");
     }
+
+    /**
+     * Идентификатор карты.
+     */
+    this.id = id
 
     // Ширина карты в клетках.
     this.w = width;
@@ -17,15 +22,39 @@ function Map(width, height, selfPlayer, spriteLoader) {
     // Свой игрок. Ссылка на игрока, которым играют на клиенте. Он всегда
     // находится в центре экрана и поэтому рисование карты должно поисходить
     // так чтобы это всегда было верно.
-    this.player = selfPlayer;
+    this.player = null
 
     // Загрузчик спрайтов.
     this.loader = spriteLoader;
 
+    /**
+     * Карта спрайтов.
+     */
+    this.spriteMap = spriteMap
+
+    /**
+     * Карта доступности.
+     */
+    this.accessMap = accessMap
+
+    /**
+     * Карта событий.
+     */
+    this.eventMap = eventMap
+
+    /**
+     * Флаг отображения карты доступности.
+     */
     this.showAccessMap = false
 
     // Метод рисования карты.
     this.draw = function(context) {
+
+        if (this.player == null) {
+            console.error("У карты %s не установлен свой игрок! Карта "
+                          + "не может быть отображена.", this.id)
+            return
+        }
 
         // Вычислим, какие клетки карты помещаются на экран при текущем
         // положении нашего игрока. Например если наш игрок находится в клетке
@@ -65,19 +94,19 @@ function Map(width, height, selfPlayer, spriteLoader) {
                 tAxis = camera.translateAxis(Map.getCellXOnMap(j),
                                              Map.getCellYOnMap(i))
                 context.drawImage(
-                    spriteMap[i][j].ground,
+                    this.spriteMap[i][j].ground,
                     tAxis.x,
                     tAxis.y
                 )
-                for (k = 0; k < spriteMap[i][j].objs.length; k++) {
+                for (k = 0; k < this.spriteMap[i][j].objs.length; k++) {
                     context.drawImage(
-                        spriteMap[i][j].objs[k],
+                        this.spriteMap[i][j].objs[k],
                         tAxis.x,
                         tAxis.y
                     )
                 }
                 if (this.showAccessMap) {
-                    context.fillText(accessMap[i][j], tAxis.x + CELL_W / 2, tAxis.y + CELL_H / 2)
+                    context.fillText(this.accessMap[i][j], tAxis.x + CELL_W / 2, tAxis.y + CELL_H / 2)
                 }
             }
         }

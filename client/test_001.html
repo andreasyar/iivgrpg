@@ -95,8 +95,10 @@ var players_list = new Array()
 // Список NPC.
 var npc_list = new Array()
 
-// Карта.
-var map
+/**
+ * Загруженные карты.
+ */
+var maps = {}
 
 // Сервер.
 var server
@@ -112,18 +114,6 @@ var cur_chat_type = 1
 
 // Камера. "Показывает" место, которое будет нарисовано на основном холсте.
 var camera
-
-// Карта спрайтов. Содержит спрайты, которые должны быть нарисованы в
-// соответствующих ячейках карты.
-var spriteMap
-
-// Карта событий (особых мест на карте при попадании в которые происходит
-// событие).
-var eventMap
-
-// Карта доступности. Содержит информацию о том, можно ли сходить в
-// ячейку карты.
-var accessMap
 
 /************
  * Функции. *
@@ -167,7 +157,7 @@ function mainLoop() {
     map_context.clearRect(0, 0, map_buffer.width, map_buffer.height)
 
     // Нарисуем карту и своего игрока с буфер.
-    map.draw(map_context)
+    maps[self_player.mapId].draw(map_context)
     self_player.draw(players_context)
     
     // Нарисуем в буфер остальных игроков.
@@ -206,7 +196,6 @@ function scrOnClick(e) {
     var tAxis = camera.reTranslateAxis(x, y)
     var j = Map.getCellJOnMap(tAxis.x)
     var i = Map.getCellIOnMap(tAxis.y)
-    console.log("Click on", j, i, "access", accessMap[i][j])
     if (j != self_player.j || i != self_player.i) {
         server.sendMessage(new MoveToMessage(j, i))
     } else {
@@ -246,25 +235,31 @@ Server: <input type="server_fild" id="server_fild"
             logout()
         }
         if (map != undefined && events.keyCode == 65) { // a
-            map.showAccessMap = map.showAccessMap ? false : true
+            maps[self_player.mapId].showAccessMap = maps[self_player.mapId].showAccessMap ? false : true
         }
         if (server != undefined && events.keyCode == 13) {  // Enter
             chatSend()
         }
     }
+    dhtmlLoadScript("cache/objects.js", onLoadMapObjects)
+    dhtmlLoadScript("cache/groundtiles.js", onLoadGroundTiles)
+    var mapIds = new Array(1, 2)
+    dhtmlLoadScript("cache/map_1.js", function(event){return function(id){onLoadMap(id)}(mapIds[0])})
+    dhtmlLoadScript("cache/map_2.js", function(event){return function(id){onLoadMap(id)}(mapIds[1])})
 
-    dhtmlLoadScript('cache/objects.js')
-    dhtmlLoadScript('cache/groundtiles.js')
-    dhtmlLoadScript("cache/map_1.js")
-    dhtmlLoadScript("cache/map_2.js")
-
-    // Загружает скрипт.
-    // Thanks http://www.quizful.net/post/dynamic-javascript-loading
-    function dhtmlLoadScript(url) {
-        var e = document.createElement("script");
-        e.src = url;
-        e.type="text/javascript";
-        document.getElementsByTagName("head")[0].appendChild(e);
+    /**
+     * Загружает скрипт.
+     * Thanks http://www.quizful.net/post/dynamic-javascript-loading
+     * @param url URL скрипта.
+     * @param handler Обработчик, который должен быть вызыван после загрузки
+     * скрипта.
+     */
+    function dhtmlLoadScript(url, handler) {
+        var e = document.createElement("script")
+        e.src = url
+        e.type="text/javascript"
+        e.onload = handler
+        document.getElementsByTagName("head")[0].appendChild(e)
     }
     function staticLoadScript(url) {
         document.write('<script src="', url, '" type="text/JavaScript"><\/script>');

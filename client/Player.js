@@ -1,7 +1,7 @@
 
 // Игрок.
 
-function Player(id, j, i, name, spriteLoader, speed) {
+function Player(id, mapId, j, i, name, spriteLoader, speed) {
 
     // Эту функцию можно вызвать только как конструктор (с new).
     if (this.constructor !== arguments.callee) {
@@ -45,10 +45,20 @@ function Player(id, j, i, name, spriteLoader, speed) {
     this.pathC = null
 
     /**
+     * Идентификатр карты, на котрой находится игрок.
+     */
+    this.mapId = mapId
+
+    /**
      * Рисует игрока.
      * @param context Контекст для рисования.
      */
     this.draw = function(context) {
+
+        // Игроков, которые находятся на другой карте, не рисуем.
+        if (this.mapId != self_player.mapId) {
+            return
+        }
 
         if (this.isMove) {
             this.updatePos()
@@ -140,9 +150,6 @@ function Player(id, j, i, name, spriteLoader, speed) {
             ))
         }
 
-        // Нарисуем путь на карте.
-        map.setPath(this.pathC)
-
         // Отметим, что движение началось.
         this.isMove = true
 
@@ -200,7 +207,6 @@ function Player(id, j, i, name, spriteLoader, speed) {
                 this.i = newi
                 this.pathC = this.pathC.slice(1)
             }
-            map.setPath(this.pathC)
             this.isMove = false
 
             return
@@ -233,7 +239,6 @@ function Player(id, j, i, name, spriteLoader, speed) {
             this.i = newi
             this.pathC = this.pathC.slice(1)
         }
-        map.setPath(this.pathC)
 
         return
     }

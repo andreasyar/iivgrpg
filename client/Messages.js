@@ -169,29 +169,7 @@ var MESSAGE_HANDLERS = {
         alert("Неверный пароль для пользователя " + getLogin())
     },
     "NEWPLAYER": function(msg) {
-        // ["NEWPLAYER",{"id":"идентификатор игрока","name":"имя игрока","j":"индекс","i":"индекс","speed":"3", "spriteCategory":"player"}]
-        var p = new Player(msg[1].id, msg[1].j, msg[1].i, msg[1].name,
-                           new SpriteLoader(SPRITES), msg[1].speed)
-        if (MESSAGE_HANDLERS["HELLO"].selfPlayerId == msg[1].id) {
-            if (self_player != undefined) {
-                console.log("Свой игрок уже создан. Сообщение будет проигнорировано.")
-            } else {
-                self_player = p
-                map = new Map(100, 100, self_player, new SpriteLoader(SPRITES))
-                camera = new Camera(self_player)
-
-                // Запускаем главный цикл.
-                setTimeout("mainLoop();", 1000 / FPS)
-
-                hideLoginForm()
-                showChat()
-                scr.addEventListener("click", scrOnClick, false)
-            }
-
-            return
-        }
-
-        players_list.push(p)
+        console.warn("Устаревший тип сообщения: NEWPLAYER.")
     },
     "DELPLAYER": function(msg) {
         // ["DELPLAYER",{"id":"идентификатор игрока"}]
@@ -337,7 +315,7 @@ var MESSAGE_HANDLERS = {
 }
 
 function UNITSTATUS_PLAYER(player) {
-    var i, j, k, o, tl, sloader, mapw, maph, grnd, objs, chat_field
+    var i, chat_field
 
     if (self_player == undefined) {
 
@@ -345,58 +323,17 @@ function UNITSTATUS_PLAYER(player) {
         if (MESSAGE_HANDLERS["HELLO"].selfPlayerId == player.id) {
             self_player = new Player(
                 player.id,
+                player.mapId,
                 player.x,
                 player.y,
                 player.name,
                 new SpriteLoader(SPRITES),
                 player.speed
             )
-            loadMapObjects()
-            loadGrounds()
-            loadMap(player.mapId)
-            maph = MAPS[player.mapId].tiles.length
-            mapw = MAPS[player.mapId].tiles[0].length
-            map = new Map(
-                mapw,
-                maph,
-                self_player,
-                new SpriteLoader(SPRITES)
-            )
+            for (i in maps) {
+                maps[i].player = self_player
+            }
             camera = new Camera(self_player)
-
-            grnd = MAPS[player.mapId].tiles
-            objs = MAPS[player.mapId].objects
-            sloader = new SpriteLoader(SPRITES)
-            spriteMap = new Array(maph)
-            accessMap = new Array(maph)
-            eventMap = new Array(maph)
-            for (i = 0; i < maph; i++) {
-                spriteMap[i] = new Array(mapw)
-                accessMap[i] = new Array(mapw)
-                eventMap[i] = new Array(mapw)
-                for (j = 0; j < mapw; j++) {
-                    spriteMap[i][j] = {ground: sloader.getSprite(GROUNDS[grnd[i][j]].sprId), objs: new Array()}
-                    accessMap[i][j] = parseInt(GROUNDS[grnd[i][j]].acc)
-                }
-            }
-            for (k in objs) {
-                o = objs[k]
-                tl = MAPOBJECTS[o.type].tiles
-                for (i in tl) {
-                    i = parseInt(i)
-                    for (j in tl[i]) {
-                        j = parseInt(j)
-                        if (tl[i][j] != null) {
-                            spriteMap[o.y + i][o.x + j].objs.push(sloader.getSprite(tl[i][j].sprId))
-                            accessMap[o.y + i][o.x + j] = parseInt(tl[i][j].acc)
-                            if (tl[i][j].acc == 2) {
-                                var id = o.objid
-                                eventMap[o.y + i][o.x + j] = function() {return function(id) {console.log("Entering", id)}(id)}
-                            }
-                        }
-                    }
-                }
-            }
 
             // Запускаем синхронизацию игрового времени.
             timeSync.run(5000)
@@ -440,6 +377,7 @@ function UNITSTATUS_PLAYER(player) {
     // Если игрок не найден, то добавим нового игрока.
     players_list.push(new Player(
         player.id,
+        player.mapId,
         player.x,
         player.y,
         player.name,
