@@ -234,7 +234,7 @@ Server: <input type="server_fild" id="server_fild"
         if (events.keyCode == 116) {    // F5
             logout()
         }
-        if (map != undefined && events.keyCode == 65) { // a
+        if (self_player != undefined && maps[self_player.mapId] != undefined && events.keyCode == 65) { // a
             maps[self_player.mapId].showAccessMap = maps[self_player.mapId].showAccessMap ? false : true
         }
         if (server != undefined && events.keyCode == 13) {  // Enter
