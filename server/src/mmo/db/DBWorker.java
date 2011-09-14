@@ -5,6 +5,7 @@ import com.mysql.jdbc.*;
 import java.sql.DriverManager;
 //import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import mmo.config.XMLConfig;
 
@@ -40,8 +41,11 @@ public class DBWorker {
 	}
 
 	public void connect() throws SQLException {
-		connection = (Connection) DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database + "?user=" + user + "&password="
-				+ password);
+		Properties p = new Properties();
+		p.setProperty("autoReconnect", "true");
+		connection = (Connection) DriverManager.getConnection	("jdbc:mysql://" + server + ":" + port + "/" + database + "?user=" + user + "&password="
+				+ password, p);
+		
 	}
 
 	public void disconnect() throws SQLException {
