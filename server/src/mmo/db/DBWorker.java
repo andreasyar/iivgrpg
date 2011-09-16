@@ -43,8 +43,8 @@ public class DBWorker {
 	public void connect() throws SQLException {
 		Properties p = new Properties();
 		p.setProperty("autoReconnect", "true");
-		connection = (Connection) DriverManager.getConnection	("jdbc:mysql://" + server + ":" + port + "/" + database + "?user=" + user + "&password="
-				+ password, p);
+		p.setProperty("validationQuery", "Select 1");
+		connection = (Connection) DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database + "?user=" + user + "&password="+ password, p);
 		
 	}
 
