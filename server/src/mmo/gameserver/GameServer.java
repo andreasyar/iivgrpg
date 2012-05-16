@@ -8,8 +8,13 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
 import mmo.config.XMLConfig;
 import mmo.db.DBWorker;
@@ -92,60 +97,58 @@ public class GameServer{
 		clients.addClient(new GameClient(dbcontext, channel, this));
 	}
 	
-	public boolean handleRequest(ChannelHandlerContext ctx, WebSocketFrame frame) {
-		try
-		{
-			if(! frame.isText())
-				return true;
-			
-			String jsonString = frame.getTextData();
-			RequestCommand command;
-			Channel channel = ctx.getChannel();
-						
-			if(jsonString.isEmpty())
-			{
-				if(channel.isOpen() && channel.isConnected())
-					channel.write(new DefaultWebSocketFrame( new ErrorResponse(GameServerErrors.EMPTY_COMMAND).toString() ));
-				Log.error(GameServerErrors.EMPTY_COMMAND.getDescription());
-				return true;				
-			}
-			
-			try {
-				command = RequestCommandFactory.getCommand(jsonString);
-				if(command == null)
-					throw new Exception();
-			} catch (Exception e) {
-				if(channel.isOpen() && channel.isConnected())
-					channel.write(new DefaultWebSocketFrame( new ErrorResponse(GameServerErrors.COMMAND_PARSE, jsonString).toString() ));
-				Log.error(GameServerErrors.COMMAND_PARSE.getDescription());
-				e.printStackTrace();
-				return true;	
-			}
-			
-			GameClient client = GameClient.getClient(ctx.getChannel());
-			if(client == null)
-			{
-				if(channel.isOpen() && channel.isConnected())
-					channel.write(new DefaultWebSocketFrame( new ErrorResponse(GameServerErrors.CLIENT_NOT_FOUND).toString() ));
-				Log.error(GameServerErrors.CLIENT_NOT_FOUND.getDescription());
-				return true;
-			}
-			
-			if(! client.handleCommand(command))
-			{
-				if(channel.isOpen() && channel.isConnected())
-					channel.write(new DefaultWebSocketFrame( new ErrorResponse(GameServerErrors.UNKNOWN_COMMAND).toString() ));
-				Log.error(GameServerErrors.UNKNOWN_COMMAND.getDescription());
-			}
-			
-			return true;
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		
-		return false;
-	}
+    public boolean handleRequest(ChannelHandlerContext ctx, WebSocketFrame frame) {
+        try {
+            //if (! frame.isText()) {
+            //    return true;
+            //}
+
+            //String jsonString = frame.getTextData();
+            String jsonString = ((TextWebSocketFrame) frame).getText();
+            System.out.println(jsonString);
+            RequestCommand command;
+            Channel channel = ctx.getChannel();
+
+            if (jsonString.isEmpty()) {
+                if(channel.isOpen() && channel.isConnected())
+                    channel.write(new TextWebSocketFrame( new ErrorResponse(GameServerErrors.EMPTY_COMMAND).toString() ));
+                Log.error(GameServerErrors.EMPTY_COMMAND.getDescription());
+                return true;				
+            }
+
+            try {
+                command = RequestCommandFactory.getCommand(jsonString);
+                if (command == null)
+                    throw new Exception();
+            } catch (Exception e) {
+                if (channel.isOpen() && channel.isConnected())
+                    channel.write(new TextWebSocketFrame( new ErrorResponse(GameServerErrors.COMMAND_PARSE, jsonString).toString() ));
+                Log.error(GameServerErrors.COMMAND_PARSE.getDescription());
+                e.printStackTrace();
+                return true;	
+            }
+
+            GameClient client = GameClient.getClient(ctx.getChannel());
+            if (client == null) {
+                if (channel.isOpen() && channel.isConnected())
+                    channel.write(new TextWebSocketFrame( new ErrorResponse(GameServerErrors.CLIENT_NOT_FOUND).toString() ));
+                Log.error(GameServerErrors.CLIENT_NOT_FOUND.getDescription());
+                return true;
+            }
+
+            if (! client.handleCommand(command)) {
+                if (channel.isOpen() && channel.isConnected())
+                    channel.write(new TextWebSocketFrame( new ErrorResponse(GameServerErrors.UNKNOWN_COMMAND).toString() ));
+                Log.error(GameServerErrors.UNKNOWN_COMMAND.getDescription());
+            }
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 	
 	
 	/**
@@ -164,7 +167,7 @@ public class GameServer{
 	public void toAllClient(GameClient author, ResponseCommand command) {
 		ChannelGroup channels = new DefaultChannelGroup();
 		
-		DefaultWebSocketFrame frame = new DefaultWebSocketFrame(command.toString());
+		TextWebSocketFrame frame = new TextWebSocketFrame(command.toString());
 		
 		for(GameClient client: clients.getList())
 		{
@@ -182,7 +185,7 @@ public class GameServer{
 	 * @param command класс сообщения
 	 */	
 	public void toClient(GameClient to, ResponseCommand command) {
-		DefaultWebSocketFrame frame = new DefaultWebSocketFrame(command.toString());
+		TextWebSocketFrame frame = new TextWebSocketFrame(command.toString());
 		
 		if(to != null && to.getChannel() != null && to.getChannel().isOpen() && to.getChannel().isConnected())
 			to.getChannel().write(frame);

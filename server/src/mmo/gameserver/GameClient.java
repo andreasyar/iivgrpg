@@ -3,7 +3,13 @@ package mmo.gameserver;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
 import mmo.db.DBWorker;
 import mmo.gameserver.accounts.Account;
@@ -93,12 +99,12 @@ public class GameClient implements NetActive, CommandHandler {
 
 			account = new Account(this, ((Login) c).getLogin());
 			if (account.login(((Login) c).getPassword())) {
-				channel.write(new DefaultWebSocketFrame(new Hello(account.getCurrentPlayer().getId(), account.getCurrentPlayer().getName(), gameserver.getTime())
+				channel.write(new TextWebSocketFrame(new Hello(account.getCurrentPlayer().getId(), account.getCurrentPlayer().getName(), gameserver.getTime())
 						.toString()));
 				gameserver.onClientLoggedIn(this);
 			} else {
 				account = null;
-				channel.write(new DefaultWebSocketFrame(new Wrongpass().toString()));
+				channel.write(new TextWebSocketFrame(new Wrongpass().toString()));
 			}
 
 			return true;
@@ -113,7 +119,7 @@ public class GameClient implements NetActive, CommandHandler {
 			
 			return true;
 		} else if (c instanceof Ping) {
-			channel.write(new DefaultWebSocketFrame(new Pong(gameserver.getTime()).toString()));			
+			channel.write(new TextWebSocketFrame(new Pong(gameserver.getTime()).toString()));			
 			return true;
 		}
 

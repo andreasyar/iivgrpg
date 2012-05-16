@@ -14,7 +14,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
 import mmo.db.DBWorker;
 import mmo.gameserver.GameClient;
@@ -223,7 +229,7 @@ public class Map implements PathFinder{
 	public void toAllPlayers(Player author, ResponseCommand command) {
 		ChannelGroup channels = new DefaultChannelGroup();
 		
-		DefaultWebSocketFrame frame = new DefaultWebSocketFrame(command.toString());
+		TextWebSocketFrame frame = new TextWebSocketFrame(command.toString());
 		
 		for(Unit unit: units.values())
 		{
