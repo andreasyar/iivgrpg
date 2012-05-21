@@ -158,11 +158,16 @@ function mainLoop() {
 
     // Нарисуем карту и своего игрока с буфер.
     maps[self_player.mapId].draw(map_context)
-    self_player.draw(players_context)
+    self_player.draw(players_context, camera)
+    self_player.drawPath(players_context, camera)
     
     // Нарисуем в буфер остальных игроков.
     for (var i in players_list) {
-        players_list[i].draw(players_context)
+        players_list[i].draw(players_context, camera)
+        // TODO Рисование путей других игроков косячит, если они фиктивные и
+        // запущены из других вкладок браузера, по-видимому из-за того, что
+        // из пути криво удаляются пройденные клетки.
+        //players_list[i].drawPath(players_context, camera)
     }
 
     // Нарисуем карту и игроков на основном холсте.
@@ -208,11 +213,9 @@ function scrOnClick(e) {
 <!-- Форма логина. -->
 <div id="login_form">
 Login: <input type="text" id="login_fild"><br>
-Password: <input type="text" id="password_fild"><br>
-Server: <input type="server_fild" id="server_fild"
-               value="ws://localhost:8015/ws"><br>
-<input type="button" id="login_button" value="Login"
-       onclick="login(); return false;">
+Password: <input type="password" id="password_fild"><br>
+Server: <input type="text" id="server_fild" value="ws://localhost:8015/ws"><br>
+<input type="button" id="login_button" value="Login" onclick="login(); return false;">
 </div>
 
 <!-- Чат. -->
@@ -224,6 +227,8 @@ Server: <input type="server_fild" id="server_fild"
 <textarea id="chat_field"></textarea><br>
 <input id="chat_input" type="text"><br>
 <input id="chat_send" type="button" value="Send" onclick="chatSend();return false;">
+<h3>Управление:</h3>
+a - показать/скрыть карту доступности<br>
 </div>
 
 <script type="text/javascript">
@@ -239,6 +244,18 @@ Server: <input type="server_fild" id="server_fild"
         }
         if (server != undefined && events.keyCode == 13) {  // Enter
             chatSend()
+        }
+        if (camera != undefined && camera.target == undefined && events.keyCode == 37) {    // left arrow 
+            camera.x -= 1 * CELL_W;
+        }
+        if (camera != undefined && camera.target == undefined && events.keyCode == 38) {    // up arrow 
+            camera.y -= 1 * CELL_H;
+        }
+        if (camera != undefined && camera.target == undefined && events.keyCode == 39) {    // right arrow
+            camera.x += 1 * CELL_W;
+        }
+        if (camera != undefined && camera.target == undefined && events.keyCode == 40) {    // down arrow
+            camera.y += 1 * CELL_H;
         }
     }
     dhtmlLoadScript("cache/objects.js", onLoadMapObjects)

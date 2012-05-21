@@ -52,8 +52,9 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
     /**
      * Рисует игрока.
      * @param context Контекст для рисования.
+     * @param camera Камера, в объективе которой находится игрок.
      */
-    this.draw = function(context) {
+    this.draw = function(context, camera) {
 
         // Игроков, которые находятся на другой карте, не рисуем.
         if (this.mapId != self_player.mapId) {
@@ -64,8 +65,6 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
             this.updatePos()
         }
 
-        // По своим координатам на карте получим координаты в кадре камеры
-        // (на холсте).
         var tAxis = camera.translateAxis(this.x, this.y)
 
         // Нарисуем игрока.
@@ -75,11 +74,36 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
         if (this.nameWidth == null) {
             this.nameWidth = context.measureText(this.name).width;
         }
-        context.fillText(
-            this.name,
-            tAxis.x + CELL_HW - this.nameWidth / 2,
-            tAxis.y + CELL_H + 10
-        )
+        context.fillText(this.name, tAxis.x + CELL_HW - this.nameWidth / 2, tAxis.y + CELL_H + 10)
+    }
+    
+    /**
+     * Рисует путь игрока.
+     * @param context Контекст для рисования.
+     * @param camera Камера, в объективе которой находится игрок.
+     */
+    this.drawPath = function(context, camera) {
+        var sprId, tAxis
+        
+        if (this.pathC == undefined || this.pathC == null) {
+            return
+        }
+        
+        for (var i = 1; i < this.pathC.length; i++) {
+
+            // Последная клетка пути или промежуточная
+            if (i == this.pathC.length - 1) {
+                sprId = 5
+            } else {
+                sprId = 4
+            }
+
+            if (this.pathC[i] == undefined) {
+                console.log("DEBUG", "Incorrect path or path cell index", this.pathC, i)
+            }
+            tAxis = camera.translateAxis(Map.getCellXOnMap(this.pathC[i][1]), Map.getCellYOnMap(this.pathC[i][0]))
+            context.drawImage(this.loader.getSprite(sprId), tAxis.x, tAxis.y)
+        }
     }
 
     /**
@@ -162,6 +186,7 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
      * Обновляет позицию игрока, если он движется.
      */
     this.updatePos = function() {
+        // TODO Из пути криво удаляются пройденные точки
 
         if (!this.isMove) {
             return

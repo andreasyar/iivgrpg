@@ -4,35 +4,74 @@
 /**
  * Камера. "Показывает" место, которое будет нарисовано на основном холсте.
  */
-function Camera(self_player) {
+function Camera(target) {
 
     // Эту функцию можно вызвать только как конструктор (с new).
     if (this.constructor !== arguments.callee) {
         throw new Error("Constructor called like a simple function!")
     }
-
+    
     /**
-     * Ссылка на своего игрока, чтобы камера всегда могла ориентироваться на
-     * него.
+     * Положение камеры на карте по оси X.
      */
-    this.self_player = self_player
+    this.x = 0
+    
+    /**
+     * Положение камеры на карте по оси Y.
+     */
+    this.y = 0
+    
+    /**
+     * Ссылка на объект, за которым следит камера (который всегда будет
+     * в центре объектива). Объект должен иметь атрибуты x и y, содержащие его
+     * координаты на карте.
+     */
+    this.target = target
+    
+    /**
+     * Привязывает камеру к цели, чтобы цель всегда находилась в центре
+     * объектива.
+     * @param target Цель
+     */
+    this.follow = function(target) {
+        this.target = target
+    }
+    
+    /**
+     * Отвязывает камеру от цели.
+     */
+    this.unfollow = function() {
+        delete this.target
+    }
+    
+    /**
+     * Обновляет координаты камеры на карте в зависимости от того, где
+     * находится цель.
+     */
+    this.updatePos = function () {
+        if (this.target != undefined && this.target != null) {
+            this.x = this.target.x - SCR_W / 2
+            this.y = this.target.y - SCR_H / 2
+        }
+    }
 
     /**
      * Проверяет, попадат ли объект с заданными границами в объектив.
+     * @param x Координата объекта на карте по оси Х.
+     * @param y Координата объекта на карте по оси Y.
+     * @param w Ширина объекта.
+     * @param h Высота объекта.
      */
     this.isOnView = function(x, y, w, h) {
+        this.updatePos()
 
-        // Обновим координаты камеры на карте.
-        this.x = this.self_player.x - SCR_W / 2
-        this.y = this.self_player.y - SCR_H / 2
-
-        // Объект находится целиком справа или слева за кадром.
-        if (x > this.x || x + w < this.x) {
+        // Объект находится целиком справа или слева за объективом.
+        if (x > this.x + SCR_W || x + w < this.x) {
             return false
         }
 
-        // Объект находится целиком снизу или сверху за кадром.
-        if (y > this.y || y + h < this.y) {
+        // Объект находится целиком снизу или сверху за объективом.
+        if (y > this.y + SCR_H || y + h < this.y) {
             return false
         }
 
@@ -40,29 +79,29 @@ function Camera(self_player) {
     }
 
     /**
-     * Возвращает координаты внутри кадра по координатам на карте. Этот метод
-     * будет вызывать любой объект чтобы узнать координаты где его нужно
-     * нарисовать.
+     * Возвращает координаты внутри объектива камеры по координатам на карте.
+     * Этот метод будет вызывать любой объект чтобы узнать координаты где его
+     * нужно нарисовать.
      */
     this.translateAxis = function(x, y) {
+        this.updatePos()
 
-        // Обновим координаты камеры на карте.
-        this.x = this.self_player.x - SCR_W / 2
-        this.y = this.self_player.y - SCR_H / 2
-
-        return {x: x - this.x, y: y - this.y}
+        return {
+            x: x - this.x,
+            y: y - this.y
+        }
     }
 
     /**
-     * Возвращает координаты на карте по координатам внутри кадра.
+     * Возвращает координаты на карте по координатам внутри объектива камеры.
      */
     this.reTranslateAxis = function(x, y) {
+        this.updatePos()
 
-        // Обновим координаты камеры на карте.
-        this.x = this.self_player.x - SCR_W / 2
-        this.y = this.self_player.y - SCR_H / 2
-
-        return {x: x + this.x, y: y + this.y}
+        return {
+            x: this.x + x,
+            y: this.y + y
+        }
     }
 
     return this

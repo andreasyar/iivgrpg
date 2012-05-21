@@ -330,10 +330,11 @@ function UNITSTATUS_PLAYER(player) {
                 new SpriteLoader(SPRITES),
                 player.speed
             )
+            camera = new Camera(self_player)
             for (i in maps) {
                 maps[i].player = self_player
+                maps[i].camera = camera
             }
-            camera = new Camera(self_player)
 
             // Запускаем синхронизацию игрового времени.
             timeSync.run(5000)
