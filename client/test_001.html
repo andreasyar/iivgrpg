@@ -50,6 +50,7 @@
 <script type="text/javascript" src="Messages.js"></script>
 <script type="text/javascript" src="Camera.js"></script>
 <script type="text/javascript" src="Time.js"></script>
+<script type="text/javascript" src="MovementRequest.js"></script>
 </head>
 <body onunload="logout();return false;">
 <script type="text/javascript">
@@ -115,6 +116,9 @@ var cur_chat_type = 1
 // Камера. "Показывает" место, которое будет нарисовано на основном холсте.
 var camera
 
+// Камера свободна или привязана к своему игроку
+var is_camera_free = false
+
 /************
  * Функции. *
  ************/
@@ -164,10 +168,7 @@ function mainLoop() {
     // Нарисуем в буфер остальных игроков.
     for (var i in players_list) {
         players_list[i].draw(players_context, camera)
-        // TODO Рисование путей других игроков косячит, если они фиктивные и
-        // запущены из других вкладок браузера, по-видимому из-за того, что
-        // из пути криво удаляются пройденные клетки.
-        //players_list[i].drawPath(players_context, camera)
+        players_list[i].drawPath(players_context, camera)
     }
 
     // Нарисуем карту и игроков на основном холсте.
@@ -188,10 +189,8 @@ function scrOnClick(e) {
         y = e.pageY;
     }
     else {
-        x = e.clientX + document.body.scrollLeft
-            + document.documentElement.scrollLeft;
-        y = e.clientY + document.body.scrollTop
-            + document.documentElement.scrollTop;
+        x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+        y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
     }
     x -= scr.offsetLeft;
     y -= scr.offsetTop;
@@ -202,7 +201,12 @@ function scrOnClick(e) {
     var j = Map.getCellJOnMap(tAxis.x)
     var i = Map.getCellIOnMap(tAxis.y)
     if (j != self_player.j || i != self_player.i) {
-        server.sendMessage(new MoveToMessage(j, i))
+        // TODO Костыли костылики
+        if (self_player.isMove) {
+            self_player.addMovementRequest(new MovementRequest(server, new MoveToMessage(j, i)))
+        } else {
+            server.sendMessage(new MoveToMessage(j, i))
+        }
     } else {
         console.log("Вы уже находитесь в этой клетой.")
     }
@@ -229,6 +233,10 @@ Server: <input type="text" id="server_fild" value="ws://localhost:8015/ws"><br>
 <input id="chat_send" type="button" value="Send" onclick="chatSend();return false;">
 <h3>Управление:</h3>
 a - показать/скрыть карту доступности<br>
+ЛКМ на свободном месте карты - перемещение в это место<br>
+стрелки - в режиме Свободная Камера управляют перемещениями камеры
+<h3>Настройки:</h3>
+<input type="checkbox" onclick="freeCameraToggle();"> Свободная камера<br>
 </div>
 
 <script type="text/javascript">

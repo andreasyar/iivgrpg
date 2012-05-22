@@ -459,3 +459,13 @@ function onLoadMap(mapId) {
                           eventMap)
     console.log("Загрузка карты %s (%sx%s) завершена.", mapId, mapW, mapH)
 }
+
+function freeCameraToggle() {
+    if (is_camera_free) {
+        camera.target = self_player
+        is_camera_free = false
+    } else {
+        delete camera.target
+        is_camera_free = true
+    }
+}

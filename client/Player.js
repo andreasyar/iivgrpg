@@ -48,6 +48,11 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
      * Идентификатр карты, на котрой находится игрок.
      */
     this.mapId = mapId
+    
+    /**
+     * Запрос на новое движение. Костыль.
+     */
+    this.movementRequest = null
 
     /**
      * Рисует игрока.
@@ -83,26 +88,27 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
      * @param camera Камера, в объективе которой находится игрок.
      */
     this.drawPath = function(context, camera) {
-        var sprId, tAxis
-        
-        if (this.pathC == undefined || this.pathC == null) {
+        if (this.path == undefined || this.path == null) {
             return
         }
         
-        for (var i = 1; i < this.pathC.length; i++) {
-
-            // Последная клетка пути или промежуточная
-            if (i == this.pathC.length - 1) {
-                sprId = 5
-            } else {
-                sprId = 4
+        var sprId, tAxis, showpath = false
+        var t = GAMETIME.get()
+        
+        for (i = 0; i < this.path.length; i++) {
+            if (showpath) {
+                // Последная клетка пути или промежуточная
+                if (i == this.path.length - 1) {
+                    sprId = 5
+                } else {
+                    sprId = 4
+                }
+                tAxis = camera.translateAxis(this.path[i].x, this.path[i].y)
+                context.drawImage(this.loader.getSprite(sprId), tAxis.x, tAxis.y)
             }
-
-            if (this.pathC[i] == undefined) {
-                console.log("DEBUG", "Incorrect path or path cell index", this.pathC, i)
+            if (this.path[i].t > t) {
+                showpath = true
             }
-            tAxis = camera.translateAxis(Map.getCellXOnMap(this.pathC[i][1]), Map.getCellYOnMap(this.pathC[i][0]))
-            context.drawImage(this.loader.getSprite(sprId), tAxis.x, tAxis.y)
         }
     }
 
@@ -233,6 +239,11 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
                 this.pathC = this.pathC.slice(1)
             }
             this.isMove = false
+            
+            if (this.movementRequest != undefined && this.movementRequest != null) {
+                this.movementRequest.execute()
+                delete this.movementRequest
+            }
 
             return
         }
@@ -263,16 +274,26 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
             this.j = newj
             this.i = newi
             this.pathC = this.pathC.slice(1)
+            
+            if (this.movementRequest != undefined && this.movementRequest != null) {
+                this.movementRequest.execute()
+                delete this.movementRequest
+                this.isMove = false
+            }
         }
 
         return
+    }
+    
+    this.addMovementRequest = function (movementRequest) {
+        this.movementRequest = movementRequest
     }
 
     /**
      * Выводит на консоль точки пути.
      */
     this.printWaypoints = function() {
-        console.log("Точки пути")
+        console.log("Точки пути:")
         for (var i in this.path) {
             console.log(this.path[i].x, this.path[i].y, this.path[i].v,
                         this.path[i].t, this.path[i].diag)

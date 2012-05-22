@@ -116,6 +116,7 @@ public class WebServerHandler extends SimpleChannelUpstreamHandler {
         }
         
         gameserver.addClient(ctx.getChannel());
+        System.out.println("Derp.");
 
         return;
 
