@@ -30,10 +30,13 @@ public class MmoServer {
 	public static void main(String[] args) {
 
 		try {
+                        MMOServerConfig c = new MMOServerConfig("config.xml");
+                        return;
+                    
 			// грузим конфиг
 			xmlconfig = new XMLConfig("server.xml");
 
-			dbworker = new DBWorker(xmlconfig);
+			dbworker = new DBWorker(c.getDbHost(), c.getDbPort(), c.getDatabaseName(), c.getDbUser(), c.getDbPassword());
 			gameserver = new GameServer(xmlconfig,dbworker);
 			webserver = new WebServer(xmlconfig,gameserver);
 			
