@@ -1,108 +1,83 @@
 package mmo.config;
 
-import javax.xml.parsers.*;
-
-import org.w3c.dom.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.StringTokenizer;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import java.io.*;
-import java.util.*;
-
 public class XMLConfig {
-	//private static final String CONFIGS_TAG = "configs";
+    private Document xdoc;
+    private Element xroot;
 
-	private Document xdoc;
-	private Element xroot;
+    public XMLConfig(String file) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        xdoc = db.parse(new File(file));
+        xroot = xdoc.getDocumentElement();
+    }
 
-	public XMLConfig(String file) throws ParserConfigurationException, SAXException, IOException {
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    private Element getElement(String elementPath) {
+        StringTokenizer st = new StringTokenizer(elementPath, "/");
+        Element e = xroot;
+        NodeList nl;
 
-		DocumentBuilder db = dbf.newDocumentBuilder();
+        while (st.hasMoreTokens()) {
+            String tagName = st.nextToken();
 
-		xdoc = db.parse(new File(file));
-		xroot = xdoc.getDocumentElement();
-	}
+            if (!e.hasChildNodes()) {
+                return null;
+            }
 
-	private Element getElement(String elementPath) {
+            nl = e.getChildNodes();
+            e = null;
 
-		StringTokenizer st = new StringTokenizer(elementPath, "/");
+            for (int i = 0; i < nl.getLength(); i++) {
+                if (nl.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                    e = (Element) nl.item(i);
+                    if (e.getTagName().toLowerCase().equals(tagName.toLowerCase())) {
+                        if (st.hasMoreTokens()) {
+                            break;
+                        } else {
+                            return e;
+                        }
+                    } else {
+                        e = null;
+                    }
+                }
+            }
 
-		Element elmt = xroot;
+            if (e == null) {
+                return null;
+            }
+        }
 
-		NodeList nl;// = xroot.getElementsByTagName("database");
+        return null;
+    }
 
-		while (st.hasMoreTokens()) {
+    public String getString(String elementPath, String defaultValue) {
+        Element e = getElement(elementPath);
 
-			String tagName = st.nextToken();
+        if (e == null) {
+            return defaultValue;
+        }
 
-			if (!elmt.hasChildNodes())
-				return null;
+        return e.getTextContent();
+    }
 
-			nl = elmt.getChildNodes();
-			elmt = null;
+    public int getInt(String elementPath, int defaultValue) {
+        Element e = getElement(elementPath);
 
-			for (int i = 0; i < nl.getLength(); i++) {
+        if (e == null) {
+            return defaultValue;
+        }
 
-				if (nl.item(i).getNodeType() == Node.ELEMENT_NODE) {
-					elmt = (Element) nl.item(i);
-
-					if (elmt.getTagName().toLowerCase().equals(tagName.toLowerCase())) {
-						if (st.hasMoreTokens()) {
-							break;
-						} else
-							return elmt;
-					} else 
-						elmt = null;	
-				}
-
-			}
-			
-			if (elmt == null)
-				return null;
-
-		}
-
-		return null;
-	}
-
-	public String getString(String elementPath, String def) {
-
-		Element elmt = getElement(elementPath);
-
-		if (elmt == null)
-			return def;
-
-		return elmt.getTextContent();
-
-	}
-	
-	public int getInt(String elementPath, int def) {
-
-		Element elmt = getElement(elementPath);
-
-		if (elmt == null)
-			return def;
-
-		return Integer.parseInt(elmt.getTextContent());
-	}
-	
-	/*
-	 * public void restoreState(Element xnode) { // Позиции окна String sbounds
-	 * = xnode.getAttribute("bounds"); StringTokenizer tok = new
-	 * StringTokenizer(sbounds);
-	 * 
-	 * int x = Integer.parseInt(tok.nextToken()); int y =
-	 * Integer.parseInt(tok.nextToken()); int w =
-	 * Integer.parseInt(tok.nextToken()); int h =
-	 * Integer.parseInt(tok.nextToken());
-	 * 
-	 * setBounds(x, y, w, h);
-	 * 
-	 * // Текст edit.setText(getNodeText(xnode));
-	 * 
-	 * // Цвет текста String scolor = xnode.getAttribute("color"); Color color =
-	 * new Color((int) Long.parseLong(scolor, 16), true);
-	 * 
-	 * edit.setForeground(color); box.setSelectedItem(color); }
-	 */
+        return Integer.parseInt(e.getTextContent());
+    }
 }
