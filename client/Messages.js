@@ -127,6 +127,41 @@ function MoveToMessage(j, i) {
 }
 
 /**
+ * Требование хода.
+ */
+function MoveMessage2() {
+
+    // Эту функцию можно вызвать только как конструктор (с new).
+    if (this.constructor !== arguments.callee) {
+        throw new Error("Constructor called like a simple function!");
+    }
+
+    /**
+     * Тип сообщения.
+     */
+    this.type = "MOVE";
+
+    /**
+     * j-индекс клетки назначения.
+     */
+    this.j = Math.floor(Math.random() * 100);
+
+    /**
+     * i-индекс клетки назначения.
+     */
+    this.i = Math.floor(Math.random() * 100);
+
+    /**
+     * Преобразование в JSON.
+     */
+    this.toJSON = function() {
+        return JSON.stringify(new Array(this.type, {j:this.j,i:this.i}))
+    }
+
+    return this;
+}
+
+/**
  * Запрос для синхронизации игрового времени.
  */
 function PingMessage() {

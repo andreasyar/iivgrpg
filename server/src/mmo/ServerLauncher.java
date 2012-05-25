@@ -60,5 +60,9 @@ public class ServerLauncher {
         bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory(gameServer));
         bootstrap.bind(new InetSocketAddress(Integer.parseInt(config.getWebPort())));
         logger.log(Level.INFO, "Web server bind port {0}.", Integer.parseInt(config.getWebPort()));
+        
+        // Start server main loop.
+        
+        gameServer.start();
     }
 }

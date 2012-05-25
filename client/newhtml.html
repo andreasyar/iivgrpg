@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Test</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="Messages.js"></script>
+<script type="text/javascript" src="ServerInteraction2.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+
+// Сервер.
+var server
+
+/************
+ * Функции. *
+ ************/
+
+function testSend() {
+    if (server == undefined) {
+        server = new ServerInteraction()
+        server.connect("ws://localhost:8015/")
+    } else if (server.socket.readyState == WebSocket.OPEN) {
+        server.sendMessage(new MoveMessage2())
+    } else {
+        server.connect("ws://localhost:8015/")
+    }
+    return false
+}
+
+</script>
+
+<input type="button" id="login_button" value="Login" onclick="testSend(); return false;">
+
+</body>
+</html>

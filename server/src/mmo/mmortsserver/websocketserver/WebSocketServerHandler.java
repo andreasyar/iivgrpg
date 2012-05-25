@@ -62,12 +62,12 @@ class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        gameServer.connectClient(ctx);
+        gameServer.connectClient(ctx.getChannel());
     }
 
     @Override
     public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        gameServer.disconnectClient(ctx);
+        gameServer.disconnectClient(ctx.getChannel());
     }
 
     @Override
