@@ -29,6 +29,10 @@ public class StateReportMessage implements Message {
         return units;
     }
 
+    public LinkedList<Message> getActions() {
+        return actions;
+    }
+
     @Override
     public String toJSON() {
         return "[\"" + type + "\", " + step + ", " + gson.toJson(units) + ", " + gson.toJson(actions) + "]"; //gson.toJson(this);

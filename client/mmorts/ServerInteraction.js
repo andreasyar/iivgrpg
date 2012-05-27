@@ -1,5 +1,6 @@
 
 // Взаимодействите с сервером.
+// Require messages.js
 
 // Отправка и приём сообщений с сервера.
 function ServerInteraction() {
@@ -32,7 +33,9 @@ function ServerInteraction() {
          * Обработчик получения сообщения от сервера.
          */
         this.socket.onmessage = function(event) {
-            console.log("<- " + event.data)
+            if (DEBUG) {
+                console.log("<- " + event.data)
+            }
             var obj = JSON.parse(event.data)
             for (var key in MESSAGE_HANDLERS) {
                 if (obj[0] != undefined && obj[0] == key) {
@@ -63,7 +66,9 @@ function ServerInteraction() {
             throw new Error("Cant send message. Connection not established.")
         } else {
             msg = msg.toJSON()
-            console.log("-> " + msg);
+            if (DEBUG) {
+                console.log("-> " + msg);
+            }
             this.socket.send(msg);
         }
 

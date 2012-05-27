@@ -6,11 +6,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import mmo.mmortsserver.messages.ConfirmMessage;
-import mmo.mmortsserver.messages.Message;
-import mmo.mmortsserver.messages.MessageManager;
-import mmo.mmortsserver.messages.StateReportMessage;
-import mmo.mmortsserver.messages.WelcomeMessage;
+import mmo.mmortsserver.map.Map;
+import mmo.mmortsserver.messages.*;
+import mmo.mmortsserver.movement.MovementManager;
 import mmo.mmortsserver.units.Unit;
 import mmo.mmortsserver.units.UnitManager;
 import org.jboss.netty.channel.Channel;
@@ -26,6 +24,8 @@ public class Server {
     private static final Logger logger = Logger.getLogger(Server.class.getName());
 
     private UnitManager unitManager = new UnitManager();
+    private MovementManager movementManager = new MovementManager();
+    private Map map = new Map(100, 100);
     private Runnable mainLoop;
     private final ConcurrentHashMap<Channel, Client> clients = new ConcurrentHashMap();
     private long step = 1;
@@ -34,7 +34,7 @@ public class Server {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         mainLoop = new Runnable() {
             private int waitIterations = 0;
-            
+
             @Override
             public void run() {
                 Iterator clientsIterator, messagesIterator, actionsIterator;
@@ -45,6 +45,8 @@ public class Server {
                 LinkedList<Message> actions;
                 LinkedList<Channel> clientsToDisconnect = new LinkedList<>();
                 Message message;
+                MoveMessage moveMessage;
+                StateReportMessage stateReportMessage;
 
                 if (!allClientsReported(step) && waitIterations < 5) {
                     logger.log(Level.INFO, "Wait for clients report for step {0}", step);
@@ -58,13 +60,18 @@ public class Server {
                 }
 
                 synchronized (clients) {
+
+                    //
+                    // Проверка состояний.
+                    //
+
                     clientsIterator = clients.entrySet().iterator();
                     while (clientsIterator.hasNext()) {
                         pair = (Entry) clientsIterator.next();
                         channel = (Channel) pair.getKey();
                         client = (Client) pair.getValue();
                         messages = client.getInbox();
-                        
+
                         if (!channel.isWritable()) {
                             logger.log(Level.INFO, "Channel not writible on step {0}", step);
                             continue;
@@ -74,8 +81,10 @@ public class Server {
                         while (messagesIterator.hasNext()) {
                             message = (Message) messagesIterator.next();
                             if (message instanceof StateReportMessage) {
-                                if (unitManager.isStateValid(((StateReportMessage) message).getUnits())) {
+                                stateReportMessage = (StateReportMessage) message;
+                                if (unitManager.isStateValid(stateReportMessage.getUnits())) {
                                     client.getOutbox().add(new ConfirmMessage(step));
+                                    client.getActions().addAll(stateReportMessage.getActions());
                                 } else {
                                     clientsToDisconnect.add(channel);
                                     break;
@@ -84,15 +93,48 @@ public class Server {
                             messagesIterator.remove();
                         }
                     }
-                    
+
                     for (Channel c : clientsToDisconnect) {
-                        clients.remove(c);
-                        c.close();
+                        removeClient(c);
+                        logger.log(Level.INFO, "Disconnect bad client");
                     }
                     clientsToDisconnect.clear();
-                    
-                    // actions processing
-                    
+
+                    //
+                    // Обработка действий.
+                    //
+
+                    clientsIterator = clients.entrySet().iterator();
+                    while (clientsIterator.hasNext()) {
+                        pair = (Entry) clientsIterator.next();
+                        channel = (Channel) pair.getKey();
+                        client = (Client) pair.getValue();
+                        actions = client.getActions();
+
+                        if (!channel.isWritable()) {
+                            logger.log(Level.INFO, "Channel not writible on step {0}", step);
+                            continue;
+                        }
+
+                        actionsIterator = actions.iterator();
+                        logger.log(Level.INFO, "{0} actions on step {1}", new Object[] {actions.size(), step});
+                        while (actionsIterator.hasNext()) {
+                            message = (Message) actionsIterator.next();
+                            if (message instanceof MoveMessage) {
+                                moveMessage = (MoveMessage) message;
+                                movementManager.startMovement(step, map, unitManager.getById(moveMessage.getUnitId()), moveMessage.getJ(), moveMessage.getI());
+                                logger.log(Level.INFO, "Movement created on {0}", step);
+                                // TODO Уведомить остальных клиентов!
+                            }
+                            actionsIterator.remove();
+                        }
+                    }
+                    movementManager.updatePositions(step);
+
+                    //
+                    // Рассылка сообщений.
+                    //
+
                     clientsIterator = clients.entrySet().iterator();
                     while (clientsIterator.hasNext()) {
                         pair = (Entry) clientsIterator.next();
@@ -100,19 +142,19 @@ public class Server {
                         client = (Client) pair.getValue();
                         messages = client.getOutbox();
                         actions = client.getActions();
-                        
+
                         if (!channel.isWritable()) {
                             logger.log(Level.INFO, "Channel not writible on step {0}", step);
                             continue;
                         }
-                        
+
                         actionsIterator = actions.iterator();
                         while (actionsIterator.hasNext()) {
                             message = (Message) actionsIterator.next();
                             messages.add(message);
                             actionsIterator.remove();
                         }
-                        
+
                         messagesIterator = messages.iterator();
                         while (messagesIterator.hasNext()) {
                             message = (Message) messagesIterator.next();
@@ -143,7 +185,7 @@ public class Server {
 
     public void disconnectClient(Channel c) {
         synchronized (clients) {
-            clients.remove(c);
+            removeClient(c);
             logger.log(Level.INFO, "Client on channel {0} disconnected.", c.toString());
         }
     }
@@ -192,8 +234,17 @@ public class Server {
             channel = (Channel) pair.getKey();
             client = (Client) pair.getValue();
             if (!client.isStateReported(step)) {
-                clients.remove(channel);
-                channel.close();
+                removeClient(channel);
+            }
+        }
+    }
+
+    private void removeClient(Channel c) {
+        synchronized (clients) {
+            Client client = clients.remove(c);
+            c.close();
+            if (client != null) {
+                unitManager.removeUnits(client.getUnits());
             }
         }
     }
@@ -230,12 +281,12 @@ class Client {
     }
 
     public boolean isStateReported(long step) {
-        
+
         // Для вновь подключенных клиентов, которые ещё не были инициализированы.
         if (getOutbox().size() != 0) {
             return true;
         }
-        
+
         Message message;
         Iterator i = inbox.iterator();
         boolean found = false;

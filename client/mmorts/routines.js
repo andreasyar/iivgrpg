@@ -85,7 +85,7 @@ function cost(cur, i, j) {
     return g
 }
 function heuristic(i, j, k, l) {
-    return 10 * (Math.abs(j - l) + Math.abs(i - k))
+    return 10 * (Math.abs(j - l) + Math.abs(i - k));
 }
 function getByIndex(list, i, j) {
     for (var n = 0; n < list.length; n++)
@@ -100,43 +100,51 @@ function isInList(list, i, j) {
     return false
 }
 function throughCorner(cur, i, j) {
+    var NOTPASSABLE = 0;
+    var PASSABLE = 1;
+    var TRIGGERED = 2;
 
     // Клетки не лежат на диагонали
     if (cur.i - i == 0 || cur.j - j == 0) {
         return false
     }
+    
+    return false
 
     //[c][ ]
     //[ ][n]
     if (i > cur.i && j > cur.j) {
-        return accessMap[i - 1][j] == 0
-                || accessMap[i][j - 1] == 0;
+        return accessMap[i - 1][j] == NOTPASSABLE
+                || accessMap[i][j - 1] == NOTPASSABLE;
     }
 
     //[n][ ]
     //[ ][c]
     if (i < cur.i && j < cur.j) {
-        return accessMap[i + 1][j] == 0
-                || accessMap[i][j + 1] == 0;
+        return accessMap[i + 1][j] == NOTPASSABLE
+                || accessMap[i][j + 1] == NOTPASSABLE;
     }
 
     //[ ][n]
     //[c][ ]
     if (i < cur.i && j > cur.j) {
-        return accessMap[i + 1][j] == 0
-                || accessMap[i][j - 1] == 0;
+        return accessMap[i + 1][j] == NOTPASSABLE
+                || accessMap[i][j - 1] == NOTPASSABLE;
     }
 
     //[ ][c]
     //[n][ ]
     if (i > cur.i && j < cur.j) {
-        return accessMap[i - 1][j] == 0
-                || accessMap[i][j + 1] == 0;
+        return accessMap[i - 1][j] == NOTPASSABLE
+                || accessMap[i][j + 1] == NOTPASSABLE;
     }
 
     return false
 }
 function getPath(beg, end) {
+    var NOTPASSABLE = 0;
+    var PASSABLE = 1;
+    var TRIGGERED = 2;
     var open = new Array()
     var closed = new Array()
     var i, j, g, h, cur, nei, n, rows = new Array(3), cols = new Array(3)
@@ -150,7 +158,7 @@ function getPath(beg, end) {
         corner: 0
     }
 
-    if (!maps[self_player.mapId].isOnMap(end.i, end.j) || accessMap[end.i][end.j] == 0) {
+    if (!map.isOnMap(end.j, end.i) || /*accessMap[end.i][end.j] == NOTPASSABLE*/ false) {
         return false
     }
 
@@ -204,13 +212,13 @@ function getPath(beg, end) {
                 }
 
                 // Клетку вне карты не рассматриваем.
-                if (!maps[self_player.mapId].isOnMap(i, j)) {
+                if (!map.isOnMap(j, i)) {
                     stat.onmap++
                     continue
                 }
 
                 // Клетку, в которую нельзя ходить, не рассматриваем.
-                if (accessMap[i][j] == 0) {
+                if (/*accessMap[i][j] == NOTPASSABLE*/ false) {
                     stat.geo++
                     continue
                 }
@@ -468,4 +476,75 @@ function freeCameraToggle() {
         delete camera.target
         is_camera_free = true
     }
+}
+
+function createSelectionRect(x1, y1, x2, y2) {
+    var rect = {
+        beg: {x: Math.min(x1, x2), y: Math.min(y1, y2), j: null, i: null},
+        end: {x: Math.max(x1, x2), y: Math.max(y1, y2), j: null, i: null},
+        draw: function(context, camera) {
+            context.beginPath();
+            
+            context.moveTo(this.beg.x, this.beg.y);
+            context.lineTo(this.end.x, this.beg.y);
+            context.lineTo(this.end.x, this.end.y);
+            context.lineTo(this.beg.x, this.end.y);
+            context.lineTo(this.beg.x, this.beg.y);
+            
+            context.closePath();
+            context.stroke();
+        }
+    };
+    var tAxis1 = camera.reTranslateAxis(rect.beg.x, rect.beg.y);
+    var tAxis2 = camera.reTranslateAxis(rect.end.x, rect.end.y);
+    rect.beg.j = Map.getCellJOnMap(tAxis1.x);
+    rect.beg.i = Map.getCellJOnMap(tAxis1.y);
+    rect.end.j = Map.getCellJOnMap(tAxis2.x);
+    rect.end.i = Map.getCellJOnMap(tAxis2.y);
+    
+    return rect;
+}
+
+function getNeighboursCells(cells) {
+    var neighbours = {};
+    var checkCell = function (neighbours, _j, _i) {
+        if ((neighbours[_i] == undefined || neighbours[_i][_j] == undefined) && map.isOnMap(_j, _i)) {
+            if (neighbours[_i] == undefined) {
+                neighbours[_i] = {};
+            }
+            neighbours[_i][_j] = {j: _j, i: _i};
+        }
+    }
+    var i, j, result = new Array();
+    for (i in cells) {
+        checkCell(neighbours, cells[i].j - 1, cells[i].i - 1);
+        checkCell(neighbours, cells[i].j    , cells[i].i - 1);
+        checkCell(neighbours, cells[i].j + 1, cells[i].i - 1);
+        checkCell(neighbours, cells[i].j - 1, cells[i].i);
+        checkCell(neighbours, cells[i].j + 1, cells[i].i);
+        checkCell(neighbours, cells[i].j - 1, cells[i].i + 1);
+        checkCell(neighbours, cells[i].j    , cells[i].i + 1);
+        checkCell(neighbours, cells[i].j + 1, cells[i].i + 1);
+    }
+    for (i in neighbours) {
+        for (j in neighbours[i]) {
+            result.push(neighbours[i][j]);
+        }
+    }
+    return result;
+}
+
+function getUnitById(id) {
+    for (var i in self_units_list) {
+        if (self_units_list[i].getId() == id) {
+            return self_units_list[i];
+        }
+    }
+    for (i in units_list) {
+        if (units_list[i].getId() == id) {
+            return units_list[i];
+        }
+    }
+    console.log("Unit ", id, "not found.")
+    return null;
 }

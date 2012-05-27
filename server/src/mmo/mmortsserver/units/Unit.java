@@ -32,6 +32,14 @@ public class Unit {
     public int getI() {
         return i;
     }
+
+    public void setJ(int j) {
+        this.j = j;
+    }
+
+    public void setI(int i) {
+        this.i = i;
+    }
     
     public String toJSON() {
         return "[\"UNIT\", " + ownerId + ", " + id + ", " + j + ", " + i + "]";

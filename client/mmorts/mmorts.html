@@ -3,11 +3,18 @@
 <head>
     <title>MMORTS test client</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <script type="text/javascript" src="Constants.js"></script>
-    <script type="text/javascript" src="Messages.js"></script>
-    <script type="text/javascript" src="ServerInteraction.js"></script>
-    <script type="text/javascript" src="Unit.js"></script>
+    <script type="text/javascript" src="constants.js"></script>
+    <script type="text/javascript" src="resources.js"></script>
     <script type="text/javascript" src="routines.js"></script>
+    
+    <script type="text/javascript" src="Camera.js"></script>
+    <script type="text/javascript" src="Unit.js"></script>
+    <script type="text/javascript" src="SpriteLoader.js"></script>
+    <script type="text/javascript" src="Map.js"></script>
+    <script type="text/javascript" src="Movement.js"></script>
+    <script type="text/javascript" src="MovementManager.js"></script>
+    <script type="text/javascript" src="messages.js"></script>
+    <script type="text/javascript" src="ServerInteraction.js"></script>
     <style type="text/css" >
     #scr {
         border: 1px solid #000000;
@@ -36,6 +43,9 @@ var scr = document.createElement('canvas');
 scr.id = "scr";
 scr.width = SCR_W;
 scr.height = SCR_H;
+scr.oncontextmenu = function() {
+    return false;  
+}
 // Добавление обработчика щелчка мышью происходит при запуске игры.
 var body = document.getElementsByTagName('body')[0];
 body.appendChild(scr);
@@ -55,6 +65,9 @@ units_buffer.height = SCR_H;
 /*************************
  * Служебные переменные. *
  *************************/
+
+// debug
+var DEBUG = true;
 
 // Список юнитов, принадлежащих клиенту.
 var self_units_list = new Array();
@@ -77,6 +90,9 @@ var is_camera_free = false;
 // Буфер действий.
 var actions = new Array();
 
+// Действия, которые должны быть выполнены после получения подтверждения.
+var stored_actions;
+
 // Номер текущего хода.
 var step;
 
@@ -85,6 +101,18 @@ var clientId;
 
 // Клиента находится в ожидании подтверждения от сервера.
 var awaiting_confirm = false;
+
+// Выделенные юниты.
+var selected_units = new Array();
+
+// Клетка начала выделения.
+var selections_beg;
+
+// Прямоугольник выделения.
+var selection_rect = null;
+
+// Менеджер движения.
+var movementManager = new MovementManager();
 
 /************
  * Функции. *
@@ -124,7 +152,7 @@ function drawLoop() {
     map_context.clearRect(0, 0, map_buffer.width, map_buffer.height);
 
     // Нарисуем карту.
-    map.draw(map_context);
+    map.draw(map_context, camera);
 
     // Нарисуем юнитов, принадлежащих клиенту.
     for (i in self_units_list) {
@@ -137,6 +165,10 @@ function drawLoop() {
         units_list[i].draw(units_context, camera);
         //units_list[i].drawPath(units_context, camera);
     }
+    
+    if (selection_rect != null) {
+        selection_rect.draw(units_context, camera);
+    }
 
     // Нарисуем карту и юнитов на основном холсте.
     scr_context.drawImage(map_buffer, 0, 0);
@@ -145,8 +177,82 @@ function drawLoop() {
     setTimeout("drawLoop();", 1000 / FPS);
 }
 
-function scrOnClick(e) {
+function scrOnMousedown(e) {
+    var x;
+    var y;
+    if (e.pageX != undefined && e.pageY != undefined) {
+        x = e.pageX;
+        y = e.pageY;
+    } else {
+        x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+        y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+    }
+    x -= scr.offsetLeft;
+    y -= scr.offsetTop;
+    
+    if (e.button == 0) {
+        selections_beg = {x1: x, y1: y}
+        scr.addEventListener("mousemove", scrOnMousemove, false);
+    }
+}
 
+function scrOnMouseup(e) {
+    var x;
+    var y;
+    if (e.pageX != undefined && e.pageY != undefined) {
+        x = e.pageX;
+        y = e.pageY;
+    } else {
+        x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+        y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+    }
+    x -= scr.offsetLeft;
+    y -= scr.offsetTop;
+    
+    if (e.button == 0) {
+        selected_units = new Array();
+        selection_rect = createSelectionRect(selections_beg.x1, selections_beg.y1, x, y);
+        
+        for (var i in self_units_list) {
+            if (self_units_list[i].j >= selection_rect.beg.j
+                    && self_units_list[i].j <= selection_rect.end.j
+                    && self_units_list[i].i >= selection_rect.beg.i
+                    && self_units_list[i].i <= selection_rect.end.i) {
+                
+                self_units_list[i].selected = true;
+                selected_units.push(self_units_list[i]);
+            } else {
+                self_units_list[i].selected = false;
+            }
+        }
+        scr.removeEventListener("mousemove", scrOnMousemove, false);
+        selection_rect = null;
+    } else if (e.button == 2) {
+        var tAxis = camera.reTranslateAxis(x, y);
+        var neighbourCells = new Array({j: Map.getCellJOnMap(tAxis.x), i: Map.getCellIOnMap(tAxis.y)});
+        while (neighbourCells.length < selected_units.length && neighbourCells.length < map.w * map.h) {
+            neighbourCells = getNeighboursCells(neighbourCells);
+        }
+        for (var i = 0; i < Math.min(neighbourCells.length, selected_units.length); i++) {
+            actions.push(new MoveMessage(selected_units[i].getId(), neighbourCells[i].j, neighbourCells[i].i));
+        }
+    }
+}
+
+function scrOnMousemove(e) {
+    var x;
+    var y;
+    if (e.pageX != undefined && e.pageY != undefined) {
+        x = e.pageX;
+        y = e.pageY;
+    } else {
+        x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+        y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+    }
+    x -= scr.offsetLeft;
+    y -= scr.offsetTop;
+    
+    selection_rect = createSelectionRect(selections_beg.x1, selections_beg.y1, x, y);
 }
 
 function syncLoop() {
@@ -156,15 +262,28 @@ function syncLoop() {
         return;
     }
     step++;
+    var i;
+    
+    for (i in stored_actions) {
+        switch (stored_actions[i].type) {
+            case "MOVE":
+                movementManager.startMovement(step, getUnitById(stored_actions[i].unitId), stored_actions[i].j, stored_actions[i].i);
+                console.log("Movement created on step ", step);
+                break;
+        }
+    }
+    movementManager.updatePositions(step);
 
     var unitMessages = new Array();
-    for (var i in self_units_list) {
+    for (i in self_units_list) {
         unitMessages.push(new UnitMessage(self_units_list[i].getOwnerId(), self_units_list[i].getId(), self_units_list[i].getJ(), self_units_list[i].getI()));
     }
     for (i in units_list) {
         unitMessages.push(new UnitMessage(units_list[i].getOwnerId(), units_list[i].getId(), units_list[i].getJ(), units_list[i].getI()));
     }
     server.sendMessage(new StateReportMessage(step, JSON.stringify(unitMessages), JSON.stringify(actions)));
+    stored_actions = actions;
+    actions = new Array();
     awaiting_confirm = true;
 
     setTimeout("syncLoop();", 100);
@@ -181,7 +300,29 @@ Server: <input type="text" id="host" value="ws://localhost:8015/"><br>
 </div>
 
 <script type="text/javascript">
+//map = new Map(100, 100);
+//new Movement(null, 0, 0, 0.4, getPath(new Cell(5, 5, 0, 0, null), new Cell(8, 11, 0, 0, null)), 0);
+//console.log(gCollection);
 showLoginForm();
+    
+document.onkeydown = function(event) {
+    var events = event || window.event
+    if (events.keyCode == 116) {    // F5
+        disconnect();
+    }
+    if (camera != undefined && camera.target == undefined && events.keyCode == 37) {    // left arrow 
+        camera.x -= 1 * CELL_W;
+    }
+    if (camera != undefined && camera.target == undefined && events.keyCode == 38) {    // up arrow 
+        camera.y -= 1 * CELL_H;
+    }
+    if (camera != undefined && camera.target == undefined && events.keyCode == 39) {    // right arrow
+        camera.x += 1 * CELL_W;
+    }
+    if (camera != undefined && camera.target == undefined && events.keyCode == 40) {    // down arrow
+        camera.y += 1 * CELL_H;
+    }
+}
 </script>
 
 </body>

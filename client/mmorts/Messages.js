@@ -136,7 +136,7 @@ function MoveToMessage(j, i) {
 /**
  * Требование хода.
  */
-function MoveMessage2() {
+function MoveMessage(unitId, j, i) {
 
     // Эту функцию можно вызвать только как конструктор (с new).
     if (this.constructor !== arguments.callee) {
@@ -149,20 +149,25 @@ function MoveMessage2() {
     this.type = "MOVE";
 
     /**
+     * Идентификатор движущегося юнита.
+     */
+    this.unitId = unitId;
+
+    /**
      * j-индекс клетки назначения.
      */
-    this.j = Math.floor(Math.random() * 100);
+    this.j = j;
 
     /**
      * i-индекс клетки назначения.
      */
-    this.i = Math.floor(Math.random() * 100);
+    this.i = i;
 
     /**
      * Преобразование в JSON.
      */
     this.toJSON = function() {
-        return JSON.stringify(new Array(this.type, {j:this.j,i:this.i}))
+        return new Array(this.type, {unitId: this.unitId, j: this.j, i: this.i});
     }
 
     return this;
@@ -426,9 +431,13 @@ var MESSAGE_HANDLERS = {
     "WELCOME": function (msg) {
         // ["WELCOME", clientId]
         clientId = msg[1];
+        setTimeout("drawLoop();", 1000 / FPS);
         setTimeout("syncLoop();", 100);
-        scr.addEventListener("click", scrOnClick, false);
+        scr.addEventListener("mousedown", scrOnMousedown, false);
+        scr.addEventListener("mouseup", scrOnMouseup, false);
         hideLoginForm();
+        camera = new Camera();
+        map = new Map(100, 100);
     },
     "CONFIRM": function (msg) {
         // ["CONFIRM", step]
