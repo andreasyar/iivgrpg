@@ -1,0 +1,188 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>MMORTS test client</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="Constants.js"></script>
+    <script type="text/javascript" src="Messages.js"></script>
+    <script type="text/javascript" src="ServerInteraction.js"></script>
+    <script type="text/javascript" src="Unit.js"></script>
+    <script type="text/javascript" src="routines.js"></script>
+    <style type="text/css" >
+    #scr {
+        border: 1px solid #000000;
+    }
+    #login_form {
+        background-color: tan;
+        z-index: 1;
+        position: absolute;
+        top: 300px;
+        left: 300px;
+        visibility: hidden;
+    }
+    </style>
+</head>
+<body onunload="disconnect(); return false;">
+
+<script type="text/javascript">
+
+/*********************
+ * Создание холстов. *
+ *********************/
+
+// Основной холст, который будет показан клиенту.
+
+var scr = document.createElement('canvas');
+scr.id = "scr";
+scr.width = SCR_W;
+scr.height = SCR_H;
+// Добавление обработчика щелчка мышью происходит при запуске игры.
+var body = document.getElementsByTagName('body')[0];
+body.appendChild(scr);
+
+// Холст для рисования карты.
+
+var map_buffer = document.createElement('canvas');
+map_buffer.width = SCR_W;
+map_buffer.height = SCR_H;
+
+// Холст для рисования игроков.
+
+var units_buffer = document.createElement('canvas');
+units_buffer.width = SCR_W;
+units_buffer.height = SCR_H;
+
+/*************************
+ * Служебные переменные. *
+ *************************/
+
+// Список юнитов, принадлежащих клиенту.
+var self_units_list = new Array();
+
+// Список юнитов.
+var units_list = new Array();
+
+// Карта.
+var map;
+
+// Сервер.
+var server;
+
+// Камера. В её объекиве находится место, которое будет нарисовано на основном холсте.
+var camera;
+
+// Камера свободна или привязана к своему игроку.
+var is_camera_free = false;
+
+// Буфер действий.
+var actions = new Array();
+
+// Номер текущего хода.
+var step;
+
+// Id этого клиента.
+var clientId;
+
+// Клиента находится в ожидании подтверждения от сервера.
+var awaiting_confirm = false;
+
+/************
+ * Функции. *
+ ************/
+
+function connect() {
+    if (server == undefined) {
+        server = new ServerInteraction()
+        server.connect(document.getElementById('host').value)
+    } else if (server.socket.readyState == WebSocket.OPEN) {
+        server.sendMessage(new LoginMessage(getLogin(), getPassword()))
+    } else {
+        server.connect(document.getElementById('host').value)
+    }
+        
+    return false
+}
+
+function disconnect() {
+    if (server != undefined && server.socket != null) {
+        server.socket.close()
+    }
+}
+
+function drawLoop() {
+    var scr_context = scr.getContext('2d');
+    var units_context = units_buffer.getContext('2d');
+    var map_context = map_buffer.getContext('2d');
+    var i;
+
+    // Фон.
+    scr_context.fillStyle = "#FFFFEE";
+    scr_context.fillRect(0, 0, scr.width, scr.height);
+
+    // Пока что будем очищать весь холст целиком, а не только область, в которой было что-то нарисовано.
+    units_context.clearRect(0, 0, units_buffer.width, units_buffer.height);
+    map_context.clearRect(0, 0, map_buffer.width, map_buffer.height);
+
+    // Нарисуем карту.
+    map.draw(map_context);
+
+    // Нарисуем юнитов, принадлежащих клиенту.
+    for (i in self_units_list) {
+        self_units_list[i].draw(units_context, camera);
+        //self_units_list[i].drawPath(units_context, camera);
+    }
+
+    // Нарисуем остальных юнитов.
+    for (i in units_list) {
+        units_list[i].draw(units_context, camera);
+        //units_list[i].drawPath(units_context, camera);
+    }
+
+    // Нарисуем карту и юнитов на основном холсте.
+    scr_context.drawImage(map_buffer, 0, 0);
+    scr_context.drawImage(units_buffer, 0, 0);
+
+    setTimeout("drawLoop();", 1000 / FPS);
+}
+
+function scrOnClick(e) {
+
+}
+
+function syncLoop() {
+
+    // Ждем ответа подтверждения сервера. Останавливаем этот "тред".
+    if (awaiting_confirm) {
+        return;
+    }
+    step++;
+
+    var unitMessages = new Array();
+    for (var i in self_units_list) {
+        unitMessages.push(new UnitMessage(self_units_list[i].getOwnerId(), self_units_list[i].getId(), self_units_list[i].getJ(), self_units_list[i].getI()));
+    }
+    for (i in units_list) {
+        unitMessages.push(new UnitMessage(units_list[i].getOwnerId(), units_list[i].getId(), units_list[i].getJ(), units_list[i].getI()));
+    }
+    server.sendMessage(new StateReportMessage(step, JSON.stringify(unitMessages), JSON.stringify(actions)));
+    awaiting_confirm = true;
+
+    setTimeout("syncLoop();", 100);
+}
+
+</script>
+
+<!-- Форма логина. -->
+<div id="login_form">
+Login: <input type="text" id="login" value="test"><br>
+Password: <input type="password" id="password" value="test"><br>
+Server: <input type="text" id="host" value="ws://localhost:8015/"><br>
+<input type="button" id="connect_button" value="Connect" onclick="connect(); return false;">
+</div>
+
+<script type="text/javascript">
+showLoginForm();
+</script>
+
+</body>
+</html>
