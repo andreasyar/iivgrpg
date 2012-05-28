@@ -35,22 +35,25 @@ public class Movement {
         this.stopped = false;
     }
 
+    public Unit getUnit() {
+        return unit;
+    }
+
     public boolean isStopped() {
         return this.stopped;
     }
 
     void updatePosition(long step) {
-        /*var n = Math.ceil((step - this.beg_step) * this.speed);
-        if (n >= path.length - 1) {
-            this.unit.j = this.path[path.length - 1].j
-            this.unit.i = this.path[path.length - 1].i
-            stopMovementCallback(this);
-        } else {
-            this.unit.j = this.path[n].j
-            this.unit.i = this.path[n].i
-        }*/
         int n = (int) Math.floor(((double) step - (double) begStep) * (double) speed);
-        logger.log(Level.INFO, "{0} {1} {2} {3}", new Object[] {((double) step - (double) begStep), ((double) step - (double) begStep) * (double) speed, Math.floor(((double) step - (double) begStep) * (double) speed), n});
+        /*logger.log(Level.INFO, "{0} {1} {2} {3}",
+            new Object[] {
+                ((double) step - (double) begStep),
+                ((double) step - (double) begStep) * (double) speed,
+                Math.floor(((double) step - (double) begStep) * (double) speed),
+                n
+            }
+        );*/
+        //logger.log(Level.INFO, "n = {0}, path.size() = {1}", new Object[] {n, path.size()});
         if (n >= path.size()) {
             unit.setJ(path.get(path.size() - 1).getX());
             unit.setI(path.get(path.size() - 1).getY());

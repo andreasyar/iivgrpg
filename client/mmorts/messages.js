@@ -1,13 +1,6 @@
 
 // Сообщения дла взаимодействия с сервером.
 
-// <- ["CONFIRM", step]
-// <- ["STATE", step, [["UNIT", ownerId, id, j, i], ["UNIT", ownerId, id, j, i], ...], ["MOVE", unitId, j, i], ["MOVE", unitId, j, i], ...]
-// -> ["STATE", step, [["UNIT", ownerId, id, j, i], ["UNIT", ownerId, id, j, i], ...], ["MOVE", unitId, j, i], ["MOVE", unitId, j, i], ...]
-
-// ["UNIT", ownerId, id, j, i]
-// ["MOVE", unitId, j, i]
-
 /**
  * Сообщение входа в игру игрока.
  */
@@ -34,10 +27,10 @@ function LoginMessage(login, password) {
     this.password = password;
 
     /**
-     * Преобразование в JSON. Временно.
+     * Преобразование в JSON.
      */
     this.toJSON = function() {
-        return JSON.stringify(new Array(this.type, {login:this.login, password:this.password}))
+        return new Array(this.type, {login:this.login, password:this.password})
     }
 
     return this;
@@ -63,71 +56,6 @@ function LogoutMessage() {
      */
     this.toJSON = function() {
         return JSON.stringify(new Array(this.type))
-    }
-
-    return this;
-}
-
-/**
- * Сообщение о выходе игрока из игры.
- */
-function NewchatMessage(message) {
-
-    // Эту функцию можно вызвать только как конструктор (с new).
-    if (this.constructor !== arguments.callee) {
-        throw new Error("Constructor called like a simple function!");
-    }
-
-    /**
-     * Тип сообщения.
-     */
-    this.type = "NEWCHAT";
-
-    /**
-     * Сообщение
-     */
-    this.message = message;
-
-    /**
-     * Преобразование в JSON. Временно.
-     */
-    this.toJSON = function() {
-        return JSON.stringify(new Array(this.type, {message:this.message}))
-    }
-
-    return this;
-}
-
-/**
- * Требование хода.
- */
-function MoveToMessage(j, i) {
-
-    // Эту функцию можно вызвать только как конструктор (с new).
-    if (this.constructor !== arguments.callee) {
-        throw new Error("Constructor called like a simple function!");
-    }
-
-    /**
-     * Тип сообщения.
-     */
-    this.type = "MOVETO";
-
-    /**
-     * j-индекс клетки назначения.
-     */
-    this.j = j;
-
-    /**
-     * i-индекс клетки назначения.
-     */
-    this.i = i;
-
-    /**
-     * Преобразование в JSON.
-     */
-    this.toJSON = function() {
-        return JSON.stringify(new Array(this.type, {x:this.j,y:this.i}))
     }
 
     return this;
@@ -174,32 +102,10 @@ function MoveMessage(unitId, j, i) {
 }
 
 /**
- * Запрос для синхронизации игрового времени.
- */
-function PingMessage() {
-
-    // Эту функцию можно вызвать только как конструктор (с new).
-    if (this.constructor !== arguments.callee) {
-        throw new Error("Constructor called like a simple function!")
-    }
-
-    /**
-     * Тип сообщения.
-     */
-    this.type = "PING"
-
-    /**
-     * Преобразование в JSON.
-     */
-    this.toJSON = function() {
-        return JSON.stringify(new Array(this.type))
-    }
-
-    return this
-}
-
-/**
  * Отчёт о состоянии клиента.
+ * @param step Номер шага.
+ * @param units Массив сообщений с состоянием юнитов.
+ * @param actions Массив действий.
  */
 function StateReportMessage(step, units, actions) {
 
@@ -207,6 +113,11 @@ function StateReportMessage(step, units, actions) {
     if (this.constructor !== arguments.callee) {
         throw new Error("Constructor called like a simple function!");
     }
+
+    /**
+     * Тип сообщения.
+     */
+    this.type = "STATE";
 
     /**
      * Номер шага.
@@ -227,7 +138,7 @@ function StateReportMessage(step, units, actions) {
      * Преобразование в JSON.
      */
     this.toJSON = function() {
-        return "[\"STATE\", " + this.step + ", " + this.units + ", " + this.actions + "]";
+        return new Array(this.type, this.step, this.units, this.actions);
     }
 }
 
@@ -265,6 +176,39 @@ function UnitMessage(ownerId, id, j, i) {
      * Номер клетки на карте по высоте, где находится юнит.
      */
     this.i = i;
+
+    /**
+     * Преобразование в JSON.
+     */
+    this.toJSON = function() {
+        return new Array(this.type, {ownerId: this.ownerId, id: this.id, j: this.j, i: this.i});
+    }
+}
+
+/**
+ * Пакет сообщений. Обёртка для одновременной отправки массива сообщений.
+ * @param messages Массив сообщений.
+ */
+function MessagePacket(messages) {
+
+    // Эту функцию можно вызвать только как конструктор (с new).
+    if (this.constructor !== arguments.callee) {
+        throw new Error("Constructor called like a simple function!");
+    }
+
+    /**
+     * Массив сообщений.
+     */
+    this.messages = messages;
+
+    /**
+     * Преобразование в JSON.
+     */
+    this.toJSON = function() {
+        return new Array(this.messages);
+    }
+    
+    return this;
 }
 
 // Обработчики сообщений.
@@ -431,13 +375,7 @@ var MESSAGE_HANDLERS = {
     "WELCOME": function (msg) {
         // ["WELCOME", clientId]
         clientId = msg[1];
-        setTimeout("drawLoop();", 1000 / FPS);
-        setTimeout("syncLoop();", 100);
-        scr.addEventListener("mousedown", scrOnMousedown, false);
-        scr.addEventListener("mouseup", scrOnMouseup, false);
         hideLoginForm();
-        camera = new Camera();
-        map = new Map(100, 100);
     },
     "CONFIRM": function (msg) {
         // ["CONFIRM", step]
@@ -450,6 +388,15 @@ var MESSAGE_HANDLERS = {
     },
     "STATE": function (msg) {
         // ["STATE", step, [{"type":"UNIT","ownerId":1,"id":2,"j":4,"i":4},{"type":"UNIT","ownerId":1,"id":3,"j":5,"i":5}], ["MOVE", unitId, j, i], ["MOVE", unitId, j, i], ...]
+        if (!is_initial_state_received) {
+            is_initial_state_received = true;
+            setTimeout("drawLoop();", 1000 / FPS);
+            setTimeout("syncLoop();", 100);
+            scr.addEventListener("mousedown", scrOnMousedown, false);
+            scr.addEventListener("mouseup", scrOnMouseup, false);
+            camera = new Camera();
+            map = new Map(100, 100);
+        }
         self_units_list = new Array();
         units_list = new Array();
         actions = new Array();

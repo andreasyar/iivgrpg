@@ -114,6 +114,9 @@ var selection_rect = null;
 // Менеджер движения.
 var movementManager = new MovementManager();
 
+// Получено ли начальное состояние.
+var is_initial_state_received = false;
+
 /************
  * Функции. *
  ************/
@@ -281,7 +284,7 @@ function syncLoop() {
     for (i in units_list) {
         unitMessages.push(new UnitMessage(units_list[i].getOwnerId(), units_list[i].getId(), units_list[i].getJ(), units_list[i].getI()));
     }
-    server.sendMessage(new StateReportMessage(step, JSON.stringify(unitMessages), JSON.stringify(actions)));
+    server.sendMessage(new MessagePacket(new StateReportMessage(step, unitMessages, actions)));
     stored_actions = actions;
     actions = new Array();
     awaiting_confirm = true;

@@ -48,7 +48,7 @@ function ServerInteraction() {
         // Обработчик открытия соединения с сервером.
         this.socket.onopen = function(event) {
             console.log("Web Socket opened.");
-            server.sendMessage(new LoginMessage(getLogin(), getPassword()))
+            server.sendMessage(new MessagePacket(new LoginMessage(getLogin(), getPassword())));
         };
 
         // Обработчик закрытия соединения с сервером.
@@ -65,7 +65,7 @@ function ServerInteraction() {
         if (this.socket == null || this.socket.readyState != WebSocket.OPEN) {
             throw new Error("Cant send message. Connection not established.")
         } else {
-            msg = msg.toJSON()
+            msg = JSON.stringify(msg)
             if (DEBUG) {
                 console.log("-> " + msg);
             }

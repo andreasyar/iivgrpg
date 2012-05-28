@@ -19,18 +19,30 @@ public class MovementManager {
     private final LinkedList<Movement> movements = new LinkedList<>();
 
     public void startMovement(long step, Map map, Unit unit, int j, int i) {
-        Movement m = createMovement(step, map, unit, j, i, 0.4f);
-        if (m == null) {
+        for (Movement m : movements) {
+            if (m.getUnit().equals(unit)) {
+                movements.remove(m);
+                break;
+            }
+        }
+        Movement movement = createMovement(step, map, unit, j, i, 0.4f);
+        if (movement == null) {
             logger.log(Level.SEVERE, "Cant create movement!");
             return;
         }
-        movements.add(m);
+        movements.add(movement);
     }
 
     public void updatePositions(long step) {
-        for (Movement m : movements) {
-            if (m.isStopped()) {
-                movements.remove(m);
+        boolean found = true;
+        while (found) {
+            found = false;
+            for (Movement m : movements) {
+                if (m.isStopped()) {
+                    found = true;
+                    movements.remove(m);
+                    break;
+                }
             }
         }
         for (Movement m : movements) {
@@ -40,7 +52,7 @@ public class MovementManager {
 
     private Movement createMovement(long step, Map map, Unit unit, int j, int i, float speed) {
         //Movement m = new Movement(unit, j, i, speed, createPath(unit.getI(), unit.getJ(), i, j, map), step);
-        LinkedList<Point> path = getPath(map, new Cell(unit.getI(), unit.getJ()), new Cell(i, j));
+        LinkedList<Point> path = getPath(map, new Cell(unit.getI(), unit.getJ(), 0, 0, null), new Cell(i, j, 0, 0, null));
         if (path == null) {
             logger.log(Level.SEVERE, "Path not found!");
             return null;
@@ -177,37 +189,28 @@ public class MovementManager {
     }
 
     private class Cell {
-        private int j;
         private int i;
+        private int j;
         private int f;
         private int g;
         private int h;
         private Cell parent;
 
-        public Cell(int i, int j) {
-            this.j = j;
-            this.i = i;
-            this.f = 0;
-            this.g = 0;
-            this.h = 0;
-            this.parent = null;
-        }
-
         public Cell(int i, int j, int g, int h, Cell parent) {
-            this.j = j;
             this.i = i;
+            this.j = j;
             this.f = g + h;
             this.g = g;
             this.h = h;
             this.parent = parent;
         }
 
-        public int getJ() {
-            return j;
-        }
-
         public int getI() {
             return i;
+        }
+
+        public int getJ() {
+            return j;
         }
 
         public int getF() {
@@ -238,18 +241,8 @@ public class MovementManager {
             this.parent = parent;
         }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof Cell) {
-                Cell c = (Cell) obj;
-                return c.getJ() == j && c.getI() == i;
-            } else {
-                return false;
-            }
-        }
-
-        public boolean equal(int _i, int _j) {
-            return _j == j && _i == i;
+        public boolean equal(int i, int j) {
+            return this.i == i && this.j == j;
         }
 
         @Override
@@ -297,7 +290,7 @@ public class MovementManager {
     private LinkedList<Point> getPath(Map map, Cell beg, Cell end) {
         LinkedList<Cell> open = new LinkedList<>();
         LinkedList<Cell> closed = new LinkedList<>();
-        int n, i, j, g, h;
+        int i, j, g, h, n;
         int[] rows = new int[3], cols = new int[3];
         Cell cur, nei;
         int limit = 1000;
@@ -312,9 +305,7 @@ public class MovementManager {
 
         open.add(beg);
 
-        //String derpy = "";
         while(open.size() != 0 && limit-- > 0) {
-            //System.err.println("Derp " + limit);
 
             // Текущей будет клетка из списка открытых клеток с нимимальным f.
             cur = null;
@@ -329,12 +320,7 @@ public class MovementManager {
             // Поместим текущую клтку в список закрытых и удалим из списка
             // открытых клеток.
             closed.add(cur);
-            for (n = 0; n < open.size(); n++) {
-                if (open.get(n).equals(cur)) {
-                    open.remove(n);
-                    n = -1;
-                }
-            }
+            open.remove(cur);
 
             // Обойдём всех соседей текущей клетки.
             rows[0] = cur.getI() - 1;
@@ -346,7 +332,7 @@ public class MovementManager {
             for (int k = 0; k < rows.length; k++) {
                 for (int l = 0; l < cols.length; l++) {
                     i = rows[k];
-                    j = rows[l];
+                    j = cols[l];
                     //derpy += i + " " + j + " ";
 
                     // Текущую клетку не рассматриваем.
@@ -375,20 +361,19 @@ public class MovementManager {
 
                     if (!isInList(open, i, j)) {
                         g = cost(cur, i, j);
-                        h = heuristic(i, j, end.i, end.j);
+                        h = heuristic(i, j, end.getI(), end.getJ());
                         nei = new Cell(i, j, g, h, cur);
 
-                        if (nei.equals(end)) {
-                            //console.log(stat)
+                        if (nei.equal(end.getI(), end.getJ())) {
                             LinkedList<Point> res_array = new LinkedList<>();
                             Cell tmp = nei;
                             do {
                                 res_array.addFirst(new Point(tmp.getJ(), tmp.getI()));
                                 tmp = tmp.getParent();
                             } while (tmp != null);
-                            //return nei;  // Путь найден!
-                            //System.err.println(derpy + ", " + limit);
                             return res_array;
+                            //console.log(stat)
+                            //return nei;  // Путь найден!
                         } else {
                             open.add(nei);
                         }

@@ -65,6 +65,13 @@ public class Server {
                     // Проверка состояний.
                     //
 
+                    /*
+                     * Пройдём по всем клиентам и для каждого из его входящих
+                     * сообщений (inbox) возьмём состояние за текущий шаг и
+                     * проверим это состояние. Если состояние неверное, то
+                     * добавим клиента в список на отключение от сервера.
+                     */
+                    //logger.log(Level.INFO, "Check clietns state.");
                     clientsIterator = clients.entrySet().iterator();
                     while (clientsIterator.hasNext()) {
                         pair = (Entry) clientsIterator.next();
@@ -84,19 +91,23 @@ public class Server {
                                 stateReportMessage = (StateReportMessage) message;
                                 if (unitManager.isStateValid(stateReportMessage.getUnits())) {
                                     client.getOutbox().add(new ConfirmMessage(step));
-                                    client.getActions().addAll(stateReportMessage.getActions());
+                                    client.getRequestedActions().addAll(stateReportMessage.getActions());
                                 } else {
                                     clientsToDisconnect.add(channel);
                                     break;
                                 }
+                                messagesIterator.remove();
                             }
-                            messagesIterator.remove();
                         }
                     }
 
+                    /*
+                     * Отключим от сервера клиентов с неверным состоянием.
+                     */
+                    //logger.log(Level.INFO, "Disconnect invalid clients.");
                     for (Channel c : clientsToDisconnect) {
                         removeClient(c);
-                        logger.log(Level.INFO, "Disconnect bad client");
+                        logger.log(Level.INFO, "Invalid client disconnected.");
                     }
                     clientsToDisconnect.clear();
 
@@ -104,12 +115,17 @@ public class Server {
                     // Обработка действий.
                     //
 
+                    /*
+                     * Пройдём по всем клиентам и выполним все действия, которые
+                     * они запросили (из списка actions).
+                     */
+                    //logger.log(Level.INFO, "Handle clients actions.");
                     clientsIterator = clients.entrySet().iterator();
                     while (clientsIterator.hasNext()) {
                         pair = (Entry) clientsIterator.next();
                         channel = (Channel) pair.getKey();
                         client = (Client) pair.getValue();
-                        actions = client.getActions();
+                        actions = client.getRequestedActions();
 
                         if (!channel.isWritable()) {
                             logger.log(Level.INFO, "Channel not writible on step {0}", step);
@@ -117,31 +133,44 @@ public class Server {
                         }
 
                         actionsIterator = actions.iterator();
-                        logger.log(Level.INFO, "{0} actions on step {1}", new Object[] {actions.size(), step});
                         while (actionsIterator.hasNext()) {
                             message = (Message) actionsIterator.next();
                             if (message instanceof MoveMessage) {
                                 moveMessage = (MoveMessage) message;
+                                logger.log(Level.INFO, "Attempt to create movement on step {0}", step);
                                 movementManager.startMovement(step, map, unitManager.getById(moveMessage.getUnitId()), moveMessage.getJ(), moveMessage.getI());
-                                logger.log(Level.INFO, "Movement created on {0}", step);
+                                logger.log(Level.INFO, "Movement created on step {0}", step);
                                 // TODO Уведомить остальных клиентов!
                             }
                             actionsIterator.remove();
                         }
                     }
+                    
+                    /*
+                     * Обновим позиции игроков.
+                     */
+                    //logger.log(Level.INFO, "Update units positions.");
                     movementManager.updatePositions(step);
 
                     //
                     // Рассылка сообщений.
                     //
 
+                    /*
+                     * Пройдём по всем клиентам и отправим им всем уведомления
+                     * о действиях других клиентов и другие исходящие (outbox)
+                     * сообщения. Для этого все сообщения из actions сперва
+                     * перемещаются в outbox, а затем все сообщения из outbox
+                     * отправляются клиенту.
+                     */
+                    //logger.log(Level.INFO, "Send messages.");
                     clientsIterator = clients.entrySet().iterator();
                     while (clientsIterator.hasNext()) {
                         pair = (Entry) clientsIterator.next();
                         channel = (Channel) pair.getKey();
                         client = (Client) pair.getValue();
                         messages = client.getOutbox();
-                        actions = client.getActions();
+                        actions = client.getRequestedActions();
 
                         if (!channel.isWritable()) {
                             logger.log(Level.INFO, "Channel not writible on step {0}", step);
@@ -159,7 +188,7 @@ public class Server {
                         while (messagesIterator.hasNext()) {
                             message = (Message) messagesIterator.next();
                             channel.write(new TextWebSocketFrame(message.toJSON()));
-                            logger.log(Level.INFO, "Send message {0}", message.toJSON());
+                            //logger.log(Level.INFO, "Send message {0}", message.toJSON());
                             messagesIterator.remove();
                         }
                     }
@@ -178,8 +207,8 @@ public class Server {
             client.getUnits().add(unitManager.createUnit(client.getId(), 4, 4));
             client.getUnits().add(unitManager.createUnit(client.getId(), 5, 5));
             client.getOutbox().add(new WelcomeMessage(client.getId()));
-            client.getOutbox().add(MessageManager.createStateReportMessage(step, client.getUnits(), client.getActions()));
-            logger.log(Level.INFO, "Client on channel {0} connected.", channel.toString());
+            client.getOutbox().add(MessageManager.createStateReportMessage(step, client.getUnits(), client.getRequestedActions()));
+            logger.log(Level.INFO, "Client id:{0},channel:{1} connected.", new Object[] { client.getId(), channel.toString() });
         }
     }
 
@@ -249,12 +278,13 @@ public class Server {
         }
     }
 }
+
 class Client {
     private long Id;
     private final LinkedBlockingQueue<Message> inbox = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<Message> outbox = new LinkedBlockingQueue<>();
     private final LinkedList<Unit> units = new LinkedList<>();
-    private final LinkedList<Message> actions = new LinkedList<>();
+    private final LinkedList<Message> requestedActions = new LinkedList<>();
 
     public Client() {
         this.Id = IdGenerator.generateId();
@@ -276,8 +306,8 @@ class Client {
         return units;
     }
 
-    public LinkedList<Message> getActions() {
-        return actions;
+    public LinkedList<Message> getRequestedActions() {
+        return requestedActions;
     }
 
     public boolean isStateReported(long step) {

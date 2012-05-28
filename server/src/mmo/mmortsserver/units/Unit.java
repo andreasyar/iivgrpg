@@ -1,5 +1,7 @@
 package mmo.mmortsserver.units;
 
+import mmo.mmortsserver.messages.UnitMessage;
+
 /**
  *
  * @author Sorc
@@ -43,5 +45,16 @@ public class Unit {
     
     public String toJSON() {
         return "[\"UNIT\", " + ownerId + ", " + id + ", " + j + ", " + i + "]";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Unit) {
+            return ((Unit) obj).getId() == this.getId();
+        } else if (obj instanceof UnitMessage) {
+            return ((UnitMessage) obj).getId() == this.getId();
+        } else {
+            return false;
+        }
     }
 }

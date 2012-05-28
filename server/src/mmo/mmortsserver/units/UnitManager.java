@@ -4,7 +4,6 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import mmo.mmortsserver.IdGenerator;
-import mmo.mmortsserver.Server;
 import mmo.mmortsserver.messages.Message;
 import mmo.mmortsserver.messages.UnitMessage;
 
@@ -15,50 +14,88 @@ import mmo.mmortsserver.messages.UnitMessage;
 public class UnitManager {
     private static final Logger logger = Logger.getLogger(UnitManager.class.getName());
 
-    // TODO Syncronization!!!
     private final LinkedList<Unit> allUnits = new LinkedList<>();
 
     public Unit createUnit(long ownerId, int j, int i) {
         Unit unit = new Unit(ownerId, IdGenerator.generateId(), j, i);
-        allUnits.add(unit);
+        synchronized (allUnits) {
+            allUnits.add(unit);
+        }
         return unit;
     }
 
     public boolean isStateValid(LinkedList<Message> unitMessages) {
         UnitMessage m;
-        boolean found;
+        //boolean found;
+        int i;
+        Unit u;
 
-        for (Unit u : allUnits) {
-            found = false;
+        /*
+         * Пройдём по всем юнитам и проверим, соответвует ли их состояние
+         * состояниям в сообщениях (unitMessages). Пока что все клиенты
+         * занют обо всех юнитах, поэтому не важно по чему пойдёт внешний
+         * цикл по всем юнитам или по сообщениям.
+         */
+        synchronized (allUnits) {
             for (Message um : unitMessages) {
                 m = (UnitMessage) um;
-                if (u.getId() == m.getId()) {
-                    found = true;
+                if ( (i = allUnits.indexOf(m)) != -1) {
+                    u = allUnits.get(i);
                     if (u.getOwnerId() != m.getOwnerId() || u.getJ() != m.getJ() || u.getI() != m.getI()) {
-                        logger.log(Level.WARNING, "Incorrect unit state.\nUnit id: {6}\nownerId: s {0} == c {1}, j: s {2} == c {3}, i: s {4} == c {5}", new Object[]{u.getOwnerId(), m.getOwnerId(), u.getJ(), m.getJ(), u.getI(), m.getI(), u.getId()});
+                        logger.log(
+                            Level.INFO,
+                            "State invalid.\nUnit id:{6}\nServer: ownerId:{0},j:{2},i:{4}\nClient: ownerId:{1},j:{3},i:{5}",
+                            new Object[] { u.getOwnerId(), m.getOwnerId(), u.getJ(), m.getJ(), u.getI(), m.getI(), u.getId() }
+                        );
                         return false;
                     }
+                } else {
+                    logger.log(Level.INFO, "State invalid. Unit id:{0} not found.", m.getId());
+                    return false;
                 }
             }
-            if (!found) {
-                logger.log(Level.INFO, "Unit id {0} not found", u.getId());
-                return false;
-            }
+            /*for (Unit u : allUnits) {
+                found = false;
+                for (Message um : unitMessages) {
+                    m = (UnitMessage) um;
+                    if (u.getId() == m.getId()) {
+                        found = true;
+                        if (u.getOwnerId() != m.getOwnerId() || u.getJ() != m.getJ() || u.getI() != m.getI()) {
+                            logger.log(
+                                Level.INFO,
+                                "State invalid.\nUnit id:{6}\nServer: ownerId:{0},j:{2},i:{4}\nClient: ownerId:{1},j:{3},i:{5}",
+                                new Object[] { u.getOwnerId(), m.getOwnerId(), u.getJ(), m.getJ(), u.getI(), m.getI(), u.getId() }
+                            );
+                            return false;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    logger.log(Level.INFO, "State invalid. Unit id:{0} not found.", u.getId());
+                    return false;
+                }
+            }*/
         }
 
         return true;
     }
 
     public void removeUnits(LinkedList<Unit> units) {
-        for (Unit u : units) {
-            allUnits.remove(u);
+        synchronized (allUnits) {
+            for (Unit u : units) {
+                allUnits.remove(u);
+            }
         }
     }
 
     public Unit getById(Long unitId) {
-        for (Unit u : allUnits) {
-            if (u.getId() == unitId) {
-                return u;
+        synchronized (allUnits) {
+            for (Unit u : allUnits) {
+                if (u.getId() == unitId) {
+                    return u;
+                }
             }
         }
         
