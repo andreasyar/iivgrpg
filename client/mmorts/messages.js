@@ -207,7 +207,7 @@ function MessagePacket(messages) {
     this.toJSON = function() {
         return new Array(this.messages);
     }
-    
+
     return this;
 }
 
@@ -400,21 +400,31 @@ var MESSAGE_HANDLERS = {
         self_units_list = new Array();
         units_list = new Array();
         actions = new Array();
-        
+
         step = msg[1];
         var units = msg[2];
+        var recv_actions = msg[3];
         var cur_units_list;
-            
-        for (var i in units) {
-            if (clientId == units[i].ownerId) {
+        var action_type;
+        var i;
+
+        for (i in units) {
+            if (clientId == units[i][1].ownerId) {
                 cur_units_list = self_units_list;
             } else {
                 cur_units_list = units_list;
             }
-            cur_units_list.push(new Unit(units[i].ownerId, units[i].id, units[i].j, units[i].i));
+            cur_units_list.push(new Unit(units[i][1].ownerId, units[i][1].id, units[i][1].j, units[i][1].i));
         }
-        
-        // Пока пропустим действия.
+
+        for (i in recv_actions) {
+            action_type = recv_actions[i][0];
+            switch (action_type) {
+                case "MOVE":
+                    
+                    break;
+            }
+        }
     }
 }
 
@@ -546,7 +556,7 @@ function UNITUPD_NPC(npc) {
 
 function DELUNIT_PLAYER(id) {
     var chat_field
-    
+
     if (self_player.id == id) {
         // TODO отключение игрока от сервера
         return

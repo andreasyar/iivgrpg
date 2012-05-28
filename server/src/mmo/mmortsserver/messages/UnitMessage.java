@@ -55,6 +55,6 @@ public class UnitMessage implements Message {
 
     @Override
     public String toJSON() {
-        return gson.toJson(this);
+        return "[\"" + type + "\",{\"ownerId\":" + ownerId + ",\"id\":" + id + ",\"j\":" + j + ",\"i\":" + i + "}]";
     }
 }

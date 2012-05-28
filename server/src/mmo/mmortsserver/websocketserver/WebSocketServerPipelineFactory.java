@@ -1,7 +1,6 @@
 package mmo.mmortsserver.websocketserver;
 
 import mmo.mmortsserver.Server;
-import mmo.mmortsserver.messages.MessageManager;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import static org.jboss.netty.channel.Channels.pipeline;
@@ -23,7 +22,7 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
         pipeline.addLast("handler", new WebSocketServerHandler(gameServer));
-        pipeline.addLast("jsonDecoder", new MessageManager(gameServer));
+        pipeline.addLast("jsonDecoder", gameServer.getMessageManager());
         return pipeline;
     }
 }

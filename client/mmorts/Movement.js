@@ -41,5 +41,9 @@ function Movement (unit, j, i, speed, path, beg_step) {
         }
     }
     
+    this.getUnit = function () {
+        return this.unit;
+    }
+    
     return this;
 }

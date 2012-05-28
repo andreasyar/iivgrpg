@@ -34,6 +34,6 @@ public class MoveMessage implements Message {
 
     @Override
     public String toJSON() {
-        return gson.toJson(this);
+        return "[\"" + type + "\",{\"unitId\":" + unitId + ",\"j\":" + j + ",\"i\":" + i + "}]";
     }
 }

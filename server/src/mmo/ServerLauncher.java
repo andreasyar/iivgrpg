@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import mmo.db.DBWorker;
 import mmo.mmortsserver.Server;
+import mmo.mmortsserver.messages.MessageManager;
 import mmo.mmortsserver.websocketserver.WebSocketServerPipelineFactory;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
@@ -49,7 +50,10 @@ public class ServerLauncher {
         
         // Create game server.
         
+        MessageManager messageManager = new MessageManager();
         gameServer = new Server();
+        messageManager.setGameServer(gameServer);
+        gameServer.setMessageManager(messageManager);
         logger.log(Level.INFO, "Game server created.");
         
         // Starts web server.

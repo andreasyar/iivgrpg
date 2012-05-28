@@ -19,5 +19,4 @@ public class WelcomeMessage implements Message {
     public String toJSON() {
         return "[\"WELCOME\", " + clientId + "]";
     }
-    
 }

@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,10 +33,6 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
         }
         
         return new StateReportMessage(step, unitMessages, actions);
-    }
-
-    public MessageManager(Server gameServer) {
-        this.gameServer = gameServer;
     }
 
     @Override
@@ -126,14 +121,12 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
     }
     
     public void sendPacket(Channel channel, LinkedList<Message> messages) {
-        ArrayList<Message> messagesArray = new ArrayList<>();
-        
-        for (Message message : messages) {
-            messagesArray.add(message);
-        }
-        
-        String packet = gson.toJson(messagesArray.toArray());
+        String packet = new MessagePacket(messages).toJSON();
         logger.log(Level.INFO, "Attempt to send packet: {0}", packet);
         channel.write(new TextWebSocketFrame(packet));
+    }
+
+    public void setGameServer(Server gameServer) {
+        this.gameServer = gameServer;
     }
 }

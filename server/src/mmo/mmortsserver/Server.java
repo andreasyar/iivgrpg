@@ -15,6 +15,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 
+
 /**
  *
  * @author Sorc
@@ -29,6 +30,7 @@ public class Server {
     private Runnable mainLoop;
     private final ConcurrentHashMap<Channel, Client> clients = new ConcurrentHashMap();
     private long step = 1;
+    private MessageManager messageManager;
 
     public void start() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -41,7 +43,7 @@ public class Server {
                 Entry pair;
                 Channel channel;
                 Client client;
-                LinkedBlockingQueue<Message> messages;
+                LinkedList<Message> messages;
                 LinkedList<Message> actions;
                 LinkedList<Channel> clientsToDisconnect = new LinkedList<>();
                 Message message;
@@ -170,27 +172,14 @@ public class Server {
                         channel = (Channel) pair.getKey();
                         client = (Client) pair.getValue();
                         messages = client.getOutbox();
-                        actions = client.getRequestedActions();
 
                         if (!channel.isWritable()) {
                             logger.log(Level.INFO, "Channel not writible on step {0}", step);
                             continue;
                         }
 
-                        actionsIterator = actions.iterator();
-                        while (actionsIterator.hasNext()) {
-                            message = (Message) actionsIterator.next();
-                            messages.add(message);
-                            actionsIterator.remove();
-                        }
-
-                        messagesIterator = messages.iterator();
-                        while (messagesIterator.hasNext()) {
-                            message = (Message) messagesIterator.next();
-                            channel.write(new TextWebSocketFrame(message.toJSON()));
-                            //logger.log(Level.INFO, "Send message {0}", message.toJSON());
-                            messagesIterator.remove();
-                        }
+                        messageManager.sendPacket(channel, messages);
+                        messages.clear();
                     }
 
                     step++;
@@ -232,6 +221,14 @@ public class Server {
 
     public long getStep() {
         return step;
+    }
+
+    public MessageManager getMessageManager() {
+        return messageManager;
+    }
+
+    public void setMessageManager(MessageManager messageManager) {
+        this.messageManager = messageManager;
     }
 
     private boolean allClientsReported(long step) {
@@ -278,11 +275,10 @@ public class Server {
         }
     }
 }
-
 class Client {
     private long Id;
-    private final LinkedBlockingQueue<Message> inbox = new LinkedBlockingQueue<>();
-    private final LinkedBlockingQueue<Message> outbox = new LinkedBlockingQueue<>();
+    private final LinkedList<Message> inbox = new LinkedList<>();
+    private final LinkedList<Message> outbox = new LinkedList<>();
     private final LinkedList<Unit> units = new LinkedList<>();
     private final LinkedList<Message> requestedActions = new LinkedList<>();
 
@@ -294,11 +290,11 @@ class Client {
         return Id;
     }
 
-    public LinkedBlockingQueue<Message> getInbox() {
+    public LinkedList<Message> getInbox() {
         return inbox;
     }
 
-    public LinkedBlockingQueue<Message> getOutbox() {
+    public LinkedList<Message> getOutbox() {
         return outbox;
     }
 
