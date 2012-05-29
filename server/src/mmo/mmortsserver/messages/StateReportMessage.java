@@ -1,20 +1,12 @@
 package mmo.mmortsserver.messages;
 
-import com.google.gson.Gson;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Sorc
  */
 public class StateReportMessage implements Message {
-    private static final Logger logger = Logger.getLogger(MessagePacket.class.getName());
-    
-    private transient final Gson gson = new Gson();
-    
-    private String type = "STATE";
     private long step;
     private LinkedList<Message> units;
     private LinkedList<Message> actions;
@@ -39,7 +31,7 @@ public class StateReportMessage implements Message {
 
     @Override
     public String toJSON() {
-        String out = "[\"" + type + "\"," + step + ",[";
+        String out = "[\"STATE\"," + step + ",[";
         if (units.size() > 0) {
             for (int i = 0; i < units.size() - 1; i++) {
                 out += units.get(i).toJSON() + ",";

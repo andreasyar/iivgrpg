@@ -5,7 +5,6 @@
 package mmo.mmortsserver.messages;
 
 import java.util.LinkedList;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -19,6 +18,11 @@ public class MessagePacket implements Message {
 
     public MessagePacket(LinkedList<Message> messages) {
         this.messages = messages;
+    }
+
+    public MessagePacket(Message message) {
+        this.messages = new LinkedList<>();
+        this.messages.add(message);
     }
 
     @Override

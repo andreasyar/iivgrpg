@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 public class MoveMessage implements Message {
     private transient final Gson gson = new Gson();
 
-    private String type = "MOVE";
     private Long unitId;
     private int j;
     private int i;
@@ -34,6 +33,6 @@ public class MoveMessage implements Message {
 
     @Override
     public String toJSON() {
-        return "[\"" + type + "\",{\"unitId\":" + unitId + ",\"j\":" + j + ",\"i\":" + i + "}]";
+        return "[\"MOVE\",{\"unitId\":" + unitId + ",\"j\":" + j + ",\"i\":" + i + "}]";
     }
 }

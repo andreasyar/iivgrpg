@@ -548,3 +548,19 @@ function getUnitById(id) {
     console.log("Unit ", id, "not found.")
     return null;
 }
+
+function delUnitById(id) {
+    for (var i in self_units_list) {
+        if (self_units_list[i].getId() == id) {
+            self_units_list.splice(i, 1);
+            movementManager.delMovementByUnitId(id);
+        }
+    }
+    for (i in units_list) {
+        if (units_list[i].getId() == id) {
+            units_list.splice(i, 1);
+            movementManager.delMovementByUnitId(id);
+        }
+    }
+    console.log("Unit ", id, "not found.");
+}

@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>MMORTS flash test client</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="messages.js"></script>
+    <script type="text/javascript" src="ServerInteraction.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+
+/*************************
+ * Служебные переменные. *
+ *************************/
+
+// Сервер.
+var server;
+
+// Логин.
+var login;
+
+// Пароль.
+var password;
+
+/************
+ * Функции. *
+ ************/
+
+// Эта функция вызывается из флеша и ей передаётся три параметра: хост сервера (например ws://localhost:8015/), логин и пароль.
+function connect(_host, _login, _password) {
+    server = new ServerInteraction();
+    server.connect(_host);
+    login = _login;
+    password = _password;
+        
+    return false;
+}
+
+</script>
+
+</body>
+</html>

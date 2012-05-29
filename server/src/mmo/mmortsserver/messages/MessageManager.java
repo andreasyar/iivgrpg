@@ -119,6 +119,12 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
             }
         }
     }
+
+    public void sendPacket(Channel channel, Message message) {
+        String packet = new MessagePacket(message).toJSON();
+        //logger.log(Level.INFO, "Attempt to send packet: {0}", packet);
+        channel.write(new TextWebSocketFrame(packet));
+    }
     
     public void sendPacket(Channel channel, LinkedList<Message> messages) {
         String packet = new MessagePacket(messages).toJSON();
@@ -128,5 +134,21 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
 
     public void setGameServer(Server gameServer) {
         this.gameServer = gameServer;
+    }
+
+    public NewUnitMessage createNewUnitMessage(long ownerId, long id, int j, int i) {
+        return new NewUnitMessage(ownerId, id, j, i);
+    }
+
+    public LinkedList<DelUnitMessage> createDelUnitMessages(LinkedList<Unit> excessUnits) {
+        LinkedList<DelUnitMessage> delUnitMessages = new LinkedList<>();
+        for (Unit u : excessUnits) {
+            delUnitMessages.add(new DelUnitMessage(u.getId()));
+        }
+        return delUnitMessages;
+    }
+    
+    public ErrorMessage createErrorMessage(String text) {
+        return new ErrorMessage(text);
     }
 }

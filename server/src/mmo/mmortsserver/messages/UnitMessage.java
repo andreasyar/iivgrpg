@@ -1,6 +1,5 @@
 package mmo.mmortsserver.messages;
 
-import com.google.gson.Gson;
 import mmo.mmortsserver.units.Unit;
 
 /**
@@ -8,9 +7,6 @@ import mmo.mmortsserver.units.Unit;
  * @author Sorc
  */
 public class UnitMessage implements Message {
-    private transient final Gson gson = new Gson();
-    
-    private String type = "UNIT";
     private long ownerId;
     private long id;
     private int j;
@@ -55,6 +51,6 @@ public class UnitMessage implements Message {
 
     @Override
     public String toJSON() {
-        return "[\"" + type + "\",{\"ownerId\":" + ownerId + ",\"id\":" + id + ",\"j\":" + j + ",\"i\":" + i + "}]";
+        return "[\"UNIT\",{\"ownerId\":" + ownerId + ",\"id\":" + id + ",\"j\":" + j + ",\"i\":" + i + "}]";
     }
 }

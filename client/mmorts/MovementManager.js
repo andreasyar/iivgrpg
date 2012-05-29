@@ -35,5 +35,13 @@ function MovementManager() {
         }
     }
     
+    this.delMovementByUnitId = function(id) {
+        for (var i in this.movements) {
+            if (this.movements[i].getUnit().getId() == id) {
+                this.movements.splice(i, 1);
+            }
+        }
+    }
+    
     return this;
 }

@@ -12,7 +12,6 @@ import mmo.mmortsserver.movement.MovementManager;
 import mmo.mmortsserver.units.Unit;
 import mmo.mmortsserver.units.UnitManager;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 
 
@@ -49,6 +48,11 @@ public class Server {
                 Message message;
                 MoveMessage moveMessage;
                 StateReportMessage stateReportMessage;
+                LinkedList<Unit> missedUnits, excellUnits;
+                
+                // Список уведомлений, которые должны быть отправлены всем клиентам после выполнения всех действий.
+                LinkedList<Message> messagesForAllClients = new LinkedList<>();
+                Iterator messagesForAllClientsIterator;
 
                 if (!allClientsReported(step) && waitIterations < 5) {
                     logger.log(Level.INFO, "Wait for clients report for step {0}", step);
@@ -95,6 +99,10 @@ public class Server {
                                     client.getOutbox().add(new ConfirmMessage(step));
                                     client.getRequestedActions().addAll(stateReportMessage.getActions());
                                 } else {
+                                    messageManager.sendPacket(
+                                        channel,
+                                        messageManager.createErrorMessage(SimpleErrorService.getLastError())
+                                    );
                                     clientsToDisconnect.add(channel);
                                     break;
                                 }
@@ -139,13 +147,55 @@ public class Server {
                             message = (Message) actionsIterator.next();
                             if (message instanceof MoveMessage) {
                                 moveMessage = (MoveMessage) message;
-                                logger.log(Level.INFO, "Attempt to create movement on step {0}", step);
                                 movementManager.startMovement(step, map, unitManager.getById(moveMessage.getUnitId()), moveMessage.getJ(), moveMessage.getI());
-                                logger.log(Level.INFO, "Movement created on step {0}", step);
-                                // TODO Уведомить остальных клиентов!
+                                messagesForAllClients.add(message);
                             }
                             actionsIterator.remove();
                         }
+                    }
+                    
+                    /*
+                     * Уведомим клиентов о произошедших событиях.
+                     */
+                    messagesForAllClientsIterator = messagesForAllClients.iterator();
+                    while (messagesForAllClientsIterator.hasNext()) {
+                        message = (Message) messagesForAllClientsIterator.next();
+                        
+                        clientsIterator = clients.entrySet().iterator();
+                        while (clientsIterator.hasNext()) {
+                            pair = (Entry) clientsIterator.next();
+                            client = ((Client) pair.getValue());
+                            
+                            client.getOutbox().add(message);
+                        }
+                    }
+                    messagesForAllClients.clear();
+                    
+                    /*
+                     * Уведомим каждого клиента о новых юнитах.
+                     */
+                    clientsIterator = clients.entrySet().iterator();
+                    while (clientsIterator.hasNext()) {
+                        pair = (Entry) clientsIterator.next();
+                        client = ((Client) pair.getValue());
+
+                        missedUnits = unitManager.getMissedUnits(client.getUnits());
+                        client.getUnits().addAll(missedUnits);
+                        for (Unit unit : missedUnits) {
+                            client.getOutbox().add(messageManager.createNewUnitMessage(unit.getOwnerId(), unit.getId(), unit.getJ(), unit.getI()));
+                        }
+                    }
+                    
+                    /*
+                     * Уведомим каждого клиента о юнитах, которые больше не существуют.
+                     */
+                    clientsIterator = clients.entrySet().iterator();
+                    while (clientsIterator.hasNext()) {
+                        pair = (Entry) clientsIterator.next();
+                        client = ((Client) pair.getValue());
+                        excellUnits = unitManager.getExcessUnits(client.getUnits());
+                        client.getUnits().removeAll(excellUnits);
+                        client.getOutbox().addAll(messageManager.createDelUnitMessages(excellUnits));
                     }
                     
                     /*
@@ -268,9 +318,9 @@ public class Server {
     private void removeClient(Channel c) {
         synchronized (clients) {
             Client client = clients.remove(c);
-            c.close();
+            //c.close();
             if (client != null) {
-                unitManager.removeUnits(client.getUnits());
+                unitManager.removeUnitsByOwnerId(client.getId());
             }
         }
     }

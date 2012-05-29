@@ -1,9 +1,11 @@
 package mmo.mmortsserver.units;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import mmo.mmortsserver.IdGenerator;
+import mmo.mmortsserver.SimpleErrorService;
 import mmo.mmortsserver.messages.Message;
 import mmo.mmortsserver.messages.UnitMessage;
 
@@ -42,41 +44,20 @@ public class UnitManager {
                 if ( (i = allUnits.indexOf(m)) != -1) {
                     u = allUnits.get(i);
                     if (u.getOwnerId() != m.getOwnerId() || u.getJ() != m.getJ() || u.getI() != m.getI()) {
-                        logger.log(
-                            Level.INFO,
-                            "State invalid.\nUnit id:{6}\nServer: ownerId:{0},j:{2},i:{4}\nClient: ownerId:{1},j:{3},i:{5}",
-                            new Object[] { u.getOwnerId(), m.getOwnerId(), u.getJ(), m.getJ(), u.getI(), m.getI(), u.getId() }
-                        );
+                        String errorText = "State invalid. Unit id:" + u.getId() +
+                            " Server: ownerId:" + u.getOwnerId() + ",j:" + u.getJ() + ",i:" + u.getI() +
+                            " Client: ownerId:" + m.getOwnerId() + ",j:" + m.getJ() + ",i:" + m.getI();
+                        SimpleErrorService.setLastError(errorText);
+                        logger.log(Level.INFO, errorText);
                         return false;
                     }
                 } else {
-                    logger.log(Level.INFO, "State invalid. Unit id:{0} not found.", m.getId());
+                    String errorText = "State invalid. Unit id:" + m.getId() + " not found.";
+                    SimpleErrorService.setLastError(errorText);
+                    logger.log(Level.INFO, errorText);
                     return false;
                 }
             }
-            /*for (Unit u : allUnits) {
-                found = false;
-                for (Message um : unitMessages) {
-                    m = (UnitMessage) um;
-                    if (u.getId() == m.getId()) {
-                        found = true;
-                        if (u.getOwnerId() != m.getOwnerId() || u.getJ() != m.getJ() || u.getI() != m.getI()) {
-                            logger.log(
-                                Level.INFO,
-                                "State invalid.\nUnit id:{6}\nServer: ownerId:{0},j:{2},i:{4}\nClient: ownerId:{1},j:{3},i:{5}",
-                                new Object[] { u.getOwnerId(), m.getOwnerId(), u.getJ(), m.getJ(), u.getI(), m.getI(), u.getId() }
-                            );
-                            return false;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-                if (!found) {
-                    logger.log(Level.INFO, "State invalid. Unit id:{0} not found.", u.getId());
-                    return false;
-                }
-            }*/
         }
 
         return true;
@@ -86,6 +67,19 @@ public class UnitManager {
         synchronized (allUnits) {
             for (Unit u : units) {
                 allUnits.remove(u);
+            }
+        }
+    }
+
+    public void removeUnitsByOwnerId(long ownerId) {
+        synchronized (allUnits) {
+            Iterator i = allUnits.iterator();
+            Unit u;
+            while (i.hasNext()) {
+                u = (Unit) i.next();
+                if (u.getOwnerId() == ownerId) {
+                    i.remove();
+                }
             }
         }
     }
@@ -100,5 +94,33 @@ public class UnitManager {
         }
         
         return null;
+    }
+
+    public LinkedList<Unit> getMissedUnits(LinkedList<Unit> units) {
+        LinkedList<Unit> newUnits = new LinkedList<>();
+        
+        synchronized (allUnits) {
+            for (Unit u : allUnits) {
+                if (!units.contains(u)) {
+                    newUnits.add(u);
+                }
+            }
+        }
+        
+        return newUnits;
+    }
+
+    public LinkedList<Unit> getExcessUnits(LinkedList<Unit> units) {
+        LinkedList<Unit> excessUnits = new LinkedList<>();
+        
+        synchronized (allUnits) {
+            for (Unit u : units) {
+                if (!allUnits.contains(u)) {
+                    excessUnits.add(u);
+                }
+            }
+        }
+        
+        return excessUnits;
     }
 }
