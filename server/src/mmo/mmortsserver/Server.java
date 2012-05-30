@@ -14,8 +14,6 @@ import mmo.mmortsserver.units.Unit;
 import mmo.mmortsserver.units.UnitManager;
 import org.jboss.netty.channel.Channel;
 
-
-
 /**
  *
  * @author Sorc
@@ -33,7 +31,12 @@ public class Server {
     private long step = 1;
     private MessageManager messageManager;
     private final ClientChannelMaps clientChannelMaps = new ClientChannelMaps();
-    
+
+    /**
+    * Вновь подключившиеся клиенты, ожидающие начального состояния, чтобы начать работу.
+    */
+    private final LinkedList<Client> newClients = new LinkedList<>();
+
     /**
      * Список запросов действий от всех клиентов на текущем шаге.
      */
@@ -54,20 +57,23 @@ public class Server {
                 LinkedList<Channel> clientsToDisconnect = new LinkedList<>();
                 Message message;
                 MoveMessage moveMessage;
-                StateReportMessage stateReportMessage;
                 LinkedList<Unit> missedUnits, excellUnits;
-                
+
                 // Список уведомлений, которые должны быть отправлены всем клиентам после выполнения всех действий.
                 LinkedList<Message> messagesForAllClients = new LinkedList<>();
                 Iterator messagesForAllClientsIterator;
-                
+
                 // Входящие сообщения.
                 LinkedList<InboxMessage> inbox;
                 Iterator inboxIterator;
                 InboxMessage inboxMessage;
-                
+                StateReportMessage stateReportMessage;
+                LoginMessage loginMessage;
+
                 ActionRequest actionRequest;
                 Message action;
+
+                Iterator newClientsIterator;
 
                 if (!isAllClientsReported(step) && waitIterations < 5) {
                     logger.log(Level.INFO, "Wait for clients report for step {0}", step);
@@ -81,22 +87,22 @@ public class Server {
                 }
 
                 synchronized (clientChannelMaps) {
-                    
+
                     /*
                      * Пройдём по всем входящим сообщениям и обработаем их.
                      */
-                    logger.log(Level.INFO, "Process incoming messages.");
+                    //logger.log(Level.INFO, "Process incoming messages.");
                     inbox = messageManager.takeFromInbox();
                     inboxIterator = inbox.iterator();
                     while (inboxIterator.hasNext()) {
                         inboxMessage = (InboxMessage) inboxIterator.next();
                         channel = inboxMessage.getFrom();
                         message = inboxMessage.getMessage();
-                        client = clientChannelMaps.getClients().get(channel);
-                        
+
                         if (message instanceof StateReportMessage) {
+                            client = clientChannelMaps.getClients().get(channel);
                             stateReportMessage = (StateReportMessage) message;
-                            
+
                             if (client.getLastConfirmedStep() == step) {
                                 // Клиент прислал два или более отчётов за один и тот же шаг? Тут явно что-то не так.
                                 messageManager.sendPacket(channel, messageManager.createErrorMessage("Dublicated state report."));
@@ -110,19 +116,24 @@ public class Server {
                                 messageManager.sendPacket(channel, messageManager.createErrorMessage(SimpleErrorService.getLastError()));
                                 clientsToDisconnect.add(channel);
                             }
-                            continue;
+                        } else if (message instanceof LoginMessage) {
+                            loginMessage = (LoginMessage) message;
+
+                            // Здесь может быть какая-то проверка логина и пароля.
+                            newClients.add(new Client(channel));
                         }
                     }
 
                     /*
                      * Отключим от сервера клиентов с неверным состоянием.
                      */
-                    logger.log(Level.INFO, "Disconnect invalid clients.");
+                    //logger.log(Level.INFO, "Disconnect invalid clients.");
                     for (Channel c : clientsToDisconnect) {
                         client = clientChannelMaps.getClients().get(c);
                         cleanupClient(client);
                         clientChannelMaps.getChannels().remove(client);
                         clientChannelMaps.getClients().remove(c);
+                        client.getChannel().close();    // TODO Наверное это надо сделать где-то в другом месте.
                         logger.log(Level.INFO, "Invalid client disconnected.");
                     }
                     clientsToDisconnect.clear();
@@ -130,27 +141,50 @@ public class Server {
                     /*
                      * Пройдём по запросам действий и выполним их.
                      */
-                    logger.log(Level.INFO, "Handle clients actions.");
+                    //logger.log(Level.INFO, "Handle clients actions.");
                     actionRequestsIterator = actionsRequests.iterator();
                     while (actionRequestsIterator.hasNext()) {
                         actionRequest = (ActionRequest) actionRequestsIterator.next();
                         client = actionRequest.getClient();
                         action = actionRequest.getRequest();
-                        
+
                         if (action instanceof MoveMessage) {
                             moveMessage = (MoveMessage) action;
                             movementManager.startMovement(step, map, unitManager.getById(moveMessage.getUnitId()), moveMessage.getJ(), moveMessage.getI());
                             notifyAllOtherClients(client, action);
                         }
-                        
+
                         actionRequestsIterator.remove();
+                    }
+
+                    /*
+                     * Создадим для новых клиентов по два юнита и уведомим всех
+                     * остальных клиентах о новых юнитах.
+                     */
+                    //logger.log(Level.INFO, "Create new units.");
+                    newClientsIterator = newClients.iterator();
+                    while (newClientsIterator.hasNext()) {
+                        client = (Client) newClientsIterator.next();
+
+                        notifyAllOtherClients(
+                            client,
+                            messageManager.createNewUnitMessage(
+                                unitManager.createUnit(client.getId(), 4, 4)
+                            )
+                        );
+                        notifyAllOtherClients(
+                            client,
+                            messageManager.createNewUnitMessage(
+                                unitManager.createUnit(client.getId(), 5, 5)
+                            )
+                        );
                     }
 
                     /*
                      * Пройдём по всем клиентам и отправим им всё что накопилось
                      * в их исходящих сообщениях.
                      */
-                    logger.log(Level.INFO, "Send messages.");
+                    //logger.log(Level.INFO, "Send messages.");
                     clientsIterator = clientChannelMaps.getClients().entrySet().iterator();
                     while (clientsIterator.hasNext()) {
                         pair = (Entry) clientsIterator.next();
@@ -158,6 +192,28 @@ public class Server {
                         client = (Client) pair.getValue();
 
                         messageManager.sendConfirmMessage(channel, step, client.takeFromOutbox());
+                    }
+
+                    /*
+                     * После всех действий можно обработать новых клиентов.
+                     */
+                    //logger.log(Level.INFO, "Send welcome messages.");
+                    newClientsIterator = newClients.iterator();
+                    while (newClientsIterator.hasNext()) {
+                        client = (Client) newClientsIterator.next();
+
+                        clientChannelMaps.getClients().put(client.getChannel(), client);
+                        messageManager.sendMessage(
+                            client.getChannel(),
+                            new WelcomeMessage(
+                                client.getId(),
+                                step,
+                                messageManager.createAllNewUnitMessage(unitManager.getAllUnits()),
+                                messageManager.createAllMoveMessage(movementManager.getAllMovements())
+                            )
+                        );
+
+                        newClientsIterator.remove();
                     }
 
                     /*
@@ -240,24 +296,24 @@ public class Server {
                             actionsIterator.remove();
                         }
                     }*/
-                    
+
                     /*
                      * Уведомим клиентов о произошедших событиях.
                      */
                     /*messagesForAllClientsIterator = messagesForAllClients.iterator();
                     while (messagesForAllClientsIterator.hasNext()) {
                         message = (Message) messagesForAllClientsIterator.next();
-                        
+
                         clientsIterator = clients.entrySet().iterator();
                         while (clientsIterator.hasNext()) {
                             pair = (Entry) clientsIterator.next();
                             client = ((Client) pair.getValue());
-                            
+
                             client.getOutbox().add(message);
                         }
                     }
                     messagesForAllClients.clear();*/
-                    
+
                     /*
                      * Уведомим каждого клиента о новых юнитах.
                      */
@@ -272,7 +328,7 @@ public class Server {
                             client.getOutbox().add(messageManager.createNewUnitMessage(unit.getOwnerId(), unit.getId(), unit.getJ(), unit.getI()));
                         }
                     }*/
-                    
+
                     /*
                      * Уведомим каждого клиента о юнитах, которые больше не существуют.
                      */
@@ -284,7 +340,7 @@ public class Server {
                         client.getUnits().removeAll(excellUnits);
                         client.getOutbox().addAll(messageManager.createDelUnitMessages(excellUnits));
                     }*/
-                    
+
                     /*
                      * Обновим позиции игроков.
                      */
@@ -320,11 +376,11 @@ public class Server {
                     }*/
 
                     step++;
-                    
+
                     /*
                      * Обновим позиции игроков.
                      */
-                    logger.log(Level.INFO, "Update units positions.");
+                    //logger.log(Level.INFO, "Update units positions.");
                     movementManager.updatePositions(step);
                 }
             }
@@ -333,11 +389,6 @@ public class Server {
     }
 
     public void clientConnected(Channel channel) {
-        synchronized (clientChannelMaps) {
-            
-            
-        }
-        
         /*synchronized (clients) {
             Client client = new Client();
             clients.put(channel, client);
@@ -356,7 +407,7 @@ public class Server {
     public void setMessageManager(MessageManager messageManager) {
         this.messageManager = messageManager;
     }
-    
+
     /**
      * Утверждает, что клиент отчитался за шаг step.
      * @param c канал
@@ -402,7 +453,7 @@ public class Server {
             actionsRequests.add(new ActionRequest(client, r));
         }
     }
-    
+
     /**
      * Проверяет, все ли клиенты отчитались за шаг step.
      * @param step шаг
@@ -441,6 +492,7 @@ public class Server {
                 if (client.getLastReportedStep() != step) {
                     i.remove();
                     cleanupClient(client);
+                    client.getChannel().close();    // TODO Наверное это надо сделать где-то в другом месте.
                 }
             }
         }
@@ -451,27 +503,23 @@ public class Server {
      */
     private void cleanupClient(Client client) {
         unitManager.removeUnitsByOwnerId(client.getId());
+        // TODO Уведомление других клиентов об удалении юнитов.
     }
-    
+
     /**
      * Класс-обёртка для синхронизации доступа к хешам клиентов и каналов.
      */
     private class ClientChannelMaps {
-        
+
         /**
          * Хеш клиентов. Канал -> Клиент.
          */
         private final ConcurrentHashMap<Channel, Client> clients = new ConcurrentHashMap();
-        
+
         /**
          * Хеш каналов. Клиент -> Канал.
          */
         private final ConcurrentHashMap<Client, Channel> channels = new ConcurrentHashMap();
-    
-        /**
-        * Вновь подключившиеся клиенты, ожидающие начального состояния, чтобы начать работу.
-        */
-        private final LinkedList<Client> awaitingStateClients = new LinkedList<>();
 
         public ConcurrentHashMap<Channel, Client> getClients() {
             return clients;
@@ -480,17 +528,13 @@ public class Server {
         public ConcurrentHashMap<Client, Channel> getChannels() {
             return channels;
         }
-
-        public LinkedList<Client> getAwaitingStateClients() {
-            return awaitingStateClients;
-        }
     }
-    
+
     /**
      * Запрос действия.
      */
     private class ActionRequest {
-    
+
        /**
         * Клиент, от которого исходит запрос действия.
         */

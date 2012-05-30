@@ -18,10 +18,14 @@ public class ConfirmMessage implements Message {
     @Override
     public String toJSON() {
         String out = "[\"CONFIRM\"," + step + ",[";
-        for (int i = 0; i < messages.size() - 1; i++) {
-                out += messages.get(i).toJSON() + ",";
+        if (messages.size() > 0) {
+            for (int i = 0; i < messages.size() - 1; i++) {
+                    out += messages.get(i).toJSON() + ",";
+            }
+            out += messages.get(messages.size() - 1).toJSON() + "]]";
+        } else {
+            out += "]]";
         }
-        out += messages.get(messages.size() - 1).toJSON() + "]";
         return out;
     }
 }

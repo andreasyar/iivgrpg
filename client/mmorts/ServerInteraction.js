@@ -37,12 +37,10 @@ function ServerInteraction() {
                 console.log("<- " + event.data)
             }
             var obj = JSON.parse(event.data)
-            for (var i in obj) {
-                for (var key in MESSAGE_HANDLERS) {
-                    if (obj[i][0] != undefined && obj[i][0] == key) {
-                        MESSAGE_HANDLERS[key](obj[i])
-                        break
-                    }
+            for (var key in MESSAGE_HANDLERS) {
+                if (obj[0] != undefined && obj[0] == key) {
+                    MESSAGE_HANDLERS[key](obj);
+                    break;
                 }
             }
         }

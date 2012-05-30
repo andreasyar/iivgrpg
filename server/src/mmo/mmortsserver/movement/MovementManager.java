@@ -398,4 +398,12 @@ public class MovementManager {
         //console.log(stat)
         return null;    // Нет пути
     }
+
+    public LinkedList<Movement> getAllMovements() {
+        LinkedList<Movement> clone;
+        synchronized (movements) {
+            clone = (LinkedList<Movement>) movements.clone();
+        }
+        return clone;
+    }
 }

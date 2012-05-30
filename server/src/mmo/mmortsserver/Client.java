@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import mmo.mmortsserver.messages.Message;
 import mmo.mmortsserver.messages.StateReportMessage;
 import mmo.mmortsserver.units.Unit;
+import org.jboss.netty.channel.Channel;
 
 /**
  *
@@ -18,19 +19,30 @@ class Client {
     private final LinkedList<Message> outbox = new LinkedList<>();
     private final LinkedList<Unit> units = new LinkedList<>();
     private final LinkedList<Message> requestedActions = new LinkedList<>();
-    
+
     /**
      * Номер последнего шага, за который отчитался клиент.
      */
     private long lastReportedStep = -1;
-    
+
     /**
      * Номер последнего шага, состояние на котором было подтверждено.
      */
     private long lastConfirmedStep = -1;
 
+    /**
+     * Канал связи с клиентом.
+     */
+    private final Channel channel;
+
     Client() {
         this.Id = IdGenerator.generateId();
+        this.channel = null;
+    }
+
+    Client(Channel channel) {
+        this.Id = IdGenerator.generateId();
+        this.channel = channel;
     }
 
     long getId() {
@@ -76,19 +88,19 @@ class Client {
 
         return found;
     }
-    
+
     void addToOubox(Message m) {
         inbox.add(m);
     }
-    
+
     void addAllToOubox(Collection<Message> m) {
         inbox.addAll(m);
     }
-    
+
     LinkedList<Message> getFromOutbox() {
         return (LinkedList<Message>) outbox.clone();
     }
-    
+
     LinkedList<Message> takeFromOutbox() {
         LinkedList<Message> clone = (LinkedList<Message>) outbox.clone();
         outbox.clear();
@@ -109,5 +121,9 @@ class Client {
 
     public void setLastConfirmedStep(long lastAcceptedStep) {
         this.lastConfirmedStep = lastAcceptedStep;
+    }
+
+    public Channel getChannel() {
+        return channel;
     }
 }

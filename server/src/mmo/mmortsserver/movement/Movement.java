@@ -1,7 +1,6 @@
 package mmo.mmortsserver.movement;
 
 import java.util.LinkedList;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import mmo.mmortsserver.units.Unit;
 
@@ -11,16 +10,16 @@ import mmo.mmortsserver.units.Unit;
  */
 public class Movement {
     private static final Logger logger = Logger.getLogger(MovementManager.class.getName());
-    
+
     private Unit unit;
     private int j;
     private int i;
-    
+
     /**
      * Скорость движения в клетках за шаг.
      */
     private float speed;
-    
+
     LinkedList<Point> path;
     private long begStep;
     private boolean stopped;
@@ -39,8 +38,20 @@ public class Movement {
         return unit;
     }
 
+    public int getJ() {
+        return j;
+    }
+
+    public int getI() {
+        return i;
+    }
+
     public boolean isStopped() {
         return this.stopped;
+    }
+
+    public long getBegStep() {
+        return begStep;
     }
 
     void updatePosition(long step) {

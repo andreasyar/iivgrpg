@@ -92,13 +92,13 @@ public class UnitManager {
                 }
             }
         }
-        
+
         return null;
     }
 
     public LinkedList<Unit> getMissedUnits(LinkedList<Unit> units) {
         LinkedList<Unit> newUnits = new LinkedList<>();
-        
+
         synchronized (allUnits) {
             for (Unit u : allUnits) {
                 if (!units.contains(u)) {
@@ -106,13 +106,13 @@ public class UnitManager {
                 }
             }
         }
-        
+
         return newUnits;
     }
 
     public LinkedList<Unit> getExcessUnits(LinkedList<Unit> units) {
         LinkedList<Unit> excessUnits = new LinkedList<>();
-        
+
         synchronized (allUnits) {
             for (Unit u : units) {
                 if (!allUnits.contains(u)) {
@@ -120,7 +120,15 @@ public class UnitManager {
                 }
             }
         }
-        
+
         return excessUnits;
+    }
+
+    public LinkedList<Unit> getAllUnits() {
+        LinkedList<Unit> clone;
+        synchronized (allUnits) {
+            clone = (LinkedList<Unit>) allUnits.clone();
+        }
+        return clone;
     }
 }

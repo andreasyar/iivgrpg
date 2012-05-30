@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import mmo.mmortsserver.Server;
+import mmo.mmortsserver.movement.Movement;
 import mmo.mmortsserver.units.Unit;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -61,7 +62,9 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
             switch (type) {
                 case "LOGIN":
                     LoginMessage lm = gson.fromJson(messageFields.get(1), LoginMessage.class);
-                    gameServer.clientConnected(ctx.getChannel());
+                    synchronized (commonInbox) {
+                        commonInbox.add(new InboxMessage(ctx.getChannel(), lm));
+                    }
                     break;
                 case "STATE":
                     long step = Long.parseLong(gson.fromJson(messageFields.get(1), String.class));
@@ -104,7 +107,6 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
                         }
                     }
 
-                    //gameServer.inbox(ctx.getChannel(), new StateReportMessage(step, unitsList, actionsList));
                     synchronized (commonInbox) {
                         commonInbox.add(new InboxMessage(ctx.getChannel(), new StateReportMessage(step, unitsList, actionsList)));
                     }
@@ -112,6 +114,12 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
                     break;
             }
         }
+    }
+
+    public void sendMessage(Channel channel, Message message) {
+        String packet = message.toJSON();
+        logger.log(Level.INFO, "Attempt to send packet: {0}", packet);
+        channel.write(new TextWebSocketFrame(packet));
     }
 
     public void sendPacket(Channel channel, Message message) {
@@ -132,6 +140,26 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
 
     public NewUnitMessage createNewUnitMessage(long ownerId, long id, int j, int i) {
         return new NewUnitMessage(ownerId, id, j, i);
+    }
+
+    public NewUnitMessage createNewUnitMessage(Unit unit) {
+        return new NewUnitMessage(unit.getOwnerId(), unit.getId(), unit.getJ(), unit.getI());
+    }
+
+    public LinkedList<Message> createAllNewUnitMessage(LinkedList<Unit> units) {
+        LinkedList<Message> newUnitMessages = new LinkedList<>();
+        for (Unit unit : units) {
+            newUnitMessages.add(new NewUnitMessage(unit.getOwnerId(), unit.getId(), unit.getJ(), unit.getI()));
+        }
+        return newUnitMessages;
+    }
+
+    public LinkedList<Message> createAllMoveMessage(LinkedList<Movement> movements) {
+        LinkedList<Message> moveMessages = new LinkedList<>();
+        for (Movement movement : movements) {
+            moveMessages.add(new MoveMessage(movement.getBegStep(), movement.getUnit().getId(), movement.getJ(), movement.getI()));
+        }
+        return moveMessages;
     }
 
     public LinkedList<DelUnitMessage> createDelUnitMessages(LinkedList<Unit> excessUnits) {

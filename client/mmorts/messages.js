@@ -220,9 +220,25 @@ var MESSAGE_HANDLERS = {
         disconnect();
     },
     "WELCOME": function (msg) {
-        // ["WELCOME", clientId]
-        
         clientId = msg[1];
+        step  = msg[2];
+        
+        for (var i in msg[3]) {
+            switch (msg[3][i][0]) {
+                case "NEWUNIT":
+                    MESSAGE_HANDLERS["NEWUNIT"](msg[3][i]);
+                    break;
+            }
+        }
+        
+        // Пока не парсим действия.
+        
+        setTimeout("drawLoop();", 1000 / FPS);
+        setTimeout("syncLoop();", 100);
+        scr.addEventListener("mousedown", scrOnMousedown, false);
+        scr.addEventListener("mouseup", scrOnMouseup, false);
+        camera = new Camera();
+        map = new Map(100, 100);
         hideLoginForm();
     },
     "CONFIRM": function (msg) {

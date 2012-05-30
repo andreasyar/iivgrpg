@@ -1,25 +1,27 @@
 package mmo.mmortsserver.messages;
 
-import com.google.gson.Gson;
-
 /**
  *
  * @author Sorc
  */
 public class MoveMessage implements Message {
-    private transient final Gson gson = new Gson();
-
-    private Long unitId;
+    private long begStep;
+    private long unitId;
     private int j;
     private int i;
 
-    public MoveMessage(Long unitId, int j, int i) {
+    public MoveMessage(long begStep, long unitId, int j, int i) {
+        this.begStep = begStep;
         this.unitId = unitId;
         this.j = j;
         this.i = i;
     }
 
-    public Long getUnitId() {
+    public long getBegStep() {
+        return begStep;
+    }
+
+    public long getUnitId() {
         return unitId;
     }
 
@@ -33,6 +35,6 @@ public class MoveMessage implements Message {
 
     @Override
     public String toJSON() {
-        return "[\"MOVE\",{\"unitId\":" + unitId + ",\"j\":" + j + ",\"i\":" + i + "}]";
+        return "[\"MOVE\",{\"begStep\":" + begStep + ",\"unitId\":" + unitId + ",\"j\":" + j + ",\"i\":" + i + "}]";
     }
 }
