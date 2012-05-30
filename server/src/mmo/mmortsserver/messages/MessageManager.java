@@ -21,30 +21,28 @@ import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
  */
 public class MessageManager extends SimpleChannelUpstreamHandler {
     private static final Logger logger = Logger.getLogger(MessageManager.class.getName());
-    
+
+    private final LinkedList<InboxMessage> commonInbox = new LinkedList<>();
+
     private Server gameServer;
     private final Gson gson = new Gson();
-    
+
     public static StateReportMessage createStateReportMessage(long step, LinkedList<Unit> units, LinkedList<Message> actions) {
         LinkedList<Message> unitMessages = new LinkedList<>();
-        
+
         for (Unit u : units) {
             unitMessages.add(new UnitMessage(u.getOwnerId(), u.getId(), u.getJ(), u.getI()));
         }
-        
+
         return new StateReportMessage(step, unitMessages, actions);
     }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         Object frame = e.getMessage();
-        if (!(frame instanceof TextWebSocketFrame)) {
-            throw new UnsupportedOperationException(String.format("%s frame types not supported", frame.getClass().getName()));
-        }
-
         String request = ((TextWebSocketFrame) frame).getText();
         JsonParser parser = new JsonParser();
-        
+
         /*
          * Распарсим сообщение, все сообщения представляют собой массив [],
          * который содержит массивы с сообщениями. Эти массивы с сообщениями
@@ -54,28 +52,19 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
          */
         JsonArray jsonMessageArray = parser.parse(request).getAsJsonArray();
         JsonArray messageFields;
-        String type, subType;
-        
+        String type;
+
         for (JsonElement jsonMessage : jsonMessageArray) {
             messageFields = jsonMessage.getAsJsonArray();
             type = gson.fromJson(messageFields.get(0), String.class);
 
             switch (type) {
                 case "LOGIN":
-                    // Example: ["LOGIN",{"login":"test","password":"test"}]
                     LoginMessage lm = gson.fromJson(messageFields.get(1), LoginMessage.class);
-                    gameServer.connectClient(ctx.getChannel());
+                    gameServer.clientConnected(ctx.getChannel());
                     break;
                 case "STATE":
-                    // Example: ["STATE",2514,[["UNIT",{"ownerId":4,"id":5,"j":4,"i":4}],["UNIT",{"ownerId":4,"id":6,"j":5,"i":5}]],[]]
-                    long step;
-                    try {
-                        step = Long.parseLong(gson.fromJson(messageFields.get(1), String.class));
-                    } catch (NumberFormatException ex) {
-                        logger.log(Level.INFO, "-> {0}", request);
-                        logger.log(Level.SEVERE, null, ex);
-                        break;
-                    }
+                    long step = Long.parseLong(gson.fromJson(messageFields.get(1), String.class));
                     JsonArray units = messageFields.get(2).getAsJsonArray();
                     JsonArray actions = messageFields.get(3).getAsJsonArray();
                     JsonArray unit;
@@ -83,16 +72,17 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
 
                     LinkedList<Message> unitsList = new LinkedList<>();
                     LinkedList<Message> actionsList = new LinkedList<>();
-                    UnitMessage um;
-                    MoveMessage mm;
+                    UnitMessage unitMessage;
+                    MoveMessage moveMessage;
+                    String subType;
 
                     for (JsonElement elem : units) {
                         unit = elem.getAsJsonArray();
                         subType = gson.fromJson(unit.get(0), String.class);
                         switch (subType) {
                             case "UNIT":
-                                um = gson.fromJson(unit.get(1), UnitMessage.class);
-                                unitsList.add(um);
+                                unitMessage = gson.fromJson(unit.get(1), UnitMessage.class);
+                                unitsList.add(unitMessage);
                                 break;
                             default:
                                 logger.log(Level.SEVERE, "Unknown message type {0}", subType);
@@ -105,8 +95,8 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
                         subType = gson.fromJson(action.get(0), String.class);
                         switch (subType) {
                             case "MOVE":
-                                mm = gson.fromJson(action.get(1), MoveMessage.class);
-                                actionsList.add(mm);
+                                moveMessage = gson.fromJson(action.get(1), MoveMessage.class);
+                                actionsList.add(moveMessage);
                                 break;
                             default:
                                 logger.log(Level.SEVERE, "Unknown message type {0}", subType);
@@ -114,7 +104,11 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
                         }
                     }
 
-                    gameServer.inbox(ctx.getChannel(), new StateReportMessage(step, unitsList, actionsList));
+                    //gameServer.inbox(ctx.getChannel(), new StateReportMessage(step, unitsList, actionsList));
+                    synchronized (commonInbox) {
+                        commonInbox.add(new InboxMessage(ctx.getChannel(), new StateReportMessage(step, unitsList, actionsList)));
+                    }
+                    gameServer.clientReported(ctx.getChannel(), step);
                     break;
             }
         }
@@ -125,7 +119,7 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
         //logger.log(Level.INFO, "Attempt to send packet: {0}", packet);
         channel.write(new TextWebSocketFrame(packet));
     }
-    
+
     public void sendPacket(Channel channel, LinkedList<Message> messages) {
         String packet = new MessagePacket(messages).toJSON();
         logger.log(Level.INFO, "Attempt to send packet: {0}", packet);
@@ -147,8 +141,25 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
         }
         return delUnitMessages;
     }
-    
+
     public ErrorMessage createErrorMessage(String text) {
         return new ErrorMessage(text);
+    }
+
+    public LinkedList<InboxMessage> takeFromInbox() {
+        LinkedList<InboxMessage> clone;
+
+        synchronized (commonInbox) {
+            clone = (LinkedList<InboxMessage>) commonInbox.clone();
+            commonInbox.clear();
+        }
+
+        return clone;
+    }
+
+    public void sendConfirmMessage(Channel channel, long step, LinkedList<Message> messages) {
+        String packet = new ConfirmMessage(step, messages).toJSON();
+        logger.log(Level.INFO, "Attempt to send confirm: {0}", packet);
+        channel.write(new TextWebSocketFrame(packet));
     }
 }

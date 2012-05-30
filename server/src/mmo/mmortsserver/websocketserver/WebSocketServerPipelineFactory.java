@@ -21,7 +21,7 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
-        pipeline.addLast("handler", new WebSocketServerHandler(gameServer));
+        pipeline.addLast("handler", new WebSocketServerHandler());
         pipeline.addLast("jsonDecoder", gameServer.getMessageManager());
         return pipeline;
     }

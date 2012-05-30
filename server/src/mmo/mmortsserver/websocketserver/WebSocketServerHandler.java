@@ -19,11 +19,6 @@ class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     private static final String WEBSOCKET_PATH = "/";
 
     private WebSocketServerHandshaker handshaker;
-    private Server gameServer;
-
-    public WebSocketServerHandler(Server gameServer) {
-        this.gameServer = gameServer;
-    }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -58,11 +53,6 @@ class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
             // Передаём сообщение дальше по конвейеру.
             ctx.sendUpstream(e);
         }
-    }
-
-    @Override
-    public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        gameServer.disconnectClient(ctx.getChannel());
     }
 
     @Override

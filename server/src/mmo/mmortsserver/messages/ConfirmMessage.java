@@ -1,22 +1,27 @@
 package mmo.mmortsserver.messages;
 
+import java.util.LinkedList;
+
 /**
  *
  * @author Sorc
  */
 public class ConfirmMessage implements Message {
     private long step;
+    private LinkedList<Message> messages;
 
-    public ConfirmMessage(long step) {
+    public ConfirmMessage(long step, LinkedList<Message> messages) {
         this.step = step;
-    }
-
-    public long getStep() {
-        return step;
+        this.messages = messages;
     }
 
     @Override
     public String toJSON() {
-        return "[\"CONFIRM\", " + step + "]";
+        String out = "[\"CONFIRM\"," + step + ",[";
+        for (int i = 0; i < messages.size() - 1; i++) {
+                out += messages.get(i).toJSON() + ",";
+        }
+        out += messages.get(messages.size() - 1).toJSON() + "]";
+        return out;
     }
 }

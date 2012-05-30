@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package mmo.mmortsserver;
 
 import java.util.Collection;
@@ -22,6 +18,16 @@ class Client {
     private final LinkedList<Message> outbox = new LinkedList<>();
     private final LinkedList<Unit> units = new LinkedList<>();
     private final LinkedList<Message> requestedActions = new LinkedList<>();
+    
+    /**
+     * Номер последнего шага, за который отчитался клиент.
+     */
+    private long lastReportedStep = -1;
+    
+    /**
+     * Номер последнего шага, состояние на котором было подтверждено.
+     */
+    private long lastConfirmedStep = -1;
 
     Client() {
         this.Id = IdGenerator.generateId();
@@ -87,5 +93,21 @@ class Client {
         LinkedList<Message> clone = (LinkedList<Message>) outbox.clone();
         outbox.clear();
         return clone;
+    }
+
+    long getLastReportedStep() {
+        return lastReportedStep;
+    }
+
+    void setLastReportedStep(long lastReportedStep) {
+        this.lastReportedStep = lastReportedStep;
+    }
+
+    public long getLastConfirmedStep() {
+        return lastConfirmedStep;
+    }
+
+    public void setLastConfirmedStep(long lastAcceptedStep) {
+        this.lastConfirmedStep = lastAcceptedStep;
     }
 }
