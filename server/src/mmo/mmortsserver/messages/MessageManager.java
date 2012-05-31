@@ -4,16 +4,15 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import java.nio.channels.ClosedChannelException;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import mmo.mmortsserver.Client;
 import mmo.mmortsserver.Server;
 import mmo.mmortsserver.movement.Movement;
 import mmo.mmortsserver.units.Unit;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 /**
@@ -36,6 +35,18 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
         }
 
         return new StateReportMessage(step, unitMessages, actions);
+    }
+    
+    public static MoveMessage createMoveMessage(Movement m) {
+        return new MoveMessage(m.getBegStep(), m.getUnit().getId(), m.getJ(), m.getI());
+    }
+
+    public static LinkedList<Message> createAllDelUnitMessage(LinkedList<Unit> removedUnits) {
+        LinkedList<Message> delUnitMessages = new LinkedList<>();
+        for (Unit unit : removedUnits) {
+            delUnitMessages.add(new DelUnitMessage(unit.getId()));
+        }
+        return delUnitMessages;
     }
 
     @Override
@@ -119,23 +130,10 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
             }
         }
     }
-
-    public void sendMessage(Channel channel, Message message) {
-        String packet = message.toJSON();
-        logger.log(Level.INFO, "Attempt to send packet: {0}", packet);
-        channel.write(new TextWebSocketFrame(packet));
-    }
-
-    public void sendPacket(Channel channel, Message message) {
-        String packet = new MessagePacket(message).toJSON();
-        //logger.log(Level.INFO, "Attempt to send packet: {0}", packet);
-        channel.write(new TextWebSocketFrame(packet));
-    }
-
-    public void sendPacket(Channel channel, LinkedList<Message> messages) {
-        String packet = new MessagePacket(messages).toJSON();
-        logger.log(Level.INFO, "Attempt to send packet: {0}", packet);
-        channel.write(new TextWebSocketFrame(packet));
+    
+    @Override
+    public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
+        gameServer.clientDisconnected(ctx.getChannel());
     }
 
     public void setGameServer(Server gameServer) {
@@ -189,9 +187,23 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
         return clone;
     }
 
-    public void sendConfirmMessage(Channel channel, long step, LinkedList<Message> messages) {
-        String packet = new ConfirmMessage(step, messages).toJSON();
-        logger.log(Level.INFO, "Attempt to send confirm: {0}", packet);
-        channel.write(new TextWebSocketFrame(packet));
+    public void sendConfirm(Client client, long step, LinkedList<Message> messages) {
+        if (!client.isDisconnected()) {
+            String packet = new ConfirmMessage(step, messages).toJSON();
+            logger.log(Level.INFO, "Attempt to send confirm: {0}", packet);
+            client.getChannel().write(new TextWebSocketFrame(packet));
+        } else {
+            logger.log(Level.WARNING, "Can't send message to disconnected client.");
+        }
+    }
+
+    public void sendMessage(Client client, Message message) {
+        if (!client.isDisconnected()) {
+            String packet = message.toJSON();
+            logger.log(Level.INFO, "Attempt to send packet: {0}", packet);
+            client.getChannel().write(new TextWebSocketFrame(packet));
+        } else {
+            logger.log(Level.WARNING, "Can't send message to disconnected client.");
+        }
     }
 }

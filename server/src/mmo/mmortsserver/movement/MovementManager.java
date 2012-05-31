@@ -18,7 +18,7 @@ public class MovementManager {
 
     private final LinkedList<Movement> movements = new LinkedList<>();
 
-    public void startMovement(long step, Map map, Unit unit, int j, int i) {
+    public Movement startMovement(long step, Map map, Unit unit, int j, int i) {
         for (Movement m : movements) {
             if (m.getUnit().equals(unit)) {
                 movements.remove(m);
@@ -28,9 +28,10 @@ public class MovementManager {
         Movement movement = createMovement(step, map, unit, j, i, 0.4f);
         if (movement == null) {
             logger.log(Level.SEVERE, "Cant create movement!");
-            return;
+            return null;
         }
         movements.add(movement);
+        return movement;
     }
 
     public void updatePositions(long step) {

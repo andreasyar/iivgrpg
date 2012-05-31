@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import mmo.mmortsserver.map.Map;
 import mmo.mmortsserver.messages.*;
+import mmo.mmortsserver.movement.Movement;
 import mmo.mmortsserver.movement.MovementManager;
 import mmo.mmortsserver.units.Unit;
 import mmo.mmortsserver.units.UnitManager;
@@ -74,6 +75,8 @@ public class Server {
                 Message action;
 
                 Iterator newClientsIterator;
+                
+                Movement movement;
 
                 if (!isAllClientsReported(step) && waitIterations < 5) {
                     logger.log(Level.INFO, "Wait for clients report for step {0}", step);
@@ -105,7 +108,7 @@ public class Server {
 
                             if (client.getLastConfirmedStep() == step) {
                                 // Клиент прислал два или более отчётов за один и тот же шаг? Тут явно что-то не так.
-                                messageManager.sendPacket(channel, messageManager.createErrorMessage("Dublicated state report."));
+                                messageManager.sendMessage(client, messageManager.createErrorMessage("Dublicated state report."));
                                 clientsToDisconnect.add(channel);
                                 continue;
                             }
@@ -113,7 +116,7 @@ public class Server {
                                 client.setLastConfirmedStep(step);
                                 addAllActionsRequests(client, stateReportMessage.getActions());
                             } else {
-                                messageManager.sendPacket(channel, messageManager.createErrorMessage(SimpleErrorService.getLastError()));
+                                messageManager.sendMessage(client, messageManager.createErrorMessage(SimpleErrorService.getLastError()));
                                 clientsToDisconnect.add(channel);
                             }
                         } else if (message instanceof LoginMessage) {
@@ -139,6 +142,25 @@ public class Server {
                     clientsToDisconnect.clear();
 
                     /*
+                     * Пройдём по всем клиентам и произведём отчистку отключившихся
+                     * клиентов.
+                     */
+                    //logger.log(Level.INFO, "Disconnect clients.");
+                    clientsIterator = clientChannelMaps.getClients().entrySet().iterator();
+                    while (clientsIterator.hasNext()) {
+                        pair = (Entry) clientsIterator.next();
+                        channel = (Channel) pair.getKey();
+                        client = (Client) pair.getValue();
+                        
+                        if (client.isDisconnected()) {
+                            cleanupClient(client);
+                            clientChannelMaps.getChannels().remove(client);
+                            clientChannelMaps.getClients().remove(channel);
+                            logger.log(Level.INFO, "Сlient disconnected.");
+                        }
+                    }
+
+                    /*
                      * Пройдём по запросам действий и выполним их.
                      */
                     //logger.log(Level.INFO, "Handle clients actions.");
@@ -150,8 +172,10 @@ public class Server {
 
                         if (action instanceof MoveMessage) {
                             moveMessage = (MoveMessage) action;
-                            movementManager.startMovement(step, map, unitManager.getById(moveMessage.getUnitId()), moveMessage.getJ(), moveMessage.getI());
-                            notifyAllOtherClients(client, action);
+                            movement = movementManager.startMovement(step, map, unitManager.getById(moveMessage.getUnitId()), moveMessage.getJ(), moveMessage.getI());
+                            if (movement != null) {
+                                notifyAllOtherClients(client, MessageManager.createMoveMessage(movement));
+                            }
                         }
 
                         actionRequestsIterator.remove();
@@ -188,10 +212,9 @@ public class Server {
                     clientsIterator = clientChannelMaps.getClients().entrySet().iterator();
                     while (clientsIterator.hasNext()) {
                         pair = (Entry) clientsIterator.next();
-                        channel = (Channel) pair.getKey();
                         client = (Client) pair.getValue();
 
-                        messageManager.sendConfirmMessage(channel, step, client.takeFromOutbox());
+                        messageManager.sendConfirm(client, step, client.takeFromOutbox());
                     }
 
                     /*
@@ -204,7 +227,7 @@ public class Server {
 
                         clientChannelMaps.getClients().put(client.getChannel(), client);
                         messageManager.sendMessage(
-                            client.getChannel(),
+                            client,
                             new WelcomeMessage(
                                 client.getId(),
                                 step,
@@ -215,165 +238,6 @@ public class Server {
 
                         newClientsIterator.remove();
                     }
-
-                    /*
-                     * 1. Проверка состояний.
-                     */
-
-                    /*
-                     * Пройдём по всем клиентам и проверим их состояния. Если
-                     * состояние какого-то клиента окажется неверным, то этот
-                     * клиент добавляется в список на отключение.
-                     */
-                    //logger.log(Level.INFO, "Check clietns state.");
-                    /*clientsIterator = clientChannelMaps.getClients().entrySet().iterator();
-                    while (clientsIterator.hasNext()) {
-                        pair = (Entry) clientsIterator.next();
-                        channel = (Channel) pair.getKey();
-                        client = (Client) pair.getValue();
-                        messages = client.getInbox();
-
-                        messagesIterator = messages.iterator();
-                        while (messagesIterator.hasNext()) {
-                            message = (Message) messagesIterator.next();
-                            if (message instanceof StateReportMessage) {
-                                stateReportMessage = (StateReportMessage) message;
-                                if (unitManager.isStateValid(stateReportMessage.getUnits())) {
-                                    client.getOutbox().add(new ConfirmMessage(step));
-                                    client.getRequestedActions().addAll(stateReportMessage.getActions());
-                                } else {
-                                    messageManager.sendPacket(
-                                        channel,
-                                        messageManager.createErrorMessage(SimpleErrorService.getLastError())
-                                    );
-                                    clientsToDisconnect.add(channel);
-                                    break;
-                                }
-                                messagesIterator.remove();
-                            }
-                        }
-                    }*/
-
-                    /*
-                     * Отключим от сервера клиентов с неверным состоянием.
-                     */
-                    //logger.log(Level.INFO, "Disconnect invalid clients.");
-                    /*for (Channel c : clientsToDisconnect) {
-                        cleanupClient(c);
-                        logger.log(Level.INFO, "Invalid client disconnected.");
-                    }
-                    clientsToDisconnect.clear();*/
-
-                    //
-                    // Обработка действий.
-                    //
-
-                    /*
-                     * Пройдём по всем клиентам и выполним все действия, которые
-                     * они запросили (из списка actions).
-                     */
-                    //logger.log(Level.INFO, "Handle clients actions.");
-                    /*clientsIterator = clients.entrySet().iterator();
-                    while (clientsIterator.hasNext()) {
-                        pair = (Entry) clientsIterator.next();
-                        channel = (Channel) pair.getKey();
-                        client = (Client) pair.getValue();
-                        actions = client.getRequestedActions();
-
-                        if (!channel.isWritable()) {
-                            logger.log(Level.INFO, "Channel not writible on step {0}", step);
-                            continue;
-                        }
-
-                        actionsIterator = actions.iterator();
-                        while (actionsIterator.hasNext()) {
-                            message = (Message) actionsIterator.next();
-                            if (message instanceof MoveMessage) {
-                                moveMessage = (MoveMessage) message;
-                                movementManager.startMovement(step, map, unitManager.getById(moveMessage.getUnitId()), moveMessage.getJ(), moveMessage.getI());
-                                messagesForAllClients.add(message);
-                            }
-                            actionsIterator.remove();
-                        }
-                    }*/
-
-                    /*
-                     * Уведомим клиентов о произошедших событиях.
-                     */
-                    /*messagesForAllClientsIterator = messagesForAllClients.iterator();
-                    while (messagesForAllClientsIterator.hasNext()) {
-                        message = (Message) messagesForAllClientsIterator.next();
-
-                        clientsIterator = clients.entrySet().iterator();
-                        while (clientsIterator.hasNext()) {
-                            pair = (Entry) clientsIterator.next();
-                            client = ((Client) pair.getValue());
-
-                            client.getOutbox().add(message);
-                        }
-                    }
-                    messagesForAllClients.clear();*/
-
-                    /*
-                     * Уведомим каждого клиента о новых юнитах.
-                     */
-                    /*clientsIterator = clients.entrySet().iterator();
-                    while (clientsIterator.hasNext()) {
-                        pair = (Entry) clientsIterator.next();
-                        client = ((Client) pair.getValue());
-
-                        missedUnits = unitManager.getMissedUnits(client.getUnits());
-                        client.getUnits().addAll(missedUnits);
-                        for (Unit unit : missedUnits) {
-                            client.getOutbox().add(messageManager.createNewUnitMessage(unit.getOwnerId(), unit.getId(), unit.getJ(), unit.getI()));
-                        }
-                    }*/
-
-                    /*
-                     * Уведомим каждого клиента о юнитах, которые больше не существуют.
-                     */
-                    /*clientsIterator = clients.entrySet().iterator();
-                    while (clientsIterator.hasNext()) {
-                        pair = (Entry) clientsIterator.next();
-                        client = ((Client) pair.getValue());
-                        excellUnits = unitManager.getExcessUnits(client.getUnits());
-                        client.getUnits().removeAll(excellUnits);
-                        client.getOutbox().addAll(messageManager.createDelUnitMessages(excellUnits));
-                    }*/
-
-                    /*
-                     * Обновим позиции игроков.
-                     */
-                    //logger.log(Level.INFO, "Update units positions.");
-                    //movementManager.updatePositions(step);
-
-                    //
-                    // Рассылка сообщений.
-                    //
-
-                    /*
-                     * Пройдём по всем клиентам и отправим им всем уведомления
-                     * о действиях других клиентов и другие исходящие (outbox)
-                     * сообщения. Для этого все сообщения из actions сперва
-                     * перемещаются в outbox, а затем все сообщения из outbox
-                     * отправляются клиенту.
-                     */
-                    //logger.log(Level.INFO, "Send messages.");
-                    /*clientsIterator = clients.entrySet().iterator();
-                    while (clientsIterator.hasNext()) {
-                        pair = (Entry) clientsIterator.next();
-                        channel = (Channel) pair.getKey();
-                        client = (Client) pair.getValue();
-                        messages = client.getOutbox();
-
-                        if (!channel.isWritable()) {
-                            logger.log(Level.INFO, "Channel not writible on step {0}", step);
-                            continue;
-                        }
-
-                        messageManager.sendPacket(channel, messages);
-                        messages.clear();
-                    }*/
 
                     step++;
 
@@ -398,6 +262,14 @@ public class Server {
             client.getOutbox().add(MessageManager.createStateReportMessage(step, client.getUnits(), client.getRequestedActions()));
             logger.log(Level.INFO, "Client id:{0},channel:{1} connected.", new Object[] { client.getId(), channel.toString() });
         }*/
+    }
+    
+    public void clientDisconnected(Channel channel) {
+       /*
+        * Здесь мы не заходим в блок синхронизации, потому что должны
+        * немедленно пометить клиента как отключившегося.
+        */
+        clientChannelMaps.getClients().get(channel).setDisconnected(true);
     }
 
     public MessageManager getMessageManager() {
@@ -444,6 +316,25 @@ public class Server {
     }
 
     /**
+     * Добавляет уведомления о действиях в исходящие сообщения всем клиентам кроме client.
+     * @param client клиент
+     * @param actions уведомления
+     */
+    private void notifyAllOtherClients(Client client, LinkedList<Message> actions) {
+        Entry pair;
+        Client curClient;
+
+        Iterator i = clientChannelMaps.getClients().entrySet().iterator();
+        while (i.hasNext()) {
+            pair = (Entry) i.next();
+            curClient = (Client) pair.getValue();
+            if (!curClient.equals(client)) {
+                curClient.addAllToOubox(actions);
+            }
+        }
+    }
+
+    /**
      * Добавляет все запросы действий в список запросов действий клиентов.
      * @param client клиент, от которого исходят запросы действий.
      * @param requests запросы действий.
@@ -467,7 +358,7 @@ public class Server {
             while (i.hasNext()) {
                 pair = (Entry) i.next();
                 client = (Client) pair.getValue();
-                if (client.getLastReportedStep() != step) {
+                if (!client.isDisconnected() && client.getLastReportedStep() != step) {
                     return false;
                 }
             }
@@ -502,10 +393,16 @@ public class Server {
      * Очистка, которая производится при удалении клиента.
      */
     private void cleanupClient(Client client) {
-        unitManager.removeUnitsByOwnerId(client.getId());
-        // TODO Уведомление других клиентов об удалении юнитов.
+        LinkedList<Unit> removedClients = unitManager.removeUnitsByOwnerId(client.getId());
+        notifyAllOtherClients(
+            client,
+            MessageManager.createAllDelUnitMessage(removedClients)
+        );
     }
     
+    /**
+     * Проверяет, существует ли клиент.
+     */
     public boolean isClientExists(Channel channel) {
         synchronized (clientChannelMaps) {
             return clientChannelMaps.getClients().containsKey(channel);

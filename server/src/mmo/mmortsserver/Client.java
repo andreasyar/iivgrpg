@@ -15,7 +15,7 @@ import org.jboss.netty.channel.Channel;
  * @author Sorc
  */
 
-class Client {
+public class Client {
     private static final Logger logger = Logger.getLogger(Client.class.getName());
     
     private long Id;
@@ -37,6 +37,11 @@ class Client {
      * Канал связи с клиентом.
      */
     private final Channel channel;
+    
+    /**
+     * Пометка клиента как отключенного от сервера.
+     */
+    private boolean disconnected;
 
     Client() {
         this.Id = IdGenerator.generateId();
@@ -100,5 +105,13 @@ class Client {
 
     public Channel getChannel() {
         return channel;
+    }
+
+    public boolean isDisconnected() {
+        return disconnected;
+    }
+
+    public void setDisconnected(boolean disconnected) {
+        this.disconnected = disconnected;
     }
 }

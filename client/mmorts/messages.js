@@ -224,14 +224,8 @@ var MESSAGE_HANDLERS = {
         step  = msg[2];
         
         for (var i in msg[3]) {
-            switch (msg[3][i][0]) {
-                case "NEWUNIT":
-                    MESSAGE_HANDLERS["NEWUNIT"](msg[3][i]);
-                    break;
-            }
+            MESSAGE_HANDLERS[msg[3][i][0]](msg[3][i]);
         }
-        
-        // Пока не парсим действия.
         
         setTimeout("drawLoop();", 1000 / FPS);
         setTimeout("syncLoop();", 100);
@@ -242,9 +236,11 @@ var MESSAGE_HANDLERS = {
         hideLoginForm();
     },
     "CONFIRM": function (msg) {
-        // ["CONFIRM", step]
-        
         if (step == msg[1]) {
+            for (var i in msg[2]) {
+                MESSAGE_HANDLERS[msg[2][i][0]](msg[2][i]);
+            }
+            
             awaiting_confirm = false;
             setTimeout("syncLoop();", 0);
         } else {
@@ -311,11 +307,11 @@ var MESSAGE_HANDLERS = {
         delUnitById(msg[1]);
     },
     "MOVE": function (msg) {
-        // ["MOVE",{"unitId":14,"j":6,"i":9}]
+        // Example: ["MOVE",{"begStep":237,"unitId":5,"j":13,"i":10}]
 
         var move_message = msg[1];
 
-        movementManager.startMovement(step + 1, getUnitById(move_message.unitId), move_message.j, move_message.i);
+        movementManager.startMovement(move_message.begStep, getUnitById(move_message.unitId), move_message.j, move_message.i);
     }
 }
 

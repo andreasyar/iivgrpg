@@ -71,17 +71,22 @@ public class UnitManager {
         }
     }
 
-    public void removeUnitsByOwnerId(long ownerId) {
+    public LinkedList<Unit> removeUnitsByOwnerId(long ownerId) {
+        LinkedList<Unit> removedUnits = new LinkedList<>();
+        
         synchronized (allUnits) {
             Iterator i = allUnits.iterator();
             Unit u;
             while (i.hasNext()) {
                 u = (Unit) i.next();
                 if (u.getOwnerId() == ownerId) {
+                    removedUnits.add(u);
                     i.remove();
                 }
             }
         }
+        
+        return removedUnits;
     }
 
     public Unit getById(Long unitId) {

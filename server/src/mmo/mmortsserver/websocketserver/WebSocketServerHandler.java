@@ -1,6 +1,8 @@
 package mmo.mmortsserver.websocketserver;
 
-import mmo.mmortsserver.Server;
+import java.nio.channels.ClosedChannelException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
@@ -16,6 +18,7 @@ import org.jboss.netty.handler.codec.http.websocketx.*;
 import org.jboss.netty.util.CharsetUtil;
 
 class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
+    private static final Logger logger = Logger.getLogger(WebSocketServerHandler.class.getName());
     private static final String WEBSOCKET_PATH = "/";
 
     private WebSocketServerHandshaker handshaker;
@@ -57,6 +60,10 @@ class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
+        if (e.getCause() instanceof ClosedChannelException) {
+            logger.log(Level.WARNING, "Probably attempt to write to closed channel.");
+            return;
+        }
         e.getCause().printStackTrace();
         e.getChannel().close();
     }
