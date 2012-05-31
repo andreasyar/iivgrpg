@@ -133,7 +133,7 @@ public class Server {
                         cleanupClient(client);
                         clientChannelMaps.getChannels().remove(client);
                         clientChannelMaps.getClients().remove(c);
-                        client.getChannel().close();    // TODO Наверное это надо сделать где-то в другом месте.
+                        //client.getChannel().close();    // TODO Наверное это надо сделать где-то в другом месте.
                         logger.log(Level.INFO, "Invalid client disconnected.");
                     }
                     clientsToDisconnect.clear();
@@ -492,7 +492,7 @@ public class Server {
                 if (client.getLastReportedStep() != step) {
                     i.remove();
                     cleanupClient(client);
-                    client.getChannel().close();    // TODO Наверное это надо сделать где-то в другом месте.
+                    //client.getChannel().close();    // TODO Наверное это надо сделать где-то в другом месте.
                 }
             }
         }
@@ -504,6 +504,12 @@ public class Server {
     private void cleanupClient(Client client) {
         unitManager.removeUnitsByOwnerId(client.getId());
         // TODO Уведомление других клиентов об удалении юнитов.
+    }
+    
+    public boolean isClientExists(Channel channel) {
+        synchronized (clientChannelMaps) {
+            return clientChannelMaps.getClients().containsKey(channel);
+        }
     }
 
     /**

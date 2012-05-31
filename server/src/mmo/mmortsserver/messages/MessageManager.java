@@ -67,6 +67,10 @@ public class MessageManager extends SimpleChannelUpstreamHandler {
                     }
                     break;
                 case "STATE":
+                    if (!gameServer.isClientExists(ctx.getChannel())) {
+                        break;
+                    }
+                    
                     long step = Long.parseLong(gson.fromJson(messageFields.get(1), String.class));
                     JsonArray units = messageFields.get(2).getAsJsonArray();
                     JsonArray actions = messageFields.get(3).getAsJsonArray();

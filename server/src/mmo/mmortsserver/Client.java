@@ -3,6 +3,8 @@ package mmo.mmortsserver;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import mmo.mmortsserver.messages.Message;
 import mmo.mmortsserver.messages.StateReportMessage;
 import mmo.mmortsserver.units.Unit;
@@ -14,8 +16,9 @@ import org.jboss.netty.channel.Channel;
  */
 
 class Client {
+    private static final Logger logger = Logger.getLogger(Client.class.getName());
+    
     private long Id;
-    private final LinkedList<Message> inbox = new LinkedList<>();
     private final LinkedList<Message> outbox = new LinkedList<>();
     private final LinkedList<Unit> units = new LinkedList<>();
     private final LinkedList<Message> requestedActions = new LinkedList<>();
@@ -49,10 +52,6 @@ class Client {
         return Id;
     }
 
-    LinkedList<Message> getInbox() {
-        return inbox;
-    }
-
     LinkedList<Message> getOutbox() {
         return outbox;
     }
@@ -65,36 +64,12 @@ class Client {
         return requestedActions;
     }
 
-    boolean isStateReported(long step) {
-
-        // Для вновь подключенных клиентов, которые ещё не были инициализированы.
-        if (getOutbox().size() != 0) {
-            return true;
-        }
-
-        Message message;
-        Iterator i = inbox.iterator();
-        boolean found = false;
-
-        while (i.hasNext()) {
-            message = (Message) i.next();
-            if (message instanceof StateReportMessage) {
-                if (((StateReportMessage) message).getStep() == step) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-
-        return found;
-    }
-
     void addToOubox(Message m) {
-        inbox.add(m);
+        outbox.add(m);
     }
 
     void addAllToOubox(Collection<Message> m) {
-        inbox.addAll(m);
+        outbox.addAll(m);
     }
 
     LinkedList<Message> getFromOutbox() {

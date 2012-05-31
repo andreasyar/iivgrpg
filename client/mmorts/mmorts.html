@@ -264,7 +264,6 @@ function syncLoop() {
     if (awaiting_confirm) {
         return;
     }
-    step++;
     var i;
     
     for (i in stored_actions) {
@@ -275,6 +274,9 @@ function syncLoop() {
                 break;
         }
     }
+    
+    step++;
+    
     movementManager.updatePositions(step);
 
     var unitMessages = new Array();
