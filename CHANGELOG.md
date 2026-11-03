@@ -17,6 +17,9 @@
   подготовка `.env`, точек монтирования и прав существующих volumes через `dev/setup.sh`.
 - Кэши npm/Maven перенесены из `/root` в `/home/developer`, сокет MariaDB — в tmpfs
   с владельцем пользователя хоста.
+- Удалены клиент MMORTS (`client/mmorts/`, `flash-client`), сервер MMORTS
+  (`ServerLauncher`, `mmortsserver`), локальные копии Maven-зависимостей,
+  устаревшие тестовые страницы и `JavaTestServer`.
 
 ## 2.2.0 — 2026-11-03
 

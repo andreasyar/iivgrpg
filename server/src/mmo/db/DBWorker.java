@@ -16,19 +16,6 @@ public class DBWorker {
     private String user;
     private String password;
 
-    public DBWorker(String host, String port, String database, String user, String password) {
-        this.host = host;
-        this.port = port;
-        this.database = database;
-        this.user = user;
-        this.password = password;
-    }
-
-    /**
-     * Этот конструктор только MMORPG сервера.
-     * @deprecated Этот конструктор только для обратной совместимости, чтобы
-     * работал старый MMORTS сервер.
-     */
     public DBWorker(XMLConfig xmlconfig) {
         String DEFAULT_SERVER = "localhost";
         String DEFAULT_PORT = "8015";
