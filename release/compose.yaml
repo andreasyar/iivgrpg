@@ -1,0 +1,50 @@
+name: iivgrpg-release
+x-project-version: 2.3.0
+services:
+  web:
+    build:
+      context: .
+      dockerfile: web.Dockerfile
+    ports:
+      - '${BIND_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8081}:80'
+    volumes:
+      - ./sprites:/usr/share/nginx/html/sprites:ro,z
+    depends_on:
+      - server
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1/healthz']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  server:
+    build:
+      context: .
+      dockerfile: server.Dockerfile
+    init: true
+    volumes:
+      - ./config/server.xml:/app/config.xml:ro,z
+      - server_logs:/run/iivgrpg
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: iivgrpg
+      MARIADB_USER: iivgrpg
+      MARIADB_PASSWORD: iivgrpg
+      MARIADB_ROOT_PASSWORD: iivgrpg-root
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    volumes:
+      - database:/var/lib/mysql
+    restart: unless-stopped
+volumes:
+  server_logs:
+  database:

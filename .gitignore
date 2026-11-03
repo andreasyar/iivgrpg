@@ -41,3 +41,6 @@ __pycache__/
 # Локальные UID/GID и точки монтирования контейнеров
 /.env
 /client/cache/
+/release/dist/
+/release/sprites/
+
