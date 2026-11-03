@@ -1,5 +1,4 @@
 # Materials excluded from publication
-/client/**/*.png
 /client/**/*.jpg
 /client/**/*.jpeg
 /client/**/*.gif

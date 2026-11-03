@@ -121,10 +121,9 @@ docker compose down
 
 ## Ресурсы и история
 
-Локальные PNG не публикуются в Git. Для тестового мира нужны в `client/`:
-`grass.png`, `player.png`, `path.png`, `path_end.png`, `tree.png`, `flower.png`,
-`pyramid1.png`–`pyramid4.png`. Сборка включает локальные изображения, если они есть;
-для полноценной отрисовки эти ресурсы должны присутствовать.
+Спрайты тестового мира версии 1 лежат в `client/` и входят в репозиторий:
+`grass.png`, `grass2.png`, `player.png`, `path.png`, `path_end.png`, `tree.png`,
+`flower.png`, `pyramid1.png`–`pyramid4.png`.
 
 Проект содержит последовательность 129 ревизий Google Code SVN за 2011–2012 годы
 и последующие изменения инфраструктуры. Исходное имя — `iivgprg`.
