@@ -1,0 +1,77 @@
+{
+  "branch": "historical/netbeans-server",
+  "description": "Ранняя сборка сервера Ant/NetBeans и вариант кэша карт.",
+  "source_tree": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver",
+  "nearest_svn_revision": null,
+  "nearest_revision_is_estimate": true,
+  "files": [
+    {
+      "path": "server/build.xml",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/build.xml",
+      "sha256": "1e8c3183f07f2fa351b1a9039e5bb3168331b3d69dbf9a62e05de75d5239e36f",
+      "source_mtime": "2011-08-12T08:30:00+00:00"
+    },
+    {
+      "path": "client/cahce/groundtiles.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/client/cahce/groundtiles.js",
+      "sha256": "68f8658e5e7be1b6c3b0d168e118a54782a2d1eeca28bd3ddfda6d560d5eadf2",
+      "source_mtime": "2011-08-25T04:50:00+00:00"
+    },
+    {
+      "path": "client/cahce/map_1.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/client/cahce/map_1.js",
+      "sha256": "011aa9452a440908b4f5e355f3a5da1a1452c99f465236f7f07957319308b9ed",
+      "source_mtime": "2011-08-25T04:50:00+00:00"
+    },
+    {
+      "path": "client/cahce/map_2.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/client/cahce/map_2.js",
+      "sha256": "35e0ed73082b396f531d8e9fc777a3ff65c485a53be74c82599b34d5f9f495e3",
+      "source_mtime": "2011-08-25T04:50:00+00:00"
+    },
+    {
+      "path": "client/cahce/objects.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/client/cahce/objects.js",
+      "sha256": "b829e32ccee2ba2b005499168f981d55e0fd6a415917fe0f3584ad76cd0893ab",
+      "source_mtime": "2011-08-25T04:50:00+00:00"
+    },
+    {
+      "path": "server/manifest.mf",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/manifest.mf",
+      "sha256": "aba13eb4e4d2c16f718c4db49e8fd5812a0064e0b12c52e147979240abd019a0",
+      "source_mtime": "2011-08-12T08:30:00+00:00"
+    },
+    {
+      "path": "server/nbproject/build-impl.xml",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/nbproject/build-impl.xml",
+      "sha256": "f2fe8169cf684f50e6ba541b669c8e21e719ea99fdc7d0eb9e8e06f5911ded90",
+      "source_mtime": "2011-08-12T08:30:00+00:00"
+    },
+    {
+      "path": "server/nbproject/genfiles.properties",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/nbproject/genfiles.properties",
+      "sha256": "0316e7a02425d75ca1cebf5ba4af7cd5b8ba7b562e273245af7c7196b1d72a9e",
+      "source_mtime": "2011-08-12T08:30:00+00:00"
+    },
+    {
+      "path": "server/nbproject/project.properties",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/nbproject/project.properties",
+      "sha256": "376f5b86e9f8033fa161ed274093311d31339de69fe01a4726ee639c5b8aff9c",
+      "source_mtime": "2011-08-17T03:45:00+00:00"
+    },
+    {
+      "path": "server/nbproject/project.xml",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/nbproject/project.xml",
+      "sha256": "9eb9404afebd7242c0c282d0400581781c6b2a3991b377dfff9a6a02e57fdaca",
+      "source_mtime": "2011-08-12T08:30:00+00:00"
+    },
+    {
+      "path": "server/server.xml",
+      "source": "archive-snapshots/src/old/NetBeansProjects/iivgrpgserver/server.xml",
+      "sha256": "820e69042e9265adedeecdb10a6506372bcfd25ff2d5b482c4f9ac63734d0e72",
+      "source_mtime": "2011-09-05T03:08:00+00:00"
+    }
+  ],
+  "date_policy": "Commit date is migration date, original working-copy commit date and author are unknown. File mtimes are provenance only.",
+  "layout": "Orphan branch containing ONLY novel files; missing files do not mean historical deletions."
+}
