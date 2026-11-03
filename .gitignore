@@ -18,7 +18,11 @@
 # Working copies, generated files and local settings
 .svn/
 .svn-*/
-**/nbproject/private/
+**/nbproject/
+**/.project
+**/.classpath
+**/.settings/
+/server/bin/
 **/build/
 **/dist/
 *.class
