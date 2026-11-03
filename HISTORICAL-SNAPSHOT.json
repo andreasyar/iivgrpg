@@ -1,0 +1,47 @@
+{
+  "branch": "historical/netbeans-server-later",
+  "description": "Другой вариант сборки сервера NetBeans.",
+  "source_tree": "archive-snapshots/src/legacy-snapshots/GAMES-AND-KOTOBA/iivgrpg-server",
+  "nearest_svn_revision": 129,
+  "nearest_revision_is_estimate": true,
+  "files": [
+    {
+      "path": "server/build.xml",
+      "source": "archive-snapshots/src/legacy-snapshots/GAMES-AND-KOTOBA/iivgrpg-server/build.xml",
+      "sha256": "9d85c07464144d186adfc54d88f785d56267dfaa2072e7418893b1332c8af2fd",
+      "source_mtime": "2012-05-28T06:03:33+00:00"
+    },
+    {
+      "path": "server/nbproject/build-impl.xml",
+      "source": "archive-snapshots/src/legacy-snapshots/GAMES-AND-KOTOBA/iivgrpg-server/nbproject/build-impl.xml",
+      "sha256": "e8ace8f21361b12d191baa48c0d33f53dd382279abe10ac5782349975b34886c",
+      "source_mtime": "2012-05-28T06:03:33+00:00"
+    },
+    {
+      "path": "server/nbproject/genfiles.properties",
+      "source": "archive-snapshots/src/legacy-snapshots/GAMES-AND-KOTOBA/iivgrpg-server/nbproject/genfiles.properties",
+      "sha256": "b1f5a2d2dd9b58393b751bfa88668875f929c8faefb4fd350dfe6b6624b998a1",
+      "source_mtime": "2012-05-28T06:03:33+00:00"
+    },
+    {
+      "path": "server/nbproject/project.properties",
+      "source": "archive-snapshots/src/legacy-snapshots/GAMES-AND-KOTOBA/iivgrpg-server/nbproject/project.properties",
+      "sha256": "66597f6a63ed467f1b4813be7de2de0f7d4d2d7cf87fc49d880f4b2a961a16f0",
+      "source_mtime": "2012-05-31T10:14:58+00:00"
+    },
+    {
+      "path": "server/nbproject/project.xml",
+      "source": "archive-snapshots/src/legacy-snapshots/GAMES-AND-KOTOBA/iivgrpg-server/nbproject/project.xml",
+      "sha256": "5b13adf20646b0882ceafa3e12d12f2788b64ce470028932075850b39a0df93b",
+      "source_mtime": "2012-05-28T06:03:32+00:00"
+    },
+    {
+      "path": "server/server.xml",
+      "source": "archive-snapshots/src/legacy-snapshots/GAMES-AND-KOTOBA/iivgrpg-server/server.xml",
+      "sha256": "e501225caf67e71f7ea92d80404f6e4913e5e09dcb8e46af1a1c97c134668636",
+      "source_mtime": "2012-05-16T09:55:25+00:00"
+    }
+  ],
+  "date_policy": "Commit date is migration date, original working-copy commit date and author are unknown. File mtimes are provenance only.",
+  "layout": "Orphan branch containing ONLY novel files; missing files do not mean historical deletions."
+}
