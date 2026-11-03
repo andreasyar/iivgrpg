@@ -27,3 +27,6 @@ __pycache__/
 /.agents/
 /.aws/
 /.codex/
+
+# Local historical resources and database backups
+/.local-archive/
