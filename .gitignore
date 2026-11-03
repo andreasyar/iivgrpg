@@ -1,0 +1,29 @@
+# Materials excluded from publication
+/client/**/*.png
+/client/**/*.jpg
+/client/**/*.jpeg
+/client/**/*.gif
+/client/**/*.bmp
+/client/**/*.ico
+/client/**/*.swf
+/server/webapp/imgs/
+*.sql
+*.sql.*
+*.sqlite
+*.sqlite3
+*.db
+*.svndump
+*.svndump.*
+*.zip
+# Working copies, generated files and local settings
+.svn/
+.svn-*/
+**/nbproject/private/
+**/build/
+**/dist/
+*.class
+*.netbeans-base
+__pycache__/
+/.agents/
+/.aws/
+/.codex/

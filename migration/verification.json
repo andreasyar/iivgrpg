@@ -1,0 +1,14 @@
+{
+  "scope": "Imported history before the documentation commit",
+  "svn_commits_verified": 129,
+  "orphan_branches_verified": 5,
+  "local_trees_verified": 11,
+  "metadata_source_files_checked": 695,
+  "git_blobs_scanned": 2724,
+  "jar_blobs_scanned": 10,
+  "official_final_snapshot_matches": true,
+  "dates_authors_messages_trees_match": true,
+  "no_svn_tags": true,
+  "no_excluded_blobs": true,
+  "git_fsck": "passed"
+}
