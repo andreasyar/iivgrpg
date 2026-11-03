@@ -30,7 +30,7 @@ public class ServerLauncher {
         // Read config.
         
         try {
-            config = new ServerConfig("config-home.xml");
+            config = new ServerConfig(args.length > 0 ? args[0] : "config-home.xml");
         } catch (ParserConfigurationException | SAXException | IOException ex) {
             logger.log(Level.SEVERE, null, ex);
             return;

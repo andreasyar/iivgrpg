@@ -1,0 +1,6 @@
+**
+!dev/
+!dev/client/
+!dev/client/Dockerfile
+!dev/server/
+!dev/server/Dockerfile

@@ -23,6 +23,9 @@
 **/.classpath
 **/.settings/
 /server/bin/
+/server/target/
+/server/config-home.xml
+**/node_modules/
 **/build/
 **/dist/
 *.class

@@ -232,7 +232,7 @@ var MESSAGE_HANDLERS = {
         scr.addEventListener("mousedown", scrOnMousedown, false);
         scr.addEventListener("mouseup", scrOnMouseup, false);
         camera = new Camera();
-        map = new Map(100, 100);
+        map = new GameMap(100, 100);
         hideLoginForm();
     },
     "CONFIRM": function (msg) {
@@ -257,7 +257,7 @@ var MESSAGE_HANDLERS = {
             scr.addEventListener("mousedown", scrOnMousedown, false);
             scr.addEventListener("mouseup", scrOnMouseup, false);
             camera = new Camera();
-            map = new Map(100, 100);
+            map = new GameMap(100, 100);
         }
         self_units_list = new Array();
         units_list = new Array();

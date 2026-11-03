@@ -25,7 +25,7 @@ function Unit(ownerId, id, j, i) {
         return this.i;
     }
     this.draw = function(context, camera) {
-        var tAxis = camera.translateAxis(Map.getCellXOnMap(this.j), Map.getCellYOnMap(this.i));
+        var tAxis = camera.translateAxis(GameMap.getCellXOnMap(this.j), GameMap.getCellYOnMap(this.i));
         var sprite;
         if (this.selected) {
             sprite = this.sloader.getSpriteByName("peasant_selected");

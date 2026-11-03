@@ -232,7 +232,7 @@ function scrOnMouseup(e) {
         selection_rect = null;
     } else if (e.button == 2) {
         var tAxis = camera.reTranslateAxis(x, y);
-        var neighbourCells = new Array({j: Map.getCellJOnMap(tAxis.x), i: Map.getCellIOnMap(tAxis.y)});
+        var neighbourCells = new Array({j: GameMap.getCellJOnMap(tAxis.x), i: GameMap.getCellIOnMap(tAxis.y)});
         while (neighbourCells.length < selected_units.length && neighbourCells.length < map.w * map.h) {
             neighbourCells = getNeighboursCells(neighbourCells);
         }
@@ -305,9 +305,12 @@ Server: <input type="text" id="host" value="ws://localhost:8015/"><br>
 </div>
 
 <script type="text/javascript">
-//map = new Map(100, 100);
+//map = new GameMap(100, 100);
 //new Movement(null, 0, 0, 0.4, getPath(new Cell(5, 5, 0, 0, null), new Cell(8, 11, 0, 0, null)), 0);
 //console.log(gCollection);
+// Используем прокси текущего веб-сервера для соединения с игровым сервером.
+document.getElementById('host').value =
+    (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/';
 showLoginForm();
     
 document.onkeydown = function(event) {
