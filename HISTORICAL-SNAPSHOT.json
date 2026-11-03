@@ -1,0 +1,47 @@
+{
+  "branch": "historical/map-events",
+  "description": "Локальные события клеток и эксперимент перехода между картами.",
+  "source_tree": "archive-snapshots/src/old/src/iivgrpg",
+  "nearest_svn_revision": 110,
+  "nearest_revision_is_estimate": true,
+  "files": [
+    {
+      "path": "client/Player.js",
+      "source": "archive-snapshots/src/old/src/iivgrpg/client/Player.js",
+      "sha256": "cc1a09b375d8df5c622f92bc2e45287609df737bdcdf46f495037b164a4cc389",
+      "source_mtime": "2011-09-20T08:32:00+00:00"
+    },
+    {
+      "path": "client/cache/map_1.js",
+      "source": "archive-snapshots/src/old/src/iivgrpg/client/cache/map_1.js",
+      "sha256": "2b20c96199d8e1a4e30f00cac41e35761f0af3ecb87995a6758d6806dca383f7",
+      "source_mtime": "2011-09-14T04:02:00+00:00"
+    },
+    {
+      "path": "client/cache/objects.js",
+      "source": "archive-snapshots/src/old/src/iivgrpg/client/cache/objects.js",
+      "sha256": "41648b59ed3dc5cfc42d5aa4062c1bb01a0070f38e04717b12b8edca82165379",
+      "source_mtime": "2011-09-14T04:02:00+00:00"
+    },
+    {
+      "path": "client/revision_notes.txt",
+      "source": "archive-snapshots/src/old/src/iivgrpg/client/revision_notes.txt",
+      "sha256": "99b375484adfb801ed3a74c669355ad4bcf4c74c4543ed3ad074e3f87ec1d673",
+      "source_mtime": "2011-09-13T09:53:00+00:00"
+    },
+    {
+      "path": "client/routines.js",
+      "source": "archive-snapshots/src/old/src/iivgrpg/client/routines.js",
+      "sha256": "85ca0ecc0e58b709d191c296d01b92268f1407b76c51a56d5f7acc07b463baa9",
+      "source_mtime": "2011-09-14T05:09:00+00:00"
+    },
+    {
+      "path": "client/test_001.html",
+      "source": "archive-snapshots/src/old/src/iivgrpg/client/test_001.html",
+      "sha256": "6e1a549829f51c6bacceb77a00a9842acd78ab3b5ee7f05a0a54f4009a9ab748",
+      "source_mtime": "2011-09-14T04:40:00+00:00"
+    }
+  ],
+  "date_policy": "Commit date is migration date, original working-copy commit date and author are unknown. File mtimes are provenance only.",
+  "layout": "Orphan branch containing ONLY novel files; missing files do not mean historical deletions."
+}

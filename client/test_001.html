@@ -1,0 +1,267 @@
+<!DOCTYPE HTML>
+<!-- Supermarket Software Foundation (c) -->
+<html>
+<head>
+<title>Test</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css" >
+#scr {
+    border: 1px solid #000000;
+}
+#login_form {
+    background-color: tan;
+    z-index: 1;
+    position: absolute;
+    top: 300px;
+    left: 300px;
+    visibility: hidden;
+}
+#chat {
+    background-color: tan;
+    z-index: 2;
+    position: absolute;
+    top: 300px;
+    left: 300px;
+    visibility: hidden;
+}
+#chat_field {
+    width: 300px;
+    height: 200px;
+}
+#chat_input {
+    width: 300px;
+}
+#chat_bar_common {
+    cursor: pointer;
+}
+#chat_bar_private {
+    cursor: pointer;
+}
+</style>
+<script type="text/javascript" src="Constants.js"></script>
+<script type="text/javascript" src="routines.js"></script>
+<script type="text/javascript" src="resources.js"></script>
+<script type="text/javascript" src="TimeSync.js"></script>
+<script type="text/javascript" src="IdGenerator.js"></script>
+<script type="text/javascript" src="map.js"></script>
+<script type="text/javascript" src="spriteLoader.js"></script>
+<script type="text/javascript" src="Player.js"></script>
+<script type="text/javascript" src="ServerInteraction.js"></script>
+<script type="text/javascript" src="Messages.js"></script>
+<script type="text/javascript" src="Camera.js"></script>
+<script type="text/javascript" src="Time.js"></script>
+</head>
+<body onunload="logout();return false;">
+<script type="text/javascript">
+
+window.name = 'Durr'
+
+/*********************
+ * Создание холстов. *
+ *********************/
+
+// Основной холст, который будет показан клиенту.
+
+var scr = document.createElement('canvas');
+scr.id = "scr";
+scr.width = SCR_W;
+scr.height = SCR_H;
+// Добавление обработчика щелчка мышью происходит в init().
+var body = document.getElementsByTagName('body')[0];
+body.appendChild(scr);
+
+// Холст для рисования карты.
+
+var map_buffer = document.createElement('canvas');
+map_buffer.width = SCR_W;
+map_buffer.height = SCR_H;
+
+// Холст для рисования игроков.
+
+var players_buffer = document.createElement('canvas');
+players_buffer.width = SCR_W;
+players_buffer.height = SCR_H;
+
+/*************************
+ * Служебные переменные. *
+ *************************/
+
+// Свой игрок.
+var self_player
+
+// Список игроков.
+var players_list = new Array()
+
+// Список NPC.
+var npc_list = new Array()
+
+/**
+ * Загруженные карты.
+ */
+var maps = {}
+
+// Сервер.
+var server
+
+// Сообщения общего чата.
+var common_chat = new Array()
+
+// Сообщения приватного чата.
+var private_chat = new Array()
+
+// Тип чата, отображающегося в окне чата.
+var cur_chat_type = 1
+
+// Камера. "Показывает" место, которое будет нарисовано на основном холсте.
+var camera
+
+/************
+ * Функции. *
+ ************/
+
+function login() {
+    if (server == undefined) {
+        server = new ServerInteraction()
+        server.connect(document.getElementById('server_fild').value)
+    } else if (server.socket.readyState == WebSocket.OPEN) {
+        server.sendMessage(new LoginMessage(getLogin(), getPassword()))
+    } else {
+        server.connect(document.getElementById('server_fild').value)
+    }
+    return false
+}
+
+function logout() {
+    if (server != undefined && server.socket != null) {
+        server.sendMessage(new LogoutMessage())
+        server.socket.close()
+    }
+}
+
+/**
+ * Главный цикл игры.
+ */
+function mainLoop() {
+    var scr_context = scr.getContext('2d')
+    var players_context = players_buffer.getContext('2d')
+    var map_context = map_buffer.getContext('2d')
+    
+    // Фон.
+    scr_context.fillStyle = "#FFFFEE"
+    scr_context.fillRect(0, 0, SCR_W, SCR_H)
+
+    // Пока что будем очищать весь холст целиком, а не только область, в которой
+    // было что-то нарисовано.
+    players_context.clearRect(0, 0, players_buffer.width,
+                              players_buffer.height)
+    map_context.clearRect(0, 0, map_buffer.width, map_buffer.height)
+
+    // Нарисуем карту и своего игрока с буфер.
+    maps[self_player.mapId].draw(map_context)
+    self_player.draw(players_context)
+    
+    // Нарисуем в буфер остальных игроков.
+    for (var i in players_list) {
+        players_list[i].draw(players_context)
+    }
+
+    // Нарисуем карту и игроков на основном холсте.
+    scr_context.drawImage(map_buffer, 0, 0)
+    scr_context.drawImage(players_buffer, 0, 0)
+
+    setTimeout("mainLoop();", 1000 / FPS)
+}
+
+/**
+ * Обработчик щелчка мыли на главном холсте.
+ */
+function scrOnClick(e) {
+    var x;
+    var y;
+    if (e.pageX != undefined && e.pageY != undefined) {
+        x = e.pageX;
+        y = e.pageY;
+    }
+    else {
+        x = e.clientX + document.body.scrollLeft
+            + document.documentElement.scrollLeft;
+        y = e.clientY + document.body.scrollTop
+            + document.documentElement.scrollTop;
+    }
+    x -= scr.offsetLeft;
+    y -= scr.offsetTop;
+
+    // Вычислим клетку в которой был щелчёк и переместим туда игрока с
+    // случайной скоростью.
+    var tAxis = camera.reTranslateAxis(x, y)
+    var j = Map.getCellJOnMap(tAxis.x)
+    var i = Map.getCellIOnMap(tAxis.y)
+    if (j != self_player.j || i != self_player.i) {
+        server.sendMessage(new MoveToMessage(j, i))
+    } else {
+        console.log("Вы уже находитесь в этой клетой.")
+    }
+}
+
+</script>
+
+<!-- Форма логина. -->
+<div id="login_form">
+Login: <input type="text" id="login_fild"><br>
+Password: <input type="text" id="password_fild"><br>
+Server: <input type="server_fild" id="server_fild"
+               value="ws://localhost:8015/ws"><br>
+<input type="button" id="login_button" value="Login"
+       onclick="login(); return false;">
+</div>
+
+<!-- Чат. -->
+<div id="chat">
+<ul id="chat_bar">
+<li><span id="chat_bar_private" onclick="chatToggle(0);return false;">Приват</span></li>
+<li><span id="chat_bar_common" onclick="chatToggle(1);return false;">Общий</span></li>
+</ul>
+<textarea id="chat_field"></textarea><br>
+<input id="chat_input" type="text"><br>
+<input id="chat_send" type="button" value="Send" onclick="chatSend();return false;">
+</div>
+
+<script type="text/javascript">
+    showLoginForm()
+    
+    document.onkeydown = function(event) {
+        var events = event || window.event
+        if (events.keyCode == 116) {    // F5
+            logout()
+        }
+        if (self_player != undefined && maps[self_player.mapId] != undefined && events.keyCode == 65) { // a
+            maps[self_player.mapId].showAccessMap = maps[self_player.mapId].showAccessMap ? false : true
+        }
+        if (server != undefined && events.keyCode == 13) {  // Enter
+            chatSend()
+        }
+    }
+    dhtmlLoadScript("cache/objects.js", onLoadMapObjects)
+    dhtmlLoadScript("cache/groundtiles.js", onLoadGroundTiles)
+    var mapIds = new Array(1, 2)
+    dhtmlLoadScript("cache/map_1.js", function(event){return function(id){onLoadMap(id)}(mapIds[0])})
+    dhtmlLoadScript("cache/map_2.js", function(event){return function(id){onLoadMap(id)}(mapIds[1])})
+
+    /**
+     * Загружает скрипт.
+     * Thanks http://www.quizful.net/post/dynamic-javascript-loading
+     * @param url URL скрипта.
+     * @param handler Обработчик, который должен быть вызыван после загрузки
+     * скрипта.
+     */
+    function dhtmlLoadScript(url, handler) {
+        var e = document.createElement("script")
+        e.src = url
+        e.type="text/javascript"
+        e.onload = handler
+        document.getElementsByTagName("head")[0].appendChild(e)
+    }
+</script>
+
+</body>
+</html>
