@@ -6,7 +6,6 @@
 /client/**/*.bmp
 /client/**/*.ico
 /client/**/*.swf
-/server/webapp/imgs/
 *.sql
 *.sql.*
 *.sqlite
@@ -40,7 +39,6 @@ __pycache__/
 
 # Локальные UID/GID и точки монтирования контейнеров
 /.env
-/client/cache/
 /release/dist/
 /release/sprites/
 

@@ -27,9 +27,6 @@ docker compose stop client server db
 docker compose run --rm --no-deps --user 0:0 --entrypoint sh --volume "$(pwd)/client:/host-client:rw,z" client -c '
     chown -R "$LOCAL_UID:$LOCAL_GID" /home/developer/.npm /workspace/client/node_modules /workspace/client/dist
     chown "$LOCAL_UID:$LOCAL_GID" /host-client/node_modules /host-client/dist
-    if [ -d /host-client/cache ]; then
-        chown -R "$LOCAL_UID:$LOCAL_GID" /host-client/cache
-    fi
 '
 docker compose run --rm --no-deps --user 0:0 --entrypoint sh server -c '
     chown -R "$LOCAL_UID:$LOCAL_GID" /home/developer/.m2 /build/server /run/iivgrpg

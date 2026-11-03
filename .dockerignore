@@ -16,7 +16,6 @@ client/**/*.bmp
 client/**/*.ico
 client/**/*.swf
 client/mmorts/sprites
-client/cache
 release/dist
 release/sprites
 *.sql
