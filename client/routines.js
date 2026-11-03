@@ -455,7 +455,7 @@ function onLoadMap(mapId) {
         }
     }
 
-    maps[mapId] = new Map(mapId, mapW, mapH, sloader, spriteMap, accessMap,
+    maps[mapId] = new GameMap(mapId, mapW, mapH, sloader, spriteMap, accessMap,
                           eventMap)
     console.log("Загрузка карты %s (%sx%s) завершена.", mapId, mapW, mapH)
 }

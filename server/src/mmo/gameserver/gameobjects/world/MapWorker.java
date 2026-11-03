@@ -11,7 +11,7 @@ public class MapWorker implements Runnable {
 	private Map map;
 	//private long lastTime = -1;
 	
-	private boolean stopFlag;
+	private volatile boolean stopFlag;
 		
 	public boolean isStopFlag() {
 		return stopFlag;

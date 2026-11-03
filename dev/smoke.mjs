@@ -1,70 +1,93 @@
 import assert from 'node:assert/strict';
+import { runInNewContext } from 'node:vm';
 
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173/';
 const serverUrl = process.env.SERVER_URL || new URL('/ws/', clientUrl).href.replace(/^http/, 'ws');
-const response = await fetch(clientUrl, { signal: AbortSignal.timeout(10000) });
-assert.equal(response.status, 200);
-const html = await response.text();
-assert.match(html, /MMORTS test client/);
-for (const match of html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/gi)) {
-  const script = await fetch(new URL(match[1], clientUrl), { signal: AbortSignal.timeout(10000) });
-  assert.equal(script.status, 200, `Отсутствует скрипт: ${match[1]}`);
-  assert.doesNotMatch(script.headers.get('content-type') || '', /text\/html/);
+async function get(path) {
+  const response = await fetch(new URL(path, clientUrl), { signal: AbortSignal.timeout(10000) });
+  assert.equal(response.status, 200, path);
+  return response.text();
 }
-console.log('HTTP: страница клиента и все скрипты доступны.');
+const html = await get('/');
+assert.match(html, /MMORPG 1/);
+for (const match of html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/gi)) {
+  const script = await get(match[1]);
+  assert.doesNotMatch(script, /^<!DOCTYPE/i, match[1]);
+}
+const world = { MAPS: [] };
+for (const name of ['objects', 'groundtiles', 'map_1', 'map_2']) {
+  runInNewContext(await get(`cache/${name}.js`), world);
+}
+assert.equal(world.MAPS[1].tiles.length, 30);
+assert.ok(world.MAPS[1].objects.length > 0);
+assert.equal(world.MAPOBJECTS[1].tiles[0][0].acc, 0);
+console.log('HTTP: клиент MMORPG, скрипты, определения объектов и две карты доступны.');
 
 const sockets = [];
+function player(login) {
+  const socket = new WebSocket(serverUrl);
+  sockets.push(socket);
+  const messages = [];
+  let failure;
+  socket.addEventListener('message', ({ data }) => {
+    const message = JSON.parse(data);
+    messages.push(message);
+    if (['ERROR', 'WRONGPASS'].includes(message[0])) failure = new Error(data);
+  });
+  const send = (type, value) => socket.send(JSON.stringify(value === undefined ? [type] : [type, value]));
+  async function waitFor(type, predicate = () => true) {
+    const deadline = Date.now() + 10000;
+    while (Date.now() < deadline) {
+      if (failure) throw failure;
+      const message = messages.find(message => message[0] === type && predicate(message[1]));
+      if (message) return message[1];
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    throw new Error(`Нет ${type} для ${login}`);
+  }
+  return {
+    socket, send, waitFor,
+    async enter() {
+      await new Promise((resolve, reject) => {
+        socket.addEventListener('open', resolve, { once: true });
+        socket.addEventListener('error', reject, { once: true });
+      });
+      send('LOGIN', { login, password: 'test' });
+      return waitFor('HELLO');
+    },
+  };
+}
 try {
-  const players = await Promise.all([1, 2].map(number => new Promise((resolve, reject) => {
-    const socket = new WebSocket(serverUrl);
-    sockets.push(socket);
-    const units = new Map();
-    let clientId;
-    let confirms = 0;
-    let done = false;
-    const timer = setTimeout(() => finish(new Error('Нет подтверждения игрового состояния')), 15000);
-    function finish(error) {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      if (error) reject(error);
-      else resolve(clientId);
-    }
-    function apply(actions) {
-      for (const [type, value] of actions) {
-        if (type === 'NEWUNIT') units.set(value.id, value);
-        if (type === 'DELUNIT') units.delete(value);
-      }
-    }
-    function report(step) {
-      socket.send(JSON.stringify([['STATE', step, [...units.values()].map(unit => ['UNIT', unit]), []]]));
-    }
-    socket.addEventListener('open', () => {
-      socket.send(JSON.stringify([['LOGIN', { login: `Smoke${number}`, password: 'test' }]]));
-    });
-    socket.addEventListener('error', () => finish(new Error('Ошибка WebSocket')));
-    socket.addEventListener('close', () => finish(new Error('Сервер закрыл соединение')));
-    socket.addEventListener('message', ({ data }) => {
-      try {
-        const [type, value, state, actions] = JSON.parse(data);
-        if (type === 'WELCOME') {
-          clientId = value;
-          apply(actions);
-          assert.equal([...units.values()].filter(unit => unit.ownerId === clientId).length, 2);
-          report(state + 1);
-        } else if (type === 'CONFIRM') {
-          apply(state);
-          confirms++;
-          if (confirms >= 3 && units.size >= 4) finish();
-          report(value + 1);
-        } else if (type === 'ERROR') {
-          finish(new Error(`Ошибка игры: ${JSON.stringify(value)}`));
-        }
-      } catch (error) { finish(error); }
-    });
-  })));
-  assert.notEqual(players[0], players[1]);
-  console.log('WebSocket через прокси: два игрока вошли и подтвердили несколько шагов как минимум с четырьмя юнитами.');
+  // Повторяемые имена также проверяют вход в уже созданные аккаунты.
+  const first = player('SmokeOne');
+  const one = await first.enter();
+  const second = player('SmokeTwo');
+  const two = await second.enter();
+  assert.notEqual(one.id, two.id);
+  await first.waitFor('UNITSTATUS', value => value.unit.id === two.id);
+  const list = await second.waitFor('UNITSLIST');
+  assert.ok(list.units.some(value => value.unit.id === one.id));
+  first.send('PING');
+  await first.waitFor('PONG');
+  first.send('NEWCHAT', { message: 'v1 smoke' });
+  await second.waitFor('CHAT', value => value.message === 'v1 smoke');
+  first.send('MOVETO', { x: 5, y: 1 });
+  const move = await second.waitFor('MOVE', value => value.id === one.id);
+  assert.deepEqual({ x: move.way.at(-1).x, y: move.way.at(-1).y }, { x: 5, y: 1 });
+  for (const cell of move.way) {
+    assert.ok(!(cell.x === 3 && cell.y >= 1 && cell.y <= 4), 'Путь пересекает дерево');
+  }
+  // Проверяем исполнение пути сервером: новый наблюдатель получает итоговую позицию.
+  await new Promise(resolve => setTimeout(resolve, Math.ceil(move.way.length / 3 * 1000) + 500));
+  const observer = player('SmokeWatch');
+  await observer.enter();
+  const snapshot = await observer.waitFor('UNITSLIST');
+  const arrived = snapshot.units.find(value => value.unit.id === one.id).unit;
+  assert.equal(arrived.x, 5);
+  assert.equal(arrived.y, 1);
+  first.socket.close();
+  await second.waitFor('DELUNIT', value => value.id === one.id);
+  console.log('WebSocket: два персонажа, взаимная видимость, PING, чат, движение с обходом деревьев и выход.');
 } finally {
   for (const socket of sockets) socket.close();
 }

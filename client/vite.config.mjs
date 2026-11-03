@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  root: 'mmorts',
-  cacheDir: '../node_modules/.vite',
+  root: '.',
+  cacheDir: 'node_modules/.vite',
   server: {
     host: '0.0.0.0', port: 5173, strictPort: true,
     watch: { usePolling: true },
@@ -14,7 +14,7 @@ export default defineConfig({
     name: 'legacy-client-reload',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (req.url?.split('?')[0] === '/') req.url = '/mmorts.html';
+        if (req.url?.split('?')[0] === '/') req.url = '/test_001.html';
         next();
       });
     },

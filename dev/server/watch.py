@@ -44,6 +44,7 @@ def fingerprint():
 signal.signal(signal.SIGTERM, shutdown)
 signal.signal(signal.SIGINT, shutdown)
 RUN.mkdir(parents=True, exist_ok=True)
+(RUN / 'cache').mkdir(parents=True, exist_ok=True)
 previous = None
 try:
     while not stopping:
@@ -67,7 +68,7 @@ try:
                     ['java', '-jar', str(RUN / 'server.jar'), '/workspace/dev/server/config.xml'],
                     cwd=RUN, start_new_session=True,
                 )
-                print('Server started. Restart resets the in-memory game.', flush=True)
+                print('MMORPG server started. Reconnect clients after restart.', flush=True)
             else:
                 print('Build failed; keeping the previous server. Fix and save a source file to retry.', flush=True)
         if child is not None and child.poll() is not None:

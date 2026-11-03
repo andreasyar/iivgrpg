@@ -26,7 +26,7 @@ public class MmoServer {
     public static void main(String[] args) {
         try {
             // грузим конфиг
-            xmlconfig = new XMLConfig("server.xml");
+            xmlconfig = new XMLConfig(args.length > 0 ? args[0] : "server.xml");
 
             dbworker = new DBWorker(xmlconfig);
             gameserver = new GameServer(xmlconfig,dbworker);
@@ -41,18 +41,17 @@ public class MmoServer {
             webserver.start();
             System.out.println("Web server bind on port " + webserver.getPort());
 
-            // ждём любого ввода...
-            System.in.read();
-            // ...и закругляемся
-
-            gameserver.stop();
-            System.out.println("Game server stoped");
-
-            webserver.stop();
-            System.out.println("Web server shuts down");
-
-            dbworker.disconnect();
-            System.out.println("DB disconnected");
+            // Контейнер не имеет интерактивного stdin: работаем до сигнала остановки.
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    gameserver.stop();
+                    webserver.stop();
+                    dbworker.disconnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }, "mmorpg-shutdown"));
+            new java.util.concurrent.CountDownLatch(1).await();
         } catch (Exception e) {
             e.printStackTrace();
         }

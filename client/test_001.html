@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>Test</title>
+<title>MMORPG 1 — Test</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <style type="text/css" >
 #scr {
@@ -197,8 +197,8 @@ function scrOnClick(e) {
     // Вычислим клетку в которой был щелчёк и переместим туда игрока с
     // случайной скоростью.
     var tAxis = camera.reTranslateAxis(x, y)
-    var j = Map.getCellJOnMap(tAxis.x)
-    var i = Map.getCellIOnMap(tAxis.y)
+    var j = GameMap.getCellJOnMap(tAxis.x)
+    var i = GameMap.getCellIOnMap(tAxis.y)
     if (j != self_player.j || i != self_player.i) {
         // TODO Костыли костылики
         if (self_player.isMove) {
@@ -215,8 +215,8 @@ function scrOnClick(e) {
 
 <!-- Форма логина. -->
 <div id="login_form">
-Login: <input type="text" id="login_fild"><br>
-Password: <input type="password" id="password_fild"><br>
+Login: <input type="text" id="login_fild" value="test"><br>
+Password: <input type="password" id="password_fild" value="test"><br>
 Server: <input type="text" id="server_fild" value="ws://localhost:8015/"><br>
 <input type="button" id="login_button" value="Login" onclick="login(); return false;">
 </div>
@@ -239,6 +239,8 @@ a - показать/скрыть карту доступности<br>
 </div>
 
 <script type="text/javascript">
+    document.getElementById('server_fild').value =
+        (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/';
     showLoginForm()
     
     document.onkeydown = function(event) {
@@ -265,11 +267,21 @@ a - показать/скрыть карту доступности<br>
             camera.y += 1 * CELL_H;
         }
     }
-    dhtmlLoadScript("cache/objects.js", onLoadMapObjects)
-    dhtmlLoadScript("cache/groundtiles.js", onLoadGroundTiles)
-    var mapIds = new Array(1, 2)
-    dhtmlLoadScript("cache/map_1.js", function(event){return function(id){onLoadMap(id)}(mapIds[0])})
-    dhtmlLoadScript("cache/map_2.js", function(event){return function(id){onLoadMap(id)}(mapIds[1])})
+    // Сначала загружаем определения тайлов, затем карты: порядок обязателен.
+    document.getElementById('login_button').disabled = true;
+    dhtmlLoadScript("cache/objects.js", function() {
+        onLoadMapObjects();
+        dhtmlLoadScript("cache/groundtiles.js", function() {
+            onLoadGroundTiles();
+            dhtmlLoadScript("cache/map_1.js", function() {
+                onLoadMap(1);
+                dhtmlLoadScript("cache/map_2.js", function() {
+                    onLoadMap(2);
+                    document.getElementById('login_button').disabled = false;
+                });
+            });
+        });
+    });
 
     /**
      * Загружает скрипт.
@@ -283,10 +295,12 @@ a - показать/скрыть карту доступности<br>
         e.src = url
         e.type="text/javascript"
         e.onload = handler
+        e.onerror = function() {
+            document.getElementById('login_form').appendChild(
+                document.createTextNode(' Не удалось загрузить ' + url + '. Дождитесь запуска сервера и обновите страницу.')
+            );
+        }
         document.getElementsByTagName("head")[0].appendChild(e)
-    }
-    function staticLoadScript(url) {
-        document.write('<script src="', url, '" type="text/JavaScript"><\/script>');
     }
 </script>
 

@@ -159,8 +159,8 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
 
         // Добавим отправную точку пути.
         this.path = new Array(new WayPoint(
-            Map.getCellXOnMap(path[0][1]),
-            Map.getCellYOnMap(path[0][0]),
+            GameMap.getCellXOnMap(path[0][1]),
+            GameMap.getCellYOnMap(path[0][0]),
             null,
             GAMETIME.get(),
             null
@@ -170,10 +170,10 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
         for (i = 1; i < path.length; i++) {
             с1 = path[i - 1]
             с2 = path[i]
-            isDiag = Map.isDiagonalCells(с1[0], с1[1], с2[0], с2[1])
+            isDiag = GameMap.isDiagonalCells(с1[0], с1[1], с2[0], с2[1])
             this.path.push(new WayPoint(
-                Map.getCellXOnMap(с2[1]),
-                Map.getCellYOnMap(с2[0]),
+                GameMap.getCellXOnMap(с2[1]),
+                GameMap.getCellYOnMap(с2[0]),
                 isDiag ? dSpeed : hSpeed,
                 this.path[this.path.length - 1].t + t,
                 isDiag
@@ -231,8 +231,8 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
 
             this.x = this.path[this.path.length - 1].x
             this.y = this.path[this.path.length - 1].y
-            newi = Map.getCellIOnMap(this.y)
-            newj = Map.getCellJOnMap(this.x)
+            newi = GameMap.getCellIOnMap(this.y)
+            newj = GameMap.getCellJOnMap(this.x)
             if (newi != this.i || newj != this.j) {
                 this.j = newj
                 this.i = newi
@@ -268,8 +268,8 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
 
         this.x = wp1.x + _dx
         this.y = wp1.y + _dy
-        newi = Map.getCellIOnMap(this.y + CELL_HH)
-        newj = Map.getCellJOnMap(this.x + CELL_HW)
+        newi = GameMap.getCellIOnMap(this.y + CELL_HH)
+        newj = GameMap.getCellJOnMap(this.x + CELL_HW)
         if (newi != this.i || newj != this.j) {
             this.j = newj
             this.i = newi
@@ -326,12 +326,12 @@ function Player(id, mapId, j, i, name, spriteLoader, speed) {
     /**
      * Положение на карте по оси x.
      */
-    this.x = Map.getCellXOnMap(this.j)
+    this.x = GameMap.getCellXOnMap(this.j)
 
     /**
      * Положение на карте по оси y.
      */
-    this.y = Map.getCellYOnMap(this.i)
+    this.y = GameMap.getCellYOnMap(this.i)
 
     return this;
 }

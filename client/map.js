@@ -1,7 +1,7 @@
 
 // Карта.
 
-function Map(id, width, height, spriteLoader, spriteMap, accessMap, eventMap) {
+function GameMap(id, width, height, spriteLoader, spriteMap, accessMap, eventMap) {
 
     // Эту функцию можно вызвать только как конструктор (с new).
     if (this.constructor !== arguments.callee) {
@@ -80,7 +80,7 @@ function Map(id, width, height, spriteLoader, spriteMap, accessMap, eventMap) {
         if (this.camera.x < 0) {
             j_from = 0
         } else {
-            j_from = Map.getCellJOnMap(this.camera.x)
+            j_from = GameMap.getCellJOnMap(this.camera.x)
         }
         /*if (j_from < 0) {
             j_from = 0
@@ -92,21 +92,21 @@ function Map(id, width, height, spriteLoader, spriteMap, accessMap, eventMap) {
         if (this.camera.x + SCR_W >= this.w * CELL_W) {
             j_to = this.w - 1
         } else {
-            j_to = Map.getCellJOnMap(this.camera.x + SCR_W)
+            j_to = GameMap.getCellJOnMap(this.camera.x + SCR_W)
         }
         // Разрешение экрана может быть разное, поэтому при подсчете
-        // Map.getCellJOnMap можем случайно вылететь за края карты.
+        // GameMap.getCellJOnMap можем случайно вылететь за края карты.
         if (j_to >= this.w) {
             j_to = this.w - 1;
         }
 
         // i_from - индекс самой верхней клетки, которая умещается на экран.
         //var i_from = this.player.i - Math.ceil(SCR_HH / CELL_H) - 1
-        var i_from = Map.getCellIOnMap(this.camera.y)
+        var i_from = GameMap.getCellIOnMap(this.camera.y)
         if (this.camera.y < 0) {
             i_from = 0
         } else {
-            i_from = Map.getCellIOnMap(this.camera.y)
+            i_from = GameMap.getCellIOnMap(this.camera.y)
         }
         /*if (i_from < 0) {
             i_from = 0;
@@ -114,25 +114,25 @@ function Map(id, width, height, spriteLoader, spriteMap, accessMap, eventMap) {
 
         // i_to - индекс самой нижней клетки, которая умещается на экран.
         //var i_to = this.player.i + Math.ceil(SCR_HH / CELL_H)
-        var i_to = Map.getCellIOnMap(this.camera.y + SCR_H)
+        var i_to = GameMap.getCellIOnMap(this.camera.y + SCR_H)
         if (this.camera.y + SCR_H >= this.h * CELL_H) {
             i_to = this.h - 1
         } else {
-            i_to = Map.getCellIOnMap(this.camera.y + SCR_H)
+            i_to = GameMap.getCellIOnMap(this.camera.y + SCR_H)
         }
         // Разрешение экрана может быть разное, поэтому при подсчете
-        // Map.getCellIOnMap можем случайно вылететь за края карты.
+        // GameMap.getCellIOnMap можем случайно вылететь за края карты.
         if (i_to >= this.h) {
             i_to = this.h - 1;
         }
 
         var i, j, k,
-            tAxis   // Translated axis. Map -> Camera.
+            tAxis   // Translated axis. GameMap -> Camera.
 
         // Нарисуем клетки вычисленного региона карты.
         for (i = i_from; i <= i_to; i++) {
             for (j = j_from; j <= j_to; j++) {
-                tAxis = this.camera.translateAxis(Map.getCellXOnMap(j), Map.getCellYOnMap(i))
+                tAxis = this.camera.translateAxis(GameMap.getCellXOnMap(j), GameMap.getCellYOnMap(i))
                 context.drawImage(this.spriteMap[i][j].ground, tAxis.x, tAxis.y)
                 for (k = 0; k < this.spriteMap[i][j].objs.length; k++) {
                     context.drawImage(this.spriteMap[i][j].objs[k], tAxis.x, tAxis.y)
@@ -158,7 +158,7 @@ function Map(id, width, height, spriteLoader, spriteMap, accessMap, eventMap) {
                 if (path[i] == undefined) {
                     console.log("DEBUG", "Incorrect path or path cell index", path, i)
                 }
-                tAxis = this.camera.translateAxis(Map.getCellXOnMap(path[i][1]), Map.getCellYOnMap(path[i][0]))
+                tAxis = this.camera.translateAxis(GameMap.getCellXOnMap(path[i][1]), GameMap.getCellYOnMap(path[i][0]))
                 context.drawImage(this.loader.getSprite(sprId), tAxis.x, tAxis.y)
             }
         }*/
@@ -191,25 +191,25 @@ function Map(id, width, height, spriteLoader, spriteMap, accessMap, eventMap) {
 /**
  * Возвращает координату x карты, которую имеет клетка с индексом j.
  */
-Map.getCellXOnMap = function(j) {
+GameMap.getCellXOnMap = function(j) {
     return j * CELL_W
 };
 /**
  * Возвращает координату y карты, которую имеет клетка с индексом i.
  */
-Map.getCellYOnMap = function(i) {
+GameMap.getCellYOnMap = function(i) {
     return i * CELL_H
 };
 /**
  * Возвращает j индекс клетки по x координате карты.
  */
-Map.getCellJOnMap = function(x) {
+GameMap.getCellJOnMap = function(x) {
     return Math.floor(x / CELL_W)
 };
 /**
  * Возвращает i индекс клетки по y координате карты.
  */
-Map.getCellIOnMap = function(y) {
+GameMap.getCellIOnMap = function(y) {
     return Math.floor(y / CELL_H)
 };
 /**
@@ -221,7 +221,7 @@ Map.getCellIOnMap = function(y) {
  * @return Возвращает true, если клетки лежат на диагонали и false в
  * противном случае.
  */
-Map.isDiagonalCells = function(i1, j1, i2, j2) {
+GameMap.isDiagonalCells = function(i1, j1, i2, j2) {
     if (Math.abs(i1 - i2) == Math.abs(j1 - j2)) {
         return true
     }

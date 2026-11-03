@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+    <gameserver>
+        <cachepath>/run/iivgrpg/cache</cachepath>
+    </gameserver>
     <webserver>
         <port>8015</port>
     </webserver>

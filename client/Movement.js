@@ -65,8 +65,8 @@ function Movement(player, beg_time, path) {
 
         this.x = p1.x + _dx
         this.y = p1.y + _dy
-        newi = Map.getCellIOnMap(this.y + CELL_HH)
-        newj = Map.getCellJOnMap(this.x + CELL_HW)
+        newi = GameMap.getCellIOnMap(this.y + CELL_HH)
+        newj = GameMap.getCellJOnMap(this.x + CELL_HW)
         if (newi != this.i || newj != this.j) {
             this.j = newj
             this.i = newi

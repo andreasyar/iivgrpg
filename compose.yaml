@@ -13,6 +13,7 @@ services:
       - .:/workspace:rw,z
       - client_modules:/workspace/client/node_modules
       - client_dist:/workspace/client/dist
+      - world_cache:/workspace/client/cache:ro
       - npm_cache:/root/.npm
   server:
     build:
@@ -33,6 +34,7 @@ services:
       - server_target:/build/server
       - maven_cache:/root/.m2
       - server_run:/run/iivgrpg
+      - world_cache:/run/iivgrpg/cache
   db:
     image: mariadb:11.4
     environment:
@@ -47,7 +49,8 @@ services:
       retries: 30
       start_period: 10s
     volumes:
-      - database:/var/lib/mysql
+      - database_v1:/var/lib/mysql
+      - ./dev/db/001-world.sql:/docker-entrypoint-initdb.d/001-world.sql:ro,z
 volumes:
   client_modules:
   client_dist:
@@ -55,4 +58,5 @@ volumes:
   server_target:
   maven_cache:
   server_run:
-  database:
+  database_v1:
+  world_cache:

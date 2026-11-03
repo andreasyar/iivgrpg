@@ -66,6 +66,7 @@ public class WebServer {
 
     public void stop() throws Exception {
         channels.close().awaitUninterruptibly();
+        bootstrap.releaseExternalResources();
     }
 
     @Override

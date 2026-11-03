@@ -84,6 +84,9 @@ public class GameServer{
      */
     public void stop() {
         clients.disconnectAll();
+        for (mmo.gameserver.gameobjects.world.Map map : world.getMaps().values()) {
+            map.stopProcess();
+        }
     }
 
     public void addClient(Channel channel) {
