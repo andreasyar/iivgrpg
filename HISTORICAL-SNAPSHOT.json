@@ -1,0 +1,47 @@
+{
+  "branch": "historical/local-r129",
+  "description": "Поздние локальные карты и настройки клиентского проекта.",
+  "source_tree": ".",
+  "nearest_svn_revision": 129,
+  "nearest_revision_is_estimate": true,
+  "files": [
+    {
+      "path": "client/cache/groundtiles.js",
+      "source": "client/cache/groundtiles.js",
+      "sha256": "2b1f0581ca1a2e4e788a671db882552179df1cb9b11b333d8820edf0e4300507",
+      "source_mtime": "2012-05-16T10:00:41+00:00"
+    },
+    {
+      "path": "client/cache/map_1.js",
+      "source": "client/cache/map_1.js",
+      "sha256": "60ff5d1923c568ca00177c0153180d091f36561b1ec6e8ae04a8697665877d37",
+      "source_mtime": "2012-05-16T10:00:41+00:00"
+    },
+    {
+      "path": "client/cache/map_2.js",
+      "source": "client/cache/map_2.js",
+      "sha256": "bd6f21a24c0c5aeadfc5f868ddac4c7e5348303392da34534813ec03b6c8b105",
+      "source_mtime": "2012-05-16T10:00:41+00:00"
+    },
+    {
+      "path": "client/cache/objects.js",
+      "source": "client/cache/objects.js",
+      "sha256": "c6a54347ce805d02c4b267c2c266b337adbc6d7ae750997c372e68cb90b19428",
+      "source_mtime": "2012-05-16T10:00:41+00:00"
+    },
+    {
+      "path": "client/nbproject/project.properties",
+      "source": "client/nbproject/project.properties",
+      "sha256": "8dc5f0f8add374f2f81d79c04715da55bf615ae3ecc0c0b55d1afc4f9aa4ed10",
+      "source_mtime": "2012-05-16T09:49:28+00:00"
+    },
+    {
+      "path": "client/nbproject/project.xml",
+      "source": "client/nbproject/project.xml",
+      "sha256": "b6fac8b38c03a180ead428951218d3b5d3bf0b64d7777ee4c2687306c3787371",
+      "source_mtime": "2012-05-16T09:49:28+00:00"
+    }
+  ],
+  "date_policy": "Commit date is migration date, original working-copy commit date and author are unknown. File mtimes are provenance only.",
+  "layout": "Orphan branch containing ONLY novel files; missing files do not mean historical deletions."
+}
