@@ -37,3 +37,7 @@ __pycache__/
 
 # Local historical resources and database backups
 /.local-archive/
+
+# Локальные UID/GID и точки монтирования контейнеров
+/.env
+/client/cache/

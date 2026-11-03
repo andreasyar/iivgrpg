@@ -4,6 +4,14 @@ services:
     build:
       context: .
       dockerfile: dev/client/Dockerfile
+      args:
+        LOCAL_UID: ${LOCAL_UID:-1000}
+        LOCAL_GID: ${LOCAL_GID:-1000}
+    user: '${LOCAL_UID:-1000}:${LOCAL_GID:-1000}'
+    environment:
+      LOCAL_UID: ${LOCAL_UID:-1000}
+      LOCAL_GID: ${LOCAL_GID:-1000}
+      HOME: /home/developer
     init: true
     working_dir: /workspace/client
     command: sh -c 'npm ci --no-audit --no-fund && exec npm run dev'
@@ -13,16 +21,24 @@ services:
       - .:/workspace:rw,z
       - client_modules:/workspace/client/node_modules
       - client_dist:/workspace/client/dist
-      - npm_cache:/root/.npm
+      - npm_cache:/home/developer/.npm
   server:
     build:
       context: .
       dockerfile: dev/server/Dockerfile
+      args:
+        LOCAL_UID: ${LOCAL_UID:-1000}
+        LOCAL_GID: ${LOCAL_GID:-1000}
+    user: '${LOCAL_UID:-1000}:${LOCAL_GID:-1000}'
     init: true
     working_dir: /workspace/server
     command: python3 /workspace/dev/server/watch.py
     environment:
-      MAVEN_ARGS: -Diivgrpg.buildDirectory=/build/server/target
+      LOCAL_UID: ${LOCAL_UID:-1000}
+      LOCAL_GID: ${LOCAL_GID:-1000}
+      HOME: /home/developer
+      MAVEN_CONFIG: /home/developer/.m2
+      MAVEN_ARGS: -Duser.home=/home/developer -Diivgrpg.buildDirectory=/build/server/target
     depends_on:
       db:
         condition: service_healthy
@@ -31,11 +47,16 @@ services:
     volumes:
       - .:/workspace:ro,z
       - server_target:/build/server
-      - maven_cache:/root/.m2
+      - maven_cache:/home/developer/.m2
       - server_run:/run/iivgrpg
   db:
     image: mariadb:11.4
+    user: '${LOCAL_UID:-1000}:${LOCAL_GID:-1000}'
+    tmpfs:
+      - /run/mysqld:uid=${LOCAL_UID:-1000},gid=${LOCAL_GID:-1000},mode=0755
     environment:
+      LOCAL_UID: ${LOCAL_UID:-1000}
+      LOCAL_GID: ${LOCAL_GID:-1000}
       MARIADB_DATABASE: iivgrpg
       MARIADB_USER: iivgrpg
       MARIADB_PASSWORD: iivgrpg-dev
@@ -47,7 +68,11 @@ services:
       retries: 30
       start_period: 10s
     volumes:
-      - database:/var/lib/mysql
+      - type: volume
+        source: database
+        target: /var/lib/mysql
+        volume:
+          nocopy: true
 volumes:
   client_modules:
   client_dist:
