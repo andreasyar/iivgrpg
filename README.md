@@ -85,6 +85,24 @@ Compose заменит контейнер БД, подключив `database_v1`
 `docker compose down -v` удаляет тома стенда; перед следующим запуском снова
 выполнить `sh dev/setup.sh`.
 
+## Релизный дистрибутив
+
+Сборка архива с JAR, статическим клиентом, спрайтами и Compose:
+
+```sh
+python3 release/build.py
+```
+
+Результат — `release/dist/iivgrpg-1.5.0.tar.gz`. Распаковать и запустить:
+
+```sh
+tar -xzf release/dist/iivgrpg-1.5.0.tar.gz
+cd iivgrpg-1.5.0
+docker compose up -d --build
+```
+
+Клиент релиза: <http://localhost:8082>. Подробности — в `release/README.md`.
+
 ## Проверки и сборка
 
 После готовности сервера:

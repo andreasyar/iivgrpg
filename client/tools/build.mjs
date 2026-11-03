@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, readFile, rm } from 'node:fs/promises';
+import { access, cp, mkdir, readdir, readFile, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { Script } from 'node:vm';
@@ -14,16 +14,23 @@ for (const name of scripts) {
 for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
   new Script(match[1], { filename: 'test_001.html' });
 }
-// Кэш мира создаёт сервер из тестовой БД; сборка должна содержать готовые карты.
-for (const name of ['objects.js', 'groundtiles.js', 'map_1.js', 'map_2.js']) {
-  new Script(await readFile(join(source, 'cache', name), 'utf8'), { filename: name });
-}
 await mkdir(output, { recursive: true });
 for (const name of await readdir(output)) await rm(join(output, name), { recursive: true, force: true });
 for (const name of scripts) await cp(join(source, name), join(output, name));
-await cp(join(source, 'cache'), join(output, 'cache'), { recursive: true });
 for (const name of await readdir(source)) {
   if (/\.(png|jpg|jpeg|gif|svg)$/i.test(name)) await cp(join(source, name), join(output, name));
 }
 await cp(join(source, 'test_001.html'), join(output, 'index.html'));
-console.log('Клиент MMORPG 1 проверен и собран в dist/ вместе с кэшем мира и локальными ресурсами.');
+// Кэш мира создаёт сервер из БД; при сборке дистрибутива его может ещё не быть.
+const cacheDir = join(source, 'cache');
+try {
+  await access(cacheDir);
+  for (const name of ['objects.js', 'groundtiles.js', 'map_1.js', 'map_2.js']) {
+    new Script(await readFile(join(cacheDir, name), 'utf8'), { filename: name });
+  }
+  await cp(cacheDir, join(output, 'cache'), { recursive: true });
+  console.log('Клиент MMORPG 1 проверен и собран в dist/ вместе с кэшем мира и спрайтами.');
+} catch (error) {
+  if (error && error.code !== 'ENOENT') throw error;
+  console.log('Клиент MMORPG 1 проверен и собран в dist/ со спрайтами; кэш мира появится при запуске сервера.');
+}
