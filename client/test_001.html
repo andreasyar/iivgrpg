@@ -1,0 +1,287 @@
+<!DOCTYPE HTML>
+<!-- Supermarket Software Foundation (c) -->
+<html>
+<head>
+<title>Test</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css" >
+#scr {
+    border: 1px solid #000000;
+}
+#login_form {
+    background-color: tan;
+    z-index: 1;
+    position: absolute;
+    top: 300px;
+    left: 300px;
+    visibility: hidden;
+}
+</style>
+<<<<<<< .mine
+<script type="text/javascript" src="Constants.js"></script>
+=======
+<script type="text/javascript" src="Constants.js"></script>
+<script type="text/javascript" src="routines.js"></script>
+>>>>>>> .r50
+<script type="text/javascript" src="resources.js"></script>
+<script type="text/javascript" src="IdGenerator.js"></script>
+<script type="text/javascript" src="map.js"></script>
+<script type="text/javascript" src="spriteLoader.js"></script>
+<script type="text/javascript" src="Player.js"></script>
+<script type="text/javascript" src="ServerInteraction.js"></script>
+<script type="text/javascript" src="Messages.js"></script>
+</head>
+<<<<<<< .mine
+<body><!-- main_loop() onLoad="init()" -->
+=======
+<body onunload="logout();return false;">
+>>>>>>> .r50
+<script type="text/javascript">
+
+/*********************
+ * Создание холстов. *
+ *********************/
+
+// Основной холст, который будет показан клиенту.
+
+var scr = document.createElement('canvas');
+scr.id = "scr";
+scr.width = SCR_W;
+scr.height = SCR_H;
+// Добавление обработчика щелчка мышью происходит в init().
+var body = document.getElementsByTagName('body')[0];
+body.appendChild(scr);
+
+// Холст для рисования карты.
+
+var map_buffer = document.createElement('canvas');
+map_buffer.width = SCR_W;
+map_buffer.height = SCR_H;
+
+// Холст для рисования игроков.
+
+var players_buffer = document.createElement('canvas');
+players_buffer.width = SCR_W;
+players_buffer.height = SCR_H;
+
+/*************************
+ * Служебные переменные. *
+ *************************/
+
+<<<<<<< .mine
+// Свой игрок.
+var self_player;
+=======
+// Свой игрок.
+var self_player
+>>>>>>> .r50
+
+<<<<<<< .mine
+// Карта.
+var map;
+=======
+// Карта.
+var map
+>>>>>>> .r50
+
+<<<<<<< .mine
+// Сервер.
+var server;
+=======
+// Сервер.
+var server
+>>>>>>> .r50
+
+/************
+ * Функции. *
+ ************/
+
+<<<<<<< .mine
+// http://stackoverflow.com/questions/2936112/text-wrap-in-a-canvas-element
+// Разбивает фразу на отдельные слова и возвращает массив подфраз фразы phrase,
+// влезающих в ширину maxPxLength при выводе на экран.
+function getLines(ctx, phrase, maxPxLength, textFont) {
+    var wa = phrase.split(" "),
+        phraseArray = [],
+        lastPhrase = "",
+        l = maxPxLength,
+        measure = 0;   // Length of word tail in percent.
+    ctx.font = textFont;
+    for (var i = 0; i < wa.length; i++) {
+        var w = wa[i];
+        measure = ctx.measureText(lastPhrase + w).width;
+        if (measure < l) {
+            lastPhrase += (w + " ");
+        } else {
+            phraseArray.push(lastPhrase);
+            lastPhrase = w;
+        }
+        if (i === wa.length - 1) {
+            phraseArray.push(lastPhrase);
+            break;
+        }
+    }
+    return phraseArray;
+}
+
+function init(login_message) {
+    server = new ServerInteraction();
+    server.sendMessage(login_message);
+    if (server.connect("ws://localhost:8015/ws")) {
+        setTimeout("main_loop();", 1000 / FPS);
+    }
+}
+
+/**
+ * Главный цикл игры.
+ */
+function main_loop() {
+=======
+function login() {
+    if (server == undefined) {
+        server = new ServerInteraction()
+        server.connect(document.getElementById('server_fild').value)
+    } else if (server.socket.readyState == WebSocket.OPEN) {
+        server.sendMessage(new LoginMessage(getLogin(), getPassword()))
+    } else {
+        server.connect(document.getElementById('server_fild').value)
+    }
+    return false
+}
+
+function logout() {
+    if (server != undefined && server.socket != null) {
+        server.sendMessage(new LogoutMessage())
+        server.socket.close()
+    }
+}
+
+/**
+ * Главный цикл игры.
+ */
+function mainLoop() {
+>>>>>>> .r50
+    var scr_context = scr.getContext('2d');
+
+    // background
+    scr_context.fillStyle = "#FFFFEE";
+    scr_context.fillRect(0, 0, SCR_W, SCR_H);
+
+    // Пока что будем очищать всю конву целиком, а не только область в которой
+    // было что-то нарисовано.
+    players_buffer.getContext('2d').clearRect(0, 0, players_buffer.width,
+                                              players_buffer.height);
+    map_buffer.getContext('2d').clearRect(0, 0, map_buffer.width,
+                                          map_buffer.height);
+    //gui_buffer.getContext('2d').clearRect(0, 0, gui_buffer.width,
+    //                                      gui_buffer.height);
+
+    map.draw(map_buffer.getContext('2d'));
+    self_player.draw(players_buffer.getContext('2d'));
+
+    // draw map
+    scr_context.drawImage(map_buffer, 0, 0);
+
+    // draw players
+    scr_context.drawImage(players_buffer, 0, 0);
+
+    // Отрисовка буфера с гуи в главной конве. Сейчас не используется.
+    //scr_context.drawImage(gui_buffer, 0, 0);
+
+    setTimeout("mainLoop();", 1000 / FPS);
+}
+
+/**
+ * Обработчик щелчка мыли на главном холсте.
+ */
+function scrOnClick(e) {
+    var x;
+    var y;
+    if (e.pageX != undefined && e.pageY != undefined) {
+        x = e.pageX;
+        y = e.pageY;
+    }
+    else {
+        x = e.clientX + document.body.scrollLeft
+            + document.documentElement.scrollLeft;
+        y = e.clientY + document.body.scrollTop
+            + document.documentElement.scrollTop;
+    }
+    x -= scr.offsetLeft;
+    y -= scr.offsetTop;
+
+    // Код, оставшийся после тестирования своих элементов управления.
+    /*for (var i in drawable_objects) {
+        if (drawable_objects[i].contains != undefined) {
+            if (drawable_objects[i].contains(x, y)) {
+                drawable_objects[i].onPress(x, y);
+            }
+        }
+    }*/
+
+    // Вычислим клетку в которой был щелчёк и переместим туда игрока с
+    // случайной скоростью.
+    var j = Map.getCellJFromScreen(x, self_player.x, self_player.j);
+    var i = Map.getCellIFromScreen(y, self_player.y, self_player.i);
+    if (!self_player.is_move) {
+<<<<<<< .mine
+        self_player.speed = Math.floor(1 + Math.random() * 10); // 1-10
+        self_player.move(j, i);
+=======
+        self_player.speed = 3//Math.floor(1 + Math.random() * 10); // 1-10
+        var tmp = getPath(new Cell(self_player.i, self_player.j, 0, 0, null),
+                          new Cell(i, j, 0, 0, null))
+        if (tmp != false) {
+            var path = new Array(new Array(tmp.i, tmp.j))
+            while ( (tmp = tmp.parent) != null) {
+                path.push(new Array(tmp.i, tmp.j));
+            }
+            path = path.reverse()
+            console.log(path)
+            self_player.move(path);
+        } else {
+            console.log('Path not exits.')
+        }
+>>>>>>> .r50
+    }
+}
+
+<<<<<<< .mine
+// Выводит значение логина и пароля и скрывает форму логина.
+function login() {
+    var lgn = document.getElementById('login_fild').value;
+    var pass = document.getElementById('password_fild').value;
+    self_player = new Player(SCR_W / 2, SCR_H / 2, 5, 5, lgn,
+                             new SpriteLoader(SPRITES));
+    map = new Map(100, 100, self_player, new SpriteLoader(SPRITES));
+    alert(lgn + " " + pass);
+    document.getElementById('login_form').style.visibility = 'hidden';
+    init(new LoginMessage(lgn, pass));
+    return false;
+}
+
+=======
+>>>>>>> .r50
+</script>
+
+<!-- Форма логина. -->
+<div id="login_form">
+Login: <input type="text" id="login_fild"><br>
+Password: <input type="text" id="password_fild"><br>
+Server: <input type="server_fild" id="server_fild"
+               value="ws://localhost:8015/ws"><br>
+<input type="button" id="login_button" value="Login"
+       onclick="login(); return false;">
+</div>
+
+<script type="text/javascript">
+    showLoginForm();
+    document.onkeydown = function(event){
+        var events = event || window.event
+        if (events.keyCode == 116) {    // F5
+            logout()
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+{
+  "branch": "historical/client-conflicts",
+  "description": "Незавершённые SVN-конфликты и локальные .mine; исторические материалы для ручного разбора.",
+  "source_tree": "archive-snapshots/src/old/NetBeansProjects/client",
+  "nearest_svn_revision": 105,
+  "nearest_revision_is_estimate": true,
+  "files": [
+    {
+      "path": "client/Messages.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/Messages.js",
+      "sha256": "6d6478331058287123c179b277d29d790a4b243f85f23ce248b46ba664415288",
+      "source_mtime": "2011-08-18T06:20:00+00:00"
+    },
+    {
+      "path": "client/Player.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/Player.js",
+      "sha256": "9344ea8bc03300d344e6eec09c119647db36e2d66a57a1e48e1a9a8057da796a",
+      "source_mtime": "2011-08-18T06:20:00+00:00"
+    },
+    {
+      "path": "client/ServerInteraction.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/ServerInteraction.js",
+      "sha256": "d19d8687779ce79b15b8df8ae12b5f5038631634e09b0067f63142c1c23cc806",
+      "source_mtime": "2011-09-07T06:58:00+00:00"
+    },
+    {
+      "path": "client/ServerInteraction.js.mine",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/ServerInteraction.js.mine",
+      "sha256": "5fe0a68cff86f30c8e7b4b2e96ee1a023511b486a1ef1ac25e83a2743048f831",
+      "source_mtime": "2011-09-07T06:58:00+00:00"
+    },
+    {
+      "path": "client/cache/groundtiles.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/cache/groundtiles.js",
+      "sha256": "68f8658e5e7be1b6c3b0d168e118a54782a2d1eeca28bd3ddfda6d560d5eadf2",
+      "source_mtime": "2011-08-26T05:17:00+00:00"
+    },
+    {
+      "path": "client/cache/objects.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/cache/objects.js",
+      "sha256": "b829e32ccee2ba2b005499168f981d55e0fd6a415917fe0f3584ad76cd0893ab",
+      "source_mtime": "2011-08-26T05:17:00+00:00"
+    },
+    {
+      "path": "client/nbproject/project.properties",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/nbproject/project.properties",
+      "sha256": "4c0be83dee9fd6ddc9b3b0cb388d86763cdfc71bddb49de9a1b65ce929355e2c",
+      "source_mtime": "2011-08-12T03:41:00+00:00"
+    },
+    {
+      "path": "client/nbproject/project.xml",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/nbproject/project.xml",
+      "sha256": "6f7c83456838aeeff564900ed3f8466be3a1abc13dec3b2ee177d446f4eb4b47",
+      "source_mtime": "2011-08-12T03:41:00+00:00"
+    },
+    {
+      "path": "client/resources.js",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/resources.js",
+      "sha256": "a010b580104abba7c0971c35a077f025ef924a9ea6cc66b67274cd0b810e4358",
+      "source_mtime": "2011-08-17T10:38:00+00:00"
+    },
+    {
+      "path": "client/test_001.html",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/test_001.html",
+      "sha256": "bbab7e6043a7e0d1e6763ed78109f711d37e837581a097709eb5025de581949b",
+      "source_mtime": "2011-08-17T10:38:00+00:00"
+    },
+    {
+      "path": "client/test_001.html.mine",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/test_001.html.mine",
+      "sha256": "904a034af2ecead831aeea47a7eb5aa6990e3c70fe1a720224f9af488351068a",
+      "source_mtime": "2011-08-17T10:38:00+00:00"
+    },
+    {
+      "path": "client/ws07.html",
+      "source": "archive-snapshots/src/old/NetBeansProjects/client/ws07.html",
+      "sha256": "6aebe768dcd1dc2711b711aea68eff209dea7c0e4d08777a06ecfc147db7acd7",
+      "source_mtime": "2011-08-18T08:51:00+00:00"
+    }
+  ],
+  "date_policy": "Commit date is migration date, original working-copy commit date and author are unknown. File mtimes are provenance only.",
+  "layout": "Orphan branch containing ONLY novel files; missing files do not mean historical deletions."
+}
